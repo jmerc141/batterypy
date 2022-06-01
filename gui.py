@@ -3,7 +3,11 @@ import tkinter as tk
 from tkinter.ttk import *
 sys.path.append(".")
 from batt import battInfo
-  
+
+'''
+wmi seems to update every 3 seconds
+'''
+
 # creating tkinter window
 root = tk.Tk()
 root.title('BatteryInfo')
@@ -21,7 +25,6 @@ mybatts.create()
 
 bats = tk.StringVar(root)
 bats.set('empty')
-
 
 frame.pack()
 
@@ -52,9 +55,11 @@ def find_grid(frame, row, column):
 
 find_grid(frame, i+1, j).get()
 '''
+
 def adj():
     mybatts.update(1)
     print(mybatts.val[1].getter('DesignVoltage'))
+
 
 
 Button(root, text = 'Start', command = adj).pack(pady=10)

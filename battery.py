@@ -1,3 +1,7 @@
+"""
+this file is used for reference
+"""
+
 import wmi, time, sys
 
 c = wmi.WMI()
@@ -16,7 +20,7 @@ for i, b in enumerate(batts1):
         print("EstimatedTime:              %d hours %d mins" % 
             (b.EstimatedRunTime/60, b.EstimatedRunTime%60))
 
-batcycle= t.ExecQuery('select * from BatteryCycleCount')
+batcycle = t.ExecQuery('select * from BatteryCycleCount')
 for i, b in enumerate(batcycle):
     print('Battery %d Cycle Count: %d' % (i, b.CycleCount))
 
