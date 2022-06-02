@@ -2,7 +2,7 @@ import sys, time
 import tkinter as tk
 from tkinter.ttk import *
 sys.path.append(".")
-from batt import battInfo
+from batt import batteryInfo
 
 '''
 wmi seems to update every 3 seconds
@@ -20,7 +20,7 @@ frame['padding'] = (5,10,5,10)
 frame['borderwidth'] = 5
 frame['relief'] = 'sunken'
 
-mybatts = battInfo()
+mybatts = batteryInfo()
 mybatts.create()
 
 bats = tk.StringVar(root)
