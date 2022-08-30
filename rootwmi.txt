@@ -1,342 +1,355 @@
 root/cimv2
 	win32_battery
 		Chemistry: 2
-		ConfigManagerErrorCode:  
-		ConfigManagerUserConfig:  
+		ConfigManagerErrorCode:
+		ConfigManagerUserConfig:
 		CreationClassName: Win32_Battery
 		Description: Internal Battery
-		DesignCapacity:  
-		DesignVoltage: 14751
+		DesignCapacity:
+		DesignVoltage: 14751    /100 volts
 		DeviceID: B45ELG 0x4B384234314341
-		ErrorCleared:  
-		ErrorDescription:  
-		EstimatedChargeRemaining: 39
-		EstimatedRunTime: 72
-		ExpectedBatteryLife:  
-		ExpectedLife:  
-		FullChargeCapacity:  
-		InstallDate:  
-		LastErrorCode:  
-		MaxRechargeTime:  
+		ErrorCleared:
+		ErrorDescription:
+		EstimatedChargeRemaining: 39 %
+		EstimatedRunTime: 72 mins
+		ExpectedBatteryLife:
+		ExpectedLife:
+		FullChargeCapacity:
+		InstallDate:
+		LastErrorCode:
+		MaxRechargeTime:
 		Name: 0x4B384234314341
-		PNPDeviceID:  
+		PNPDeviceID:
 		PowerManagementCapabilities: 1
 		PowerManagementSupported: False
-		SmartBatteryVersion:  
+		SmartBatteryVersion:
 		Status: OK
-		StatusInfo:  
+		StatusInfo:
 		SystemCreationClassName: Win32_ComputerSystem
 		SystemName: ASUS-NITROV
-		TimeOnBattery:  
-		TimeToFullCharge:  
+		TimeOnBattery:
+		TimeToFullCharge:
 
 	cim_battery
 		Availability: 3
-		BatteryRechargeTime:  
+		BatteryRechargeTime:
 		BatteryStatus: 1
 		Caption: Internal Battery
 		Chemistry: 2
-		ConfigManagerErrorCode:  
-		ConfigManagerUserConfig:  
+		ConfigManagerErrorCode:
+		ConfigManagerUserConfig:
 		CreationClassName: Win32_Battery
 		Description: Internal Battery
-		DesignCapacity:  
+		DesignCapacity:
 		DesignVoltage: 14708
 		DeviceID: B45ELG 0x4B384234314341
-		ErrorCleared:  
-		ErrorDescription:  
+		ErrorCleared:
+		ErrorDescription:
 		EstimatedChargeRemaining: 37
 		EstimatedRunTime: 69
-		ExpectedBatteryLife:  
-		ExpectedLife:  
-		FullChargeCapacity:  
-		InstallDate:  
-		LastErrorCode:  
-		MaxRechargeTime:  
+		ExpectedBatteryLife:
+		ExpectedLife:
+		FullChargeCapacity:
+		InstallDate:
+		LastErrorCode:
+		MaxRechargeTime:
 		Name: 0x4B384234314341
-		PNPDeviceID:  
+		PNPDeviceID:
 		PowerManagementCapabilities: 1
 		PowerManagementSupported: False
-		SmartBatteryVersion:  
+		SmartBatteryVersion:
 		Status: OK
-		StatusInfo:  
+		StatusInfo:
 		SystemCreationClassName: Win32_ComputerSystem
 		SystemName: ASUS-NITROV
-		TimeOnBattery:  
-		TimeToFullCharge:  
+		TimeOnBattery:
+		TimeToFullCharge:
 
 root/wmi
 	BatteryControl
 	BatteryCycleCount
 		Active: True
-		Caption:  
+		Caption:
 		CycleCount: 0
-		Description:  
-		Frequency_Object:  
-		Frequency_PerfTime:  
-		Frequency_Sys100NS:  
+		Description:
+		Frequency_Object:
+		Frequency_PerfTime:
+		Frequency_Sys100NS:
 		InstanceName: ACPI\PNP0C0A\1_0
-		Name:  
+		Name:
 		Tag: 56
-		Timestamp_Object:  
-		Timestamp_PerfTime:  
-		Timestamp_Sys100NS:  
+		Timestamp_Object:
+		Timestamp_PerfTime:
+		Timestamp_Sys100NS:
 	BatteryFullChargedCapacity
-		Frequency_Sys100NS:  
-		FullChargedCapacity: 38760
+		Frequency_Sys100NS:
+		FullChargedCapacity: 38760 watt/hour
 		InstanceName: ACPI\PNP0C0A\1_0
-		Name:  
+		Name:
 		Tag: 56
-		Timestamp_Object:  
-		Timestamp_PerfTime:  
-		Timestamp_Sys100NS:  
+		Timestamp_Object:
+		Timestamp_PerfTime:
+		Timestamp_Sys100NS:
 	BatteryRuntime
 	BatteryStaticData
 		Active: True
 		Capabilities: -2147483648
-		Caption:  
+		Caption:
 		Chemistry: 1227712844
 		CriticalBias: 0
 		DefaultAlert1: 1140
 		DefaultAlert2: 3800
-		Description:  
+		Description:
 		DesignedCapacity: 48944
 		DeviceName: 0x4B384234314341
-		Frequency_Object:  
-		Frequency_PerfTime:  
-		Frequency_Sys100NS:  
+		Frequency_Object:
+		Frequency_PerfTime:
+		Frequency_Sys100NS:
 		Granularity0: 4896262721453
 		Granularity1: 210212879392880
 		Granularity2: 0
 		Granularity3: 0
 		InstanceName: ACPI\PNP0C0A\1_0
 		ManufactureDate: **************.**********
-		ManufactureName: LG 
-		Name:  
+		ManufactureName: LG
+		Name:
 		SerialNumber: B45E
 		Tag: 56
 		Technology: 1
-		Timestamp_Object:  
-		Timestamp_PerfTime:  
-		Timestamp_Sys100NS:  
+		Timestamp_Object:
+		Timestamp_PerfTime:
+		Timestamp_Sys100NS:
 		UniqueID: B45ELG 0x4B384234314341
 	BatteryStatus
 		Active: True
-		Caption:  
+		Caption:
 		ChargeRate: 0
 		Charging: False
 		Critical: False
-		Description:  
-		DischargeRate: 19061
+		Description:
+		DischargeRate: 19061 /100 watts
 		Discharging: True
-		Frequency_Object:  
-		Frequency_PerfTime:  
-		Frequency_Sys100NS:  
+		Frequency_Object:
+		Frequency_PerfTime:
+		Frequency_Sys100NS:
 		InstanceName: ACPI\PNP0C0A\1_0
-		Name:  
+		Name:
 		PowerOnline: False
-		RemainingCapacity: 9819
+		RemainingCapacity: 9819 watt/hours
 		Tag: 56
-		Timestamp_Object:  
-		Timestamp_PerfTime:  
-		Timestamp_Sys100NS:  
+		Timestamp_Object:
+		Timestamp_PerfTime:
+		Timestamp_Sys100NS:
 		Voltage: 14364
 	BatteryStatusChange
 	BatteryTagChange
 	BatteryTempurature
-		Active: 
-		Caption: 
-		Description: 
-		Frequency_Object: 
-		Frequency_PerfTime: 
-		Frequency_Sys100NS: 
-		InstanceName: 
-		Name: 
-		Tag: 
-		Temperature: 
-		Timestamp_Object: 
-		Timestamp_PerfTime: 
-		Timestamp_Sys100NS: 
+		Active:
+		Caption:
+		Description:
+		Frequency_Object:
+		Frequency_PerfTime:
+		Frequency_Sys100NS:
+		InstanceName:
+		Name:
+		Tag:
+		Temperature:
+		Timestamp_Object:
+		Timestamp_PerfTime:
+		Timestamp_Sys100NS:
 
 // Might only apply to desktop
 root/cimv2/power
 	cim_PowerSupply
-		ActiveInputVoltage:  
-		AdditionalAvailability:  
-		Availability:  
-		AvailableRequestedStates:  
-		Caption:  
-		CommunicationStatus:  
+		ActiveInputVoltage:
+		AdditionalAvailability:
+		Availability:
+		AvailableRequestedStates:
+		Caption:
+		CommunicationStatus:
 		CreationClassName: {EC69F5E0-2D03-49CA-A813-A7D5D62A5943}
 		Description: This class represents a static power supply on the system
-		DetailedStatus:  
+		DetailedStatus:
 		DeviceID: Power Supply 0
-		ElementName:  
+		ElementName:
 		EnabledDefault: 2
 		EnabledState: 5
-		ErrorCleared:  
-		ErrorDescription:  
-		HealthState:  
-		IdentifyingDescriptions:  
-		InstallDate:  
-		InstanceID:  
-		IsSwitchingSupply:  
-		LastErrorCode:  
-		MaxQuiesceTime:  
+		ErrorCleared:
+		ErrorDescription:
+		HealthState:
+		IdentifyingDescriptions:
+		InstallDate:
+		InstanceID:
+		IsSwitchingSupply:
+		LastErrorCode:
+		MaxQuiesceTime:
 		Name: Microsoft Power Supply Device
-		OperatingStatus:  
-		OperationalStatus:  
-		OtherEnabledState:  
-		OtherIdentifyingInfo:  
-		PowerManagementCapabilities:  
-		PowerManagementSupported:  
-		PowerOnHours:  
-		PrimaryStatus:  
-		Range1InputFrequencyHigh:  
-		Range1InputFrequencyLow:  
-		Range1InputVoltageHigh:  
-		Range1InputVoltageLow:  
-		Range2InputFrequencyHigh:  
-		Range2InputFrequencyLow:  
-		Range2InputVoltageHigh:  
-		Range2InputVoltageLow:  
+		OperatingStatus:
+		OperationalStatus:
+		OtherEnabledState:
+		OtherIdentifyingInfo:
+		PowerManagementCapabilities:
+		PowerManagementSupported:
+		PowerOnHours:
+		PrimaryStatus:
+		Range1InputFrequencyHigh:
+		Range1InputFrequencyLow:
+		Range1InputVoltageHigh:
+		Range1InputVoltageLow:
+		Range2InputFrequencyHigh:
+		Range2InputFrequencyLow:
+		Range2InputVoltageHigh:
+		Range2InputVoltageLow:
 		RequestedState: 12
 		Status: OK
-		StatusDescriptions:  
-		StatusInfo:  
+		StatusDescriptions:
+		StatusInfo:
 		SystemCreationClassName: {62134E43-6FC4-40CA-8DF8-D488C715D908}
 		SystemName: {BFFF7609-3BB6-4E26-86EC-A28B40478D41}
-		TimeOfLastStateChange:  
-		TotalOutputPower:  
-		TotalPowerOnHours:  
+		TimeOfLastStateChange:
+		TotalOutputPower:
+		TotalPowerOnHours:
 		TransitioningToState: 12
-		TypeOfRangeSwitching:  
+		TypeOfRangeSwitching:
 	win32_PowerMeter
-		Accuracy:  
-		AdditionalAvailability:  
-		Availability:  
-		AvailableRequestedStates:  
-		AveragingInterval:  
-		BaseUnits:  
-		BudgetEnabled:  
-		BudgetWriteable:  
-		Caption:  
-		CommunicationStatus:  
-		ConfiguredBudget:  
+		Accuracy:
+		AdditionalAvailability:
+		Availability:
+		AvailableRequestedStates:
+		AveragingInterval:
+		BaseUnits:
+		BudgetEnabled:
+		BudgetWriteable:
+		Caption:
+		CommunicationStatus:
+		ConfiguredBudget:
 		CreationClassName: Win32_PowerMeter
 		CurrentReading: 19350
-		CurrentState:  
-		Description:  
-		DetailedStatus:  
+		CurrentState:
+		Description:
+		DetailedStatus:
 		DeviceID: \\?\ACPI#PNP0C0A#1#{e849804e-c719-43d8-ac88-96b894c191e2}
-		ElementName:  
+		ElementName:
 		EnabledDefault: 2
 		EnabledState: 5
-		EnabledThresholds:  
-		ErrorCleared:  
-		ErrorDescription:  
-		HealthState:  
-		Hysteresis:  
-		IdentifyingDescriptions:  
-		InstallDate:  
-		InstanceID:  
-		IsLinear:  
-		LastErrorCode:  
-		LowerThresholdCritical:  
-		LowerThresholdFatal:  
-		LowerThresholdNonCritical:  
-		MaximumAveragingInterval:  
-		MaxOperatingBudget:  
-		MaxQuiesceTime:  
-		MaxReadable:  
-		MeterType:  
-		MinimumAveragingInterval:  
-		MinOperatingBudget:  
-		MinReadable:  
+		EnabledThresholds:
+		ErrorCleared:
+		ErrorDescription:
+		HealthState:
+		Hysteresis:
+		IdentifyingDescriptions:
+		InstallDate:
+		InstanceID:
+		IsLinear:
+		LastErrorCode:
+		LowerThresholdCritical:
+		LowerThresholdFatal:
+		LowerThresholdNonCritical:
+		MaximumAveragingInterval:
+		MaxOperatingBudget:
+		MaxQuiesceTime:
+		MaxReadable:
+		MeterType:
+		MinimumAveragingInterval:
+		MinOperatingBudget:
+		MinReadable:
 		Name: Microsoft Power Meter Device
-		NominalReading:  
-		NormalMax:  
-		NormalMin:  
-		OperatingStatus:  
-		OperationalStatus:  
-		OtherEnabledState:  
-		OtherIdentifyingInfo:  
-		OtherSensorTypeDescription:  
-		PollingInterval:  
-		PossibleStates:  
-		PowerManagementCapabilities:  
-		PowerManagementSupported:  
-		PowerOnHours:  
-		PrimaryStatus:  
-		RateUnits:  
+		NominalReading:
+		NormalMax:
+		NormalMin:
+		OperatingStatus:
+		OperationalStatus:
+		OtherEnabledState:
+		OtherIdentifyingInfo:
+		OtherSensorTypeDescription:
+		PollingInterval:
+		PossibleStates:
+		PowerManagementCapabilities:
+		PowerManagementSupported:
+		PowerOnHours:
+		PrimaryStatus:
+		RateUnits:
 		RequestedState: 12
-		Resolution:  
-		SamplingPeriod:  
-		SensorType:  
-		SettableThresholds:  
-		Status:  
-		StatusDescriptions:  
-		StatusInfo:  
-		SupportCapabilities:  
-		SupportedThresholds:  
+		Resolution:
+		SamplingPeriod:
+		SensorType:
+		SettableThresholds:
+		Status:
+		StatusDescriptions:
+		StatusInfo:
+		SupportCapabilities:
+		SupportedThresholds:
 		SystemCreationClassName: Win32_PowerMeter
 		SystemName: Microsoft Windows
-		TimeOfLastStateChange:  
-		Tolerance:  
-		TotalPowerOnHours:  
+		TimeOfLastStateChange:
+		Tolerance:
+		TotalPowerOnHours:
 		TransitioningToState: 12
-		UnitModifier:  
-		UpperThresholdCritical:  
-		UpperThresholdFatal:  
-		UpperThresholdNonCritical:  
+		UnitModifier:
+		UpperThresholdCritical:
+		UpperThresholdFatal:
+		UpperThresholdNonCritical:
 	win32_PowerSupply
-		ActiveInputVoltage:  
-		AdditionalAvailability:  
-		Availability:  
-		AvailableRequestedStates:  
-		Caption:  
-		CommunicationStatus:  
+		ActiveInputVoltage:
+		AdditionalAvailability:
+		Availability:
+		AvailableRequestedStates:
+		Caption:
+		CommunicationStatus:
 		CreationClassName: {EC69F5E0-2D03-49CA-A813-A7D5D62A5943}
 		Description: This class represents a static power supply on the system
-		DetailedStatus:  
+		DetailedStatus:
 		DeviceID: Power Supply 0
-		ElementName:  
+		ElementName:
 		EnabledDefault: 2
 		EnabledState: 5
-		ErrorCleared:  
-		ErrorDescription:  
-		HealthState:  
-		IdentifyingDescriptions:  
-		InstallDate:  
-		InstanceID:  
-		IsSwitchingSupply:  
-		LastErrorCode:  
-		MaxQuiesceTime:  
+		ErrorCleared:
+		ErrorDescription:
+		HealthState:
+		IdentifyingDescriptions:
+		InstallDate:
+		InstanceID:
+		IsSwitchingSupply:
+		LastErrorCode:
+		MaxQuiesceTime:
 		Name: Microsoft Power Supply Device
-		OperatingStatus:  
-		OperationalStatus:  
-		OtherEnabledState:  
-		OtherIdentifyingInfo:  
-		PowerManagementCapabilities:  
-		PowerManagementSupported:  
-		PowerOnHours:  
-		PrimaryStatus:  
-		Range1InputFrequencyHigh:  
-		Range1InputFrequencyLow:  
-		Range1InputVoltageHigh:  
-		Range1InputVoltageLow:  
-		Range2InputFrequencyHigh:  
-		Range2InputFrequencyLow:  
-		Range2InputVoltageHigh:  
-		Range2InputVoltageLow:  
+		OperatingStatus:
+		OperationalStatus:
+		OtherEnabledState:
+		OtherIdentifyingInfo:
+		PowerManagementCapabilities:
+		PowerManagementSupported:
+		PowerOnHours:
+		PrimaryStatus:
+		Range1InputFrequencyHigh:
+		Range1InputFrequencyLow:
+		Range1InputVoltageHigh:
+		Range1InputVoltageLow:
+		Range2InputFrequencyHigh:
+		Range2InputFrequencyLow:
+		Range2InputVoltageHigh:
+		Range2InputVoltageLow:
 		RequestedState: 12
 		Status: OK
-		StatusDescriptions:  
-		StatusInfo:  
+		StatusDescriptions:
+		StatusInfo:
 		SystemCreationClassName: {62134E43-6FC4-40CA-8DF8-D488C715D908}
 		SystemName: {BFFF7609-3BB6-4E26-86EC-A28B40478D41}
-		TimeOfLastStateChange:  
-		TotalOutputPower:  
-		TotalPowerOnHours:  
+		TimeOfLastStateChange:
+		TotalOutputPower:
+		TotalPowerOnHours:
 		TransitioningToState: 12
-		TypeOfRangeSwitching:  
+		TypeOfRangeSwitching:
+
+Descriptions
+    Availability
+    Type - UInt16
+    The availability and status of the device.  For example, the Availability property
+    indicates that the device is running and has full power (value=3), or is in a
+    warning (4), test (5), degraded (10) or power save state (values 13-15 and 17).
+    Regarding the power saving states, these are defined as follows: Value 13 ("Power Save - Unknown")
+    indicates that the device is known to be in a power save mode, but its exact status in this mode is unknown; 14
+    ("Power Save - Low Power Mode") indicates that the device is in a power save state but still functioning,
+    and may exhibit degraded performance; 15 ("Power Save - Standby") describes that the device is not functioning
+    but could be brought to full power 'quickly'; and value 17 ("Power Save - Warning") indicates that the device
+    is in a warning state, though also in a power save mode.
