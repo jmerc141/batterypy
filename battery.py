@@ -2,12 +2,13 @@
 this file is used for reference
 """
 
-import wmi, time, sys
+import wmi
 
 c = wmi.WMI()
 t = wmi.WMI(moniker = "//./root/wmi")
 
 batts1 = c.CIM_Battery()
+w32bat = c.CIM_Battery()
 for i, b in enumerate(batts1):
     print("Name:                       " + b.Name)
     print('Battery %d Design Capacity:  %d mWh' % (i, b.DesignCapacity or 0))
