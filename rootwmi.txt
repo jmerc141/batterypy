@@ -1,69 +1,38 @@
 root/cimv2
 	win32_battery
-		Chemistry: 2
-		ConfigManagerErrorCode:
-		ConfigManagerUserConfig:
-		CreationClassName: Win32_Battery
-		Description: Internal Battery
-		DesignCapacity:
-		DesignVoltage: 14751    /100 volts
-		DeviceID: B45ELG 0x4B384234314341
-		ErrorCleared:
-		ErrorDescription:
-		EstimatedChargeRemaining: 39 %
-		EstimatedRunTime: 72 mins
-		ExpectedBatteryLife:
-		ExpectedLife:
-		FullChargeCapacity:
-		InstallDate:
-		LastErrorCode:
-		MaxRechargeTime:
-		Name: 0x4B384234314341
-		PNPDeviceID:
-		PowerManagementCapabilities: 1
-		PowerManagementSupported: False
-		SmartBatteryVersion:
-		Status: OK
-		StatusInfo:
-		SystemCreationClassName: Win32_ComputerSystem
-		SystemName: ASUS-NITROV
-		TimeOnBattery:
-		TimeToFullCharge:
-
-	cim_battery
 		Availability: 3
-		BatteryRechargeTime:
-		BatteryStatus: 1
-		Caption: Internal Battery
-		Chemistry: 2
-		ConfigManagerErrorCode:
-		ConfigManagerUserConfig:
-		CreationClassName: Win32_Battery
-		Description: Internal Battery
-		DesignCapacity:
-		DesignVoltage: 14708
-		DeviceID: B45ELG 0x4B384234314341
-		ErrorCleared:
-		ErrorDescription:
-		EstimatedChargeRemaining: 37
-		EstimatedRunTime: 69
-		ExpectedBatteryLife:
-		ExpectedLife:
-		FullChargeCapacity:
-		InstallDate:
-		LastErrorCode:
-		MaxRechargeTime:
-		Name: 0x4B384234314341
-		PNPDeviceID:
-		PowerManagementCapabilities: 1
-		PowerManagementSupported: False
-		SmartBatteryVersion:
-		Status: OK
-		StatusInfo:
-		SystemCreationClassName: Win32_ComputerSystem
-		SystemName: ASUS-NITROV
-		TimeOnBattery:
-		TimeToFullCharge:
+        BatteryRechargeTime:
+        BatteryStatus: 1
+        Caption: Internal Battery
+        Chemistry: 2
+        ConfigManagerErrorCode:
+        ConfigManagerUserConfig:
+        CreationClassName: Win32_Battery
+        Description: Internal Battery
+        DesignCapacity:
+        DesignVoltage: 7600
+        DeviceID: 00EmdoorLi-ion Battery
+        ErrorCleared:
+        ErrorDescription:
+        EstimatedChargeRemaining: 75
+        EstimatedRunTime: 252
+        ExpectedBatteryLife:
+        ExpectedLife:
+        FullChargeCapacity:
+        InstallDate:
+        LastErrorCode:
+        MaxRechargeTime:
+        Name: Li-ion Battery
+        PNPDeviceID:
+        PowerManagementCapabilities: 1
+        PowerManagementSupported: False
+        SmartBatteryVersion:
+        Status: OK
+        StatusInfo:
+        SystemCreationClassName: Win32_ComputerSystem
+        SystemName: DESKTOP-3QOIFTC
+        TimeOnBattery:
+        TimeToFullCharge:
 
 root/wmi
 	BatteryControl

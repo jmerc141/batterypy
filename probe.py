@@ -12,42 +12,31 @@ class Probe:
 
     def __init__(self):
         # get instance of win32battery, [0] for first entry
-        # may need to refresh instance
+        # win32_battery
         self.win = wmi.WMI().instances('win32_battery')[0]  # [0] is battery
         self.__rootwmi = wmi.WMI(moniker="//./root/wmi")
 
-        self.runtime = self.__rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
+        self.runtime = self.tryinstance(self, 'BatteryRunTime')
         self.hours = int(self.runtime / 60)
         self.minutes = int(self.runtime % 60)
-        self.fullcap = \
-            self.__rootwmi.ExecQuery('select * from BatteryFullChargedCapacity where FullChargedCapacity > 0')[
-                0].fullchargedcapacity / 1000
-        try:
-            self.cyclecount = str(self.__rootwmi.ExecQuery('select * from BatteryCycleCount')[
-                                      0].cyclecount)
-        except IndexError:
-            print('Could not get Cycle Count')
-            self.cyclecount = 'N/A'
-        try:
-            # get units
-            self.temp = str(self.__rootwmi.ExecQuery('select * from BatteryTemperature')[0].temperature)
-        except IndexError:
-            print('Could net get Temperature')
-            self.temp = 'N/A'
+        self.fullcap = self.tryinstance(self, 'BatteryFullChargedCapacity')
+        self.cyclecount = self.tryinstance(self, 'BatteryCycleCount')
+        self.temp = self.tryinstance(self, 'BatteryTemperature')
 
         # later
         self.tagchange = self.__rootwmi.ExecQuery('select * from BatteryTagChange')
         self.statchange = self.__rootwmi.ExecQuery('selct * from BatteryStatusChange')
 
-        status = self.__rootwmi.ExecQuery('select * from BatteryStatus')
-        self.chargerate = status[0].chargerate / 1000
-        self.charging = status[0].charging
-        self.critical = status[0].critical
-        self.dischargerate = status[0].dischargerate / 1000
-        self.discharging = status[0].discharging
-        self.poweronline = status[0].poweronline
-        self.remcap = status[0].remainingcapacity / 1000
-        self.voltage = status[0].voltage / 1000
+        status = self.tryinstance(self, 'BatteryStatus')
+        self.chargerate = status.chargerate / 1000
+        self.charging = status.charging
+        self.critical = status.critical
+        self.dischargerate = status.dischargerate / 1000
+        self.discharging = status.discharging
+        self.poweronline = status.poweronline
+        self.remcap = status.remainingcapacity / 1000
+        self.voltage = status.voltage / 1000
+        self.cap2 = status.caption
 
         staticdata = self.__rootwmi.ExecQuery('select * from BatteryStaticData')
         self.capab = staticdata[0].capabilities
@@ -65,18 +54,52 @@ class Probe:
 
         # calculated values
         self.ah = self.remcap / self.voltage
-        self.amps = self.dischargerate / self.voltage
-        self.bathealth = (self.fullcap / self.descap) * 100  # percent
+        self.amps = self.getamps(self)
+        self.bathealth = (self.fullcap / self.descap) * 100  # overall battery degradation %
+
+        # require processing
+        self.batstat = self.getStatus(self)
+        self.avail = self.getAvail(self)
+        self.chem = self.getchem(self)
+        self.pmc = self.win.powermanagementcapabilities
+
+        if self.win.maxrechargetime is None:
+            self.maxre = 0
+        else:
+            self.maxre = self.win.maxrechargetime
+        self.rehours = self.maxre / 60
+        self.remins = self.maxre % 60
+
+        if self.win.timetofullcharge is None:
+            self.ttf = 0
+        else:
+            self.ttf = self.win.timetofullcharge
+        self.ttfhours = self.ttf / 60
+        self.ttfmins = self.ttf % 60
+
+        if self.win.timeonbattery is None:
+            self.tob = 0
+        else:
+            self.tob = self.win.timeonbattery       # in seconds
 
     def refresh(self):
         # queries all wmi values and resets variables
         print('refreshed')
+        self.win = wmi.WMI().instances('win32_battery')[0]
         self.runtime = self.__rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
+
         self.hours = int(self.runtime / 60)
         self.minutes = int(self.runtime % 60)
         self.fullcap = \
-            self.__rootwmi.ExecQuery('select * from BatteryFullChargedCapacity where FullChargedCapacity > 0')[
-                0].fullchargedcapacity / 1000
+            self.__rootwmi.ExecQuery('select * from BatteryFullChargedCapacity where FullChargedCapacity > 0') \
+                [0].fullchargedcapacity / 1000
+        req = self.__rootwmi.ExecQuery('select * from BatteryCycleCount')[0]
+
+        self.tryinstance(self, 'BatteryTemperature')
+        self.tryinstance(self, 'BatteryCycleCount')
+        self.tryinstance(self, 'BatteryRunTime')
+
+        '''
         try:
             self.cyclecount = str(self.__rootwmi.ExecQuery('select * from BatteryCycleCount')[
                                       0].cyclecount)
@@ -89,6 +112,7 @@ class Probe:
         except IndexError:
             print('Could net get Temperature')
             self.temp = 'N/A'
+        '''
 
         # later
         self.tagchange = self.__rootwmi.ExecQuery('select * from BatteryTagChange')
@@ -106,7 +130,115 @@ class Probe:
 
         # calculated values
         self.ah = self.remcap / self.voltage
-        self.amps = self.dischargerate / self.voltage
+        self.amps = self.getamps(self)
         self.bathealth = (self.fullcap / self.descap) * 100  # percent
 
+        # require processing
+        self.batstat = self.getStatus(self)
+        self.avail = self.getAvail(self)
+        self.chem = self.getchem(self)
 
+    @staticmethod
+    def getStatus(self):
+        statcode = self.win.batterystatus
+        if statcode == 1:
+            statcode = 'Other'
+        elif statcode == 2:
+            statcode = 'Unknown'
+        elif statcode == 3:
+            statcode = 'Fully Charged'
+        elif statcode == 4:
+            statcode = 'Low'
+        elif statcode == 5:
+            statcode = 'Critical'
+        elif statcode == 6:
+            statcode = 'Charging'
+        elif statcode == 7:
+            statcode = 'Charging and High'
+        elif statcode == 8:
+            statcode = 'Charging and Low'
+        elif statcode == 9:
+            statcode = 'Charging and Critical'
+        elif statcode == 10:
+            statcode = 'Undefined'
+        elif statcode == 11:
+            statcode = 'Partially Charged'
+        return statcode
+
+    @staticmethod
+    def getAvail(self):
+        # only call from refresh
+        avail = self.win.Availability
+        if avail == 3:
+            avail = 'Running at full power'
+        elif avail == 4:
+            avail = 'Warning'
+        elif avail == 5:
+            avail = 'Warning'
+        elif avail == 10:
+            avail = 'Test Mode'
+        elif avail == 12:
+            avail = 'Install Error'
+        elif avail == 13:
+            avail = 'Power Save'
+        elif avail == 14:
+            avail = 'Power Save (Low Power Mode)'
+        elif avail == 15:
+            avail = 'Power Save (Standby)'
+        elif avail == 17:
+            avail = 'Power Save (Warning)'
+        else:
+            avail = 'Unknown'
+        return avail
+
+    @staticmethod
+    def getchem(self):
+        # only call from refresh
+        if self.win.chemistry == 1:
+            chem = 'Other'
+        elif self.win.chemistry == 2:
+            chem = 'Unknown'
+        elif self.win.chemistry == 3:
+            chem = 'Lead Acid'
+        elif self.win.chemistry == 4:
+            chem = 'Nickel Cadmium'
+        elif self.win.chemistry == 5:
+            chem = 'Nickel Metal Hydride'
+        elif self.win.chemistry == 6:
+            chem = 'Lithium-ion'
+        elif self.win.chemistry == 7:
+            chem = 'Zinc air'
+        elif self.win.chemistry == 8:
+            chem = 'Lithium Polymer'
+        return chem
+
+    @staticmethod
+    def getamps(self):
+        if self.dischargerate > 0:
+            return round(self.dischargerate / self.voltage, 3)
+        elif self.chargerate > 0:
+            return round(self.chargerate / self.voltage, 3)
+
+    @staticmethod
+    def tryinstance(self, prop):
+        # for root/wmi instances
+        tmp = self.__rootwmi.instances(prop)
+        if not tmp:     # check if empty
+            return 'N/A'
+        else:
+            if prop == 'BatteryCycleCount':
+                return tmp[0].cyclecount
+            elif prop == 'BatteryTemperature':
+                return tmp[0].temperature
+            elif prop == 'BatteryFullChargedCapacity':
+                return tmp[0].fullchargedcapacity / 1000
+            elif prop == 'BatteryControl':
+                return tmp[0]
+            elif prop == 'BatteryRunTime':
+                return tmp[0].estimatedruntime / 60
+            elif prop == 'BatteryTemperature':
+                return tmp[0].temperature
+            elif prop == 'BatteryTemperature':
+                return tmp[0].temperature
+            else:
+                return tmp[0]
