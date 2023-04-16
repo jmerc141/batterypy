@@ -28,15 +28,16 @@ class App(tk.Tk):
                          values=(str(self.p.win.estimatedchargeremaining) + ' %', ''))
         self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
                          values=(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm ', ''))
+        self.tree.insert('system', 'end', 'power', text='Power', open=True)
+
         if self.p.charging:
             self.tree.insert('power', 'end', 'chargepower', text='Charge Power',
                              values=(str(self.p.chargerate) + ' W', ''))
             self.tree.insert('timerem', 'end', 'rechargetime', text='Max Recharge Time',
                              values=(str(self.p.rehours) + 'h ' + str(self.p.remins) + 'm', ''))
             self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge', values=(str(self.p.ttfhours) + 'h ' + str(self.p.ttfmins) + 'm', ''))
-
-        self.tree.insert('system', 'end', 'power', text='Power', open=True)
-        self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
+        else:   #discharging
+            self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
                          values=(str(self.p.dischargerate) + ' W', ''))
         self.tree.insert('power', 'end', 'amps', text='Amperage', values=(str(self.p.amps) + ' A', ''))
 
@@ -86,7 +87,11 @@ class App(tk.Tk):
         # overwrites values in the treeview, use only dynamic values
         self.pb['value'] += 10
         self.p.refresh()  # refreshes instance and updates variables
-        self.tree.set('dpower', 'val', str(self.p.dischargerate) + ' W')
+        if self.p.charging:
+            self.tree.set('chargepower', 'val', str(self.p.chargerate) + 'W')
+        else:
+            self.tree.set('dpower', 'val', str(self.p.dischargerate) + ' W')
+        
         self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
         self.tree.set('batstat', 'val', self.p.batstat)
         self.tree.set('voltnow', 'val', str(self.p.voltage) + ' V')
