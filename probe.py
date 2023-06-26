@@ -54,7 +54,7 @@ class Probe:
 
         # calculated values
         self.ah = self.remcap / self.voltage
-        self.amps = self.getamps(self)
+        self.amps = self.calcamps(self)
         self.bathealth = (self.fullcap / self.descap) * 100  # overall battery degradation %
 
         # require processing
@@ -130,7 +130,7 @@ class Probe:
 
         # calculated values
         self.ah = self.remcap / self.voltage
-        self.amps = self.getamps(self)
+        self.amps = self.calcamps(self)
         self.bathealth = (self.fullcap / self.descap) * 100  # percent
 
         # require processing
@@ -213,12 +213,13 @@ class Probe:
         return chem
 
     @staticmethod
-    def getamps(self):
+    def calcamps(self):
         if self.dischargerate > 0:
             return round(self.dischargerate / self.voltage, 3)
         elif self.chargerate > 0:
             return round(self.chargerate / self.voltage, 3)
 
+    # Some instances might not exist
     @staticmethod
     def tryinstance(self, prop):
         # for root/wmi instances

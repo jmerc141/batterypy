@@ -1,28 +1,43 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import style
+import probe
 
-style.use('fivethirtyeight')
+class Plot:
 
-fig = plt.figure()
-ax1 = fig.add_subplot(1,1,1)
-ax1.set_xlabel('Time (seconds)')
-ax1.set_ylabel('Amps')
-ax1.set_title('Battery Amps')
+    def animate(self, i):
+        self.a.refresh()
+        
+        i=i+1
+        self.xs.append(i)
+        self.ys.append(self.a.voltage)
+        
+        #ax1.clear()
+        self.ax1.plot(self.xs, self.ys, 'c-')
+        plt.draw()
 
-def animate(i):
-    graph_data = open('battery.data','r').read()
-    lines = graph_data.split('\n')
-    xs = []
-    ys = []
-    for line in lines:
-        if len(line) > 1:
-            x, y = line.split(',')
-            xs.append(float(x))
-            ys.append(float(y))
-    #ax1.clear()
-    ax1.plot(xs, ys)
 
-ani = animation.FuncAnimation(fig, animate, interval=3000)
+    def __init__(self):
+        style.use('fivethirtyeight')
+        fig = plt.figure(figsize=(10,6))
+        self.ax1 = fig.add_subplot(1,1,1)
+        self.ax1.set_xlabel('Time (seconds)')
+        self.ax1.set_ylabel('Amps')
+        self.ax1.set_title('Battery Amps')
+        fig.subplots_adjust(bottom=.13)
 
-plt.show()
+        plt.ylim([11.9,12])
+
+        self.a = probe.Probe()
+        #self.i=0
+        self.xs = []
+        self.ys = []
+
+        ani = animation.FuncAnimation(fig, self.animate, interval=1000)
+
+        plt.show()
+    
+
+if __name__ == '__main__':
+    p = Plot()
+    #p.init()
