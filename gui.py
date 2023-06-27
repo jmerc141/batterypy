@@ -1,7 +1,8 @@
 import sys, time
 import tkinter as tk
 from tkinter import ttk
-import probe
+import probe, test
+
 
 sys.path.append(".")
 
@@ -9,12 +10,13 @@ sys.path.append(".")
 wmi seems to update every 3 seconds
 '''
 
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
         # Probe object reference
         self.p = probe.Probe()
+        self.pl = test.Window(self)
+
         # creating tkinter window
         self.title('BatteryInfo')
         self.geometry('800x700')
@@ -51,7 +53,7 @@ class App(tk.Tk):
         self.tree.insert('capacity', 'end', 'fullcap', text='Full Charge Capacity',
                          values=(str(self.p.fullcap) + ' Wh', ''))
         self.tree.insert('capacity', 'end', 'bathealth', text='Battery Health',
-                         values=(str(self.p.bathealth) + ' %', ''))
+                         values=(str(round(self.p.bathealth, 3)) + ' %', ''))
 
         # extra info
         self.tree.insert('system', 'end', 'info', text='Extra Info', open=True)
@@ -63,7 +65,7 @@ class App(tk.Tk):
         self.tree.insert('info', 'end', 'batstat', text='Battery Status', values=(self.p.batstat, ''))
         self.tree.insert('info', 'end', 'chem', text='Chemistry', values=(self.p.chem, ''))
         self.tree.insert('info', 'end', text='Error Description', values=(self.p.win.ErrorDescription, ''))
-        self.tree.insert('info', 'end', text='Power Management Capabilities', values=(self.p.pmc, ''))
+        self.tree.insert('info', 'end', text='Power Mgmt Capabilities', values=(self.p.pmc, ''))
 
         # column headings
         self.tree.heading('#0', text='Property', anchor=tk.CENTER)
@@ -80,9 +82,18 @@ class App(tk.Tk):
         btn = tk.Button(self, text='Start', command=self.retree)
         btn.pack(side=tk.LEFT)
 
-        self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', length=100)
-        self.pb.pack(side=tk.LEFT)
+        s1 = tk.Scale(self, from_=0, to=12, orient=tk.HORIZONTAL, length=200)
+        s1.pack()
 
+        self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', length=200)
+        self.pb.pack(side=tk.BOTTOM)
+        
+        self.pl.init_window()
+
+        # initialize max var
+        self.maxv = self.p.voltage
+
+    # on button click (for now)
     def retree(self):
         # overwrites values in the treeview, use only dynamic values
         self.pb['value'] += 10
@@ -95,14 +106,23 @@ class App(tk.Tk):
         self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
         self.tree.set('batstat', 'val', self.p.batstat)
         self.tree.set('voltnow', 'val', str(self.p.voltage) + ' V')
+
+        if self.p.voltage > self.maxv:
+            self.maxv = self.p.voltage
+            self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
+
         self.tree.set('avail', 'val', self.p.avail)
         self.tree.set('amps', 'val', str(self.p.amps) + ' A')
+        
         if self.p.charging:
             self.tree.set('chargepower', 'val', str(self.p.chargerate) + ' W')
             self.tree.set('ttf', 'val', str(str(self.p.ttfhours) + 'h ' + str(self.p.ttfmins) + 'm'))
             self.tree.set('rechargetime', 'val', str(str(self.p.rehours) + 'h ' + str(self.p.remins) + 'm'))
+
+        # doubt this changs often
+        self.tree.set('fullcap', 'val', str(self.p.fullcap) + ' Wh')
         self.tree.set('chargepercent', 'val', str(self.p.win.estimatedchargeremaining) + ' %')
-        # full charge cap?
+        
         # error description
 
 

@@ -61,6 +61,7 @@ class Probe:
         self.batstat = self.getStatus(self)
         self.avail = self.getAvail(self)
         self.chem = self.getchem(self)
+        # look up codes
         self.pmc = self.win.powermanagementcapabilities
 
         if self.win.maxrechargetime is None:
@@ -84,7 +85,7 @@ class Probe:
 
     def refresh(self):
         # queries all wmi values and resets variables
-        print('refreshed')
+        #print('refreshed')
         self.win = wmi.WMI().instances('win32_battery')[0]
         self.runtime = self.__rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
 
@@ -98,21 +99,6 @@ class Probe:
         self.tryinstance(self, 'BatteryTemperature')
         self.tryinstance(self, 'BatteryCycleCount')
         self.tryinstance(self, 'BatteryRunTime')
-
-        '''
-        try:
-            self.cyclecount = str(self.__rootwmi.ExecQuery('select * from BatteryCycleCount')[
-                                      0].cyclecount)
-        except IndexError:
-            print('Could not get Cycle Count')
-            self.cyclecount = 'N/A'
-        try:
-            # get units
-            self.temp = str(self.__rootwmi.ExecQuery('select * from BatteryTemperature')[0].temperature)
-        except IndexError:
-            print('Could net get Temperature')
-            self.temp = 'N/A'
-        '''
 
         # later
         self.tagchange = self.__rootwmi.ExecQuery('select * from BatteryTagChange')
@@ -169,14 +155,28 @@ class Probe:
     def getAvail(self):
         # only call from refresh
         avail = self.win.Availability
-        if avail == 3:
+        if avail == 1:
+            avail = 'Other'
+        elif avail == 2:
+            avail = 'Unknown'
+        elif avail == 3:
             avail = 'Running at full power'
         elif avail == 4:
             avail = 'Warning'
         elif avail == 5:
-            avail = 'Warning'
-        elif avail == 10:
             avail = 'Test Mode'
+        elif avail == 6:
+            avail = 'N/A'
+        elif avail == 7:
+            avail = 'Power Off'
+        elif avail == 8:
+            avail = 'Off Line'
+        elif avail == 9:
+            avail = 'Off Duty'
+        elif avail == 10:
+            avail = 'Degraded'
+        elif avail == 11:
+            avail = 'Not Installed'
         elif avail == 12:
             avail = 'Install Error'
         elif avail == 13:
@@ -185,8 +185,18 @@ class Probe:
             avail = 'Power Save (Low Power Mode)'
         elif avail == 15:
             avail = 'Power Save (Standby)'
+        elif avail == 16:
+            avail = 'Power Cycle'
         elif avail == 17:
             avail = 'Power Save (Warning)'
+        elif avail == 18:
+            avail = 'Paused'
+        elif avail == 19:
+            avail = 'Not Ready'
+        elif avail == 20:
+            avail = 'Not Configured'
+        elif avail == 21:
+            avail = 'Quiesced'
         else:
             avail = 'Unknown'
         return avail
@@ -212,12 +222,16 @@ class Probe:
             chem = 'Lithium Polymer'
         return chem
 
+
     @staticmethod
     def calcamps(self):
         if self.dischargerate > 0:
             return round(self.dischargerate / self.voltage, 3)
         elif self.chargerate > 0:
             return round(self.chargerate / self.voltage, 3)
+        else:
+            return 0
+
 
     # Some instances might not exist
     @staticmethod

@@ -7,10 +7,11 @@ class Plot:
 
     def animate(self, i):
         self.a.refresh()
+        #print(self.a.amps)
         
         i=i+1
         self.xs.append(i)
-        self.ys.append(self.a.voltage)
+        self.ys.append(self.a.amps)
         
         #ax1.clear()
         self.ax1.plot(self.xs, self.ys, 'c-')
@@ -24,20 +25,20 @@ class Plot:
         self.ax1.set_xlabel('Time (seconds)')
         self.ax1.set_ylabel('Amps')
         self.ax1.set_title('Battery Amps')
-        fig.subplots_adjust(bottom=.13)
+        fig.subplots_adjust(bottom=.13, left=.11)
 
-        plt.ylim([11.9,12])
+        plt.ylim([11.8,12])
 
         self.a = probe.Probe()
         #self.i=0
         self.xs = []
         self.ys = []
 
-        ani = animation.FuncAnimation(fig, self.animate, interval=1000)
+        ani = animation.FuncAnimation(fig, self.animate, interval=1000, cache_frame_data=False)
 
         plt.show()
     
 
-if __name__ == '__main__':
-    p = Plot()
-    #p.init()
+#if __name__ == '__main__':
+#    p = Plot()
+    
