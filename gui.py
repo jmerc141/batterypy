@@ -13,17 +13,25 @@ wmi seems to update every 3 seconds
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.configure(bg='#2f2f2f')
+
+        s = ttk.Style()
+        self.tk.call('lappend', 'auto_path', 'C:\\cygwin64\\home\\mercantj\\awthemes-10.4.0')
+        self.tk.call('package', 'require', 'awdark')
+        s.theme_use('awdark')
+
         # Probe object reference
         self.p = probe.Probe()
-        self.pl = test.Window(self)
+        #self.pl = test.Window(self)
 
         # creating tkinter window
         self.title('BatteryInfo')
         self.geometry('800x700')
 
         # initialize tree view
-        self.tree = ttk.Treeview(self, columns=('val', 'max'), height=20)
+        self.tree = ttk.Treeview(self, columns=('val', 'max'), height=30)
         self.tree.insert('', 'end', 'system', text='System Name', values=(self.p.win.systemname, ''), open=True)
+        
         self.tree.insert('system', 0, 'name', text='Name', values=(self.p.win.name, ''))
         self.tree.insert('system', 'end', text='Status', values=(self.p.win.status, ''))
         self.tree.insert('system', 'end', 'chargepercent', text='Charge Percent',
@@ -41,6 +49,7 @@ class App(tk.Tk):
         else:   #discharging
             self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
                          values=(str(self.p.dischargerate) + ' W', ''))
+
         self.tree.insert('power', 'end', 'amps', text='Amperage', values=(str(self.p.amps) + ' A', ''))
 
         self.tree.insert('system', 'end', 'v', text='Voltage', open=True)
@@ -64,8 +73,32 @@ class App(tk.Tk):
         self.tree.insert('info', 'end', 'avail', text='Availability', values=(self.p.avail, ''))
         self.tree.insert('info', 'end', 'batstat', text='Battery Status', values=(self.p.batstat, ''))
         self.tree.insert('info', 'end', 'chem', text='Chemistry', values=(self.p.chem, ''))
-        self.tree.insert('info', 'end', text='Error Description', values=(self.p.win.ErrorDescription, ''))
-        self.tree.insert('info', 'end', text='Power Mgmt Capabilities', values=(self.p.pmc, ''))
+
+        if self.p.win.ErrorDescription is not None:
+            self.tree.insert('info', 'end', text='Error Description', values=(self.p.win.ErrorDescription, ''))
+
+        if self.p.pms:
+            # Set to True
+            self.tree.insert('info', 'end', text='Power Mgmt Capabilities', values=(self.p.pmc, ''))
+
+        self.tree.insert('', 'end', 'portable', text='Portable Battery', open=False)
+
+        # Portable Battery (all static values)
+        for i in self.p.portable.properties.keys():
+            val = getattr(self.p.portable, i)
+            # Not none values
+            if val:
+                if 'DesignVoltage' in i or 'DesignCapacity' in i:
+                    val = str(int(val) / 1000)
+                self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
+
+        self.tree.insert('', 'end', 'Raw', text='Raw Data', open=False)
+
+        for i in self.p.win.properties.keys():
+            val = getattr(self.p.win, i)
+            print(i, val)
+            if val:
+                self.tree.insert('Raw', 'end', str('b' + i), text=i, values=(val, ''))
 
         # column headings
         self.tree.heading('#0', text='Property', anchor=tk.CENTER)
@@ -77,18 +110,27 @@ class App(tk.Tk):
         self.tree.heading('1', text='Max')
         self.tree.column('1', width=150)
 
-        self.tree.pack(fill=tk.BOTH, side=tk.LEFT, padx=10, pady=10)
+        self.rowconfigure(0, weight=1)
 
-        btn = tk.Button(self, text='Start', command=self.retree)
-        btn.pack(side=tk.LEFT)
+        self.tree.grid(row=0, column=0, sticky='nsew', padx=(10,0), pady=(10,0))
 
-        s1 = tk.Scale(self, from_=0, to=12, orient=tk.HORIZONTAL, length=200)
-        s1.pack()
+        scrolly = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        scrollx = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.tree.xview)
+        scrolly.grid(row=0, column=1, sticky='ns', pady=(10,0))
+        scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
+
+        self.tree.configure(yscroll=scrolly.set)
+
+        btn = ttk.Button(self, text='Start', command=self.retree)
+        btn.grid(row=0, column=2, sticky='e')
+
+        s1 = ttk.Scale(self, from_=0, to=12, orient=tk.HORIZONTAL, length=200)
+        #s1.pack()
 
         self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', length=200)
-        self.pb.pack(side=tk.BOTTOM)
+        #self.pb.pack(side=tk.BOTTOM)
         
-        self.pl.init_window()
+        #self.pl.init_window()
 
         # initialize max var
         self.maxv = self.p.voltage
@@ -122,8 +164,7 @@ class App(tk.Tk):
         # doubt this changs often
         self.tree.set('fullcap', 'val', str(self.p.fullcap) + ' Wh')
         self.tree.set('chargepercent', 'val', str(self.p.win.estimatedchargeremaining) + ' %')
-        
-        # error description
+
 
 
 if __name__ == '__main__':

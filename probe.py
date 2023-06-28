@@ -7,18 +7,21 @@ add check for null, try except block
 
 import wmi
 
-
 class Probe:
 
     def __init__(self):
         # get instance of win32battery, [0] for first entry
-        # win32_battery
+
+        # ROOT\CIMV2
         self.win = wmi.WMI().instances('win32_battery')[0]  # [0] is battery
+        self.portable = wmi.WMI().instances('win32_portablebattery')[0]
+        # ROOT\WMI
         self.__rootwmi = wmi.WMI(moniker="//./root/wmi")
 
         self.runtime = self.tryinstance(self, 'BatteryRunTime')
         self.hours = int(self.runtime / 60)
         self.minutes = int(self.runtime % 60)
+        
         self.fullcap = self.tryinstance(self, 'BatteryFullChargedCapacity')
         self.cyclecount = self.tryinstance(self, 'BatteryCycleCount')
         self.temp = self.tryinstance(self, 'BatteryTemperature')
@@ -38,19 +41,19 @@ class Probe:
         self.voltage = status.voltage / 1000
         self.cap2 = status.caption
 
-        staticdata = self.__rootwmi.ExecQuery('select * from BatteryStaticData')
-        self.capab = staticdata[0].capabilities
-        self.chem = staticdata[0].chemistry
-        self.critbi = staticdata[0].criticalbias
-        self.critalarm = staticdata[0].defaultalert1 / 1000
-        self.lowalarm = staticdata[0].defaultalert2 / 1000
-        self.descap = staticdata[0].designedcapacity / 1000
-        self.mdate = staticdata[0].manufacturedate
-        self.sn = staticdata[0].serialnumber
-        self.g0 = float(staticdata[0].granularity0) / 100000000000
-        self.g1 = float(staticdata[0].granularity1) / 10000000000000
-        self.g2 = staticdata[0].granularity2
-        self.g3 = staticdata[0].granularity3
+        staticdata = self.__rootwmi.ExecQuery('select * from BatteryStaticData')[0]
+        self.capab = staticdata.capabilities
+        self.chem = staticdata.chemistry
+        self.critbi = staticdata.criticalbias
+        self.critalarm = staticdata.defaultalert1 / 1000
+        self.lowalarm = staticdata.defaultalert2 / 1000
+        self.descap = staticdata.designedcapacity / 1000
+        self.mdate = staticdata.manufacturedate
+        self.sn = staticdata.serialnumber
+        self.g0 = float(staticdata.granularity0) / 100000000000
+        self.g1 = float(staticdata.granularity1) / 10000000000000
+        self.g2 = staticdata.granularity2
+        self.g3 = staticdata.granularity3
 
         # calculated values
         self.ah = self.remcap / self.voltage
@@ -63,6 +66,8 @@ class Probe:
         self.chem = self.getchem(self)
         # look up codes
         self.pmc = self.win.powermanagementcapabilities
+        print(self.win.powermanagementsupported)
+        self.pms = self.win.powermanagementsupported
 
         if self.win.maxrechargetime is None:
             self.maxre = 0
@@ -87,13 +92,14 @@ class Probe:
         # queries all wmi values and resets variables
         #print('refreshed')
         self.win = wmi.WMI().instances('win32_battery')[0]
-        self.runtime = self.__rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
+        self.runtime = \
+            self.tryinstance(self, 'BatteryRunTime')
+            #self.__rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
 
         self.hours = int(self.runtime / 60)
         self.minutes = int(self.runtime % 60)
         self.fullcap = \
-            self.__rootwmi.ExecQuery('select * from BatteryFullChargedCapacity where FullChargedCapacity > 0') \
-                [0].fullchargedcapacity / 1000
+            self.__rootwmi.ExecQuery('select FullChargedCapacity from BatteryFullChargedCapacity where FullChargedCapacity > 0')[0].fullchargedcapacity / 1000
         req = self.__rootwmi.ExecQuery('select * from BatteryCycleCount')[0]
 
         self.tryinstance(self, 'BatteryTemperature')
@@ -104,15 +110,15 @@ class Probe:
         self.tagchange = self.__rootwmi.ExecQuery('select * from BatteryTagChange')
         self.statchange = self.__rootwmi.ExecQuery('selct * from BatteryStatusChange')
 
-        status = self.__rootwmi.ExecQuery('select * from BatteryStatus')
-        self.chargerate = status[0].chargerate / 1000
-        self.charging = status[0].charging
-        self.critical = status[0].critical
-        self.dischargerate = status[0].dischargerate / 1000
-        self.discharging = status[0].discharging
-        self.poweronline = status[0].poweronline
-        self.remcap = status[0].remainingcapacity / 1000
-        self.voltage = status[0].voltage / 1000
+        status = self.__rootwmi.ExecQuery('select * from BatteryStatus')[0]
+        self.chargerate = status.chargerate / 1000
+        self.charging = status.charging
+        self.critical = status.critical
+        self.dischargerate = status.dischargerate / 1000
+        self.discharging = status.discharging
+        self.poweronline = status.poweronline
+        self.remcap = status.remainingcapacity / 1000
+        self.voltage = status.voltage / 1000
 
         # calculated values
         self.ah = self.remcap / self.voltage
@@ -243,16 +249,15 @@ class Probe:
         else:
             if prop == 'BatteryCycleCount':
                 return tmp[0].cyclecount
-            elif prop == 'BatteryTemperature':
-                return tmp[0].temperature
             elif prop == 'BatteryFullChargedCapacity':
                 return tmp[0].fullchargedcapacity / 1000
             elif prop == 'BatteryControl':
                 return tmp[0]
             elif prop == 'BatteryRunTime':
-                return tmp[0].estimatedruntime / 60
-            elif prop == 'BatteryTemperature':
-                return tmp[0].temperature
+                if tmp[0].estimatedruntime <= 0:
+                    return 0
+                else:
+                    return tmp[0].estimatedruntime / 60
             elif prop == 'BatteryTemperature':
                 return tmp[0].temperature
             else:
