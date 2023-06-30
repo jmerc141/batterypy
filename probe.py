@@ -16,7 +16,7 @@ class Probe:
         self.win = wmi.WMI().instances('win32_battery')[0]  # [0] is battery
         self.portable = wmi.WMI().instances('win32_portablebattery')[0]
         # ROOT\WMI
-        self.__rootwmi = wmi.WMI(moniker="//./root/wmi")
+        self.rootwmi = wmi.WMI(moniker="//./root/wmi")
 
         self.runtime = self.tryinstance(self, 'BatteryRunTime')
         self.hours = int(self.runtime / 60)
@@ -27,8 +27,8 @@ class Probe:
         self.temp = self.tryinstance(self, 'BatteryTemperature')
 
         # later
-        self.tagchange = self.__rootwmi.ExecQuery('select * from BatteryTagChange')
-        self.statchange = self.__rootwmi.ExecQuery('selct * from BatteryStatusChange')
+        self.tagchange = self.rootwmi.ExecQuery('select * from BatteryTagChange')
+        self.statchange = self.rootwmi.ExecQuery('selct * from BatteryStatusChange')
 
         status = self.tryinstance(self, 'BatteryStatus')
         self.chargerate = status.chargerate / 1000
@@ -41,11 +41,11 @@ class Probe:
         self.voltage = status.voltage / 1000
         self.cap2 = status.caption
 
-        staticdata = self.__rootwmi.ExecQuery('select * from BatteryStaticData')[0]
+        staticdata = self.rootwmi.ExecQuery('select * from BatteryStaticData')[0]
         self.capab = staticdata.capabilities
         self.chem = staticdata.chemistry
         self.critbi = staticdata.criticalbias
-        self.critalarm = staticdata.defaultalert1 / 1000
+        self.critalarm = staticdata.defaultalert1 / 1000    #mwh
         self.lowalarm = staticdata.defaultalert2 / 1000
         self.descap = staticdata.designedcapacity / 1000
         self.mdate = staticdata.manufacturedate
@@ -66,15 +66,14 @@ class Probe:
         self.chem = self.getchem(self)
         # look up codes
         self.pmc = self.win.powermanagementcapabilities
-        print(self.win.powermanagementsupported)
         self.pms = self.win.powermanagementsupported
 
         if self.win.maxrechargetime is None:
             self.maxre = 0
         else:
             self.maxre = self.win.maxrechargetime
-        self.rehours = self.maxre / 60
-        self.remins = self.maxre % 60
+            self.rehours = self.maxre / 60
+            self.remins = self.maxre % 60
 
         if self.win.timetofullcharge is None:
             self.ttf = 0
@@ -94,23 +93,23 @@ class Probe:
         self.win = wmi.WMI().instances('win32_battery')[0]
         self.runtime = \
             self.tryinstance(self, 'BatteryRunTime')
-            #self.__rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
+            #self.rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
 
         self.hours = int(self.runtime / 60)
         self.minutes = int(self.runtime % 60)
         self.fullcap = \
-            self.__rootwmi.ExecQuery('select FullChargedCapacity from BatteryFullChargedCapacity where FullChargedCapacity > 0')[0].fullchargedcapacity / 1000
-        req = self.__rootwmi.ExecQuery('select * from BatteryCycleCount')[0]
+            self.rootwmi.ExecQuery('select FullChargedCapacity from BatteryFullChargedCapacity where FullChargedCapacity > 0')[0].fullchargedcapacity / 1000
+        req = self.rootwmi.ExecQuery('select * from BatteryCycleCount')[0]
 
         self.tryinstance(self, 'BatteryTemperature')
         self.tryinstance(self, 'BatteryCycleCount')
         self.tryinstance(self, 'BatteryRunTime')
 
         # later
-        self.tagchange = self.__rootwmi.ExecQuery('select * from BatteryTagChange')
-        self.statchange = self.__rootwmi.ExecQuery('selct * from BatteryStatusChange')
+        self.tagchange = self.rootwmi.ExecQuery('select * from BatteryTagChange')
+        self.statchange = self.rootwmi.ExecQuery('selct * from BatteryStatusChange')
 
-        status = self.__rootwmi.ExecQuery('select * from BatteryStatus')[0]
+        status = self.rootwmi.ExecQuery('select * from BatteryStatus')[0]
         self.chargerate = status.chargerate / 1000
         self.charging = status.charging
         self.critical = status.critical
@@ -243,7 +242,7 @@ class Probe:
     @staticmethod
     def tryinstance(self, prop):
         # for root/wmi instances
-        tmp = self.__rootwmi.instances(prop)
+        tmp = self.rootwmi.instances(prop)
         if not tmp:     # check if empty
             return 'N/A'
         else:

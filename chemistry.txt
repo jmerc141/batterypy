@@ -1,8 +1,0 @@
-Enumeration that describes the battery's chemistry.
-Other (1)
-Unknown (2)
-Lead Acid (3)
-Nickel Cadmium (4)
-Nickel Metal Hydride (5)
-Lithium-ion (6)
-Zinc air (7)

@@ -16,9 +16,12 @@ class App(tk.Tk):
         self.configure(bg='#2f2f2f')
 
         s = ttk.Style()
-        self.tk.call('lappend', 'auto_path', 'C:\\cygwin64\\home\\mercantj\\awthemes-10.4.0')
-        self.tk.call('package', 'require', 'awdark')
-        s.theme_use('awdark')
+        self.tk.call('lappend', 'auto_path', '..\\awthemes-10.4.0')
+        try:
+            self.tk.call('package', 'require', 'awdark')
+            s.theme_use('awdark')
+        except:
+            print('default theme')
 
         # Probe object reference
         self.p = probe.Probe()
@@ -38,6 +41,10 @@ class App(tk.Tk):
                          values=(str(self.p.win.estimatedchargeremaining) + ' %', ''))
         self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
                          values=(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm ', ''))
+        if self.p.win.maxrechargetime is not None:
+            self.tree.insert('system', 'end', 'maxchargetime', text='Max Recharge Time',
+            values=(self.p.win.maxrechargetime,''))
+
         self.tree.insert('system', 'end', 'power', text='Power', open=True)
 
         if self.p.charging:
@@ -81,6 +88,9 @@ class App(tk.Tk):
             # Set to True
             self.tree.insert('info', 'end', text='Power Mgmt Capabilities', values=(self.p.pmc, ''))
 
+        self.tree.insert('info', 'end', text='Low Alarm', values=(str(self.p.lowalarm) + ' Wh',''))
+        self.tree.insert('info', 'end', text='Critical Alarm', values=(str(self.p.critalarm) + ' Wh', ''))
+
         self.tree.insert('', 'end', 'portable', text='Portable Battery', open=False)
 
         # Portable Battery (all static values)
@@ -96,7 +106,7 @@ class App(tk.Tk):
 
         for i in self.p.win.properties.keys():
             val = getattr(self.p.win, i)
-            print(i, val)
+            #print(i, val)
             if val:
                 self.tree.insert('Raw', 'end', str('b' + i), text=i, values=(val, ''))
 
@@ -105,7 +115,7 @@ class App(tk.Tk):
         self.tree.column('#0', width=200, stretch=tk.YES)
 
         self.tree.heading('0', text='Value')
-        self.tree.column('0', width=150)
+        self.tree.column('0', width=200)
 
         self.tree.heading('1', text='Max')
         self.tree.column('1', width=150)
@@ -132,23 +142,42 @@ class App(tk.Tk):
         
         #self.pl.init_window()
 
-        # initialize max var
+        # initialize max var, and initialize column
         self.maxv = self.p.voltage
+        self.maxdis = self.p.dischargerate
+        self.maxcharge = self.p.chargerate
+        self.maxamps = self.p.amps
+
+        if self.p.charging:
+            self.tree.set('charge', 'max', str(self.maxcharge) + ' W')
+        else:
+            self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
+        self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
+        self.tree.set('amps', 'max', str(self.maxamps) + ' A')
+
 
     # on button click (for now)
     def retree(self):
+        print('retree')
         # overwrites values in the treeview, use only dynamic values
         self.pb['value'] += 10
         self.p.refresh()  # refreshes instance and updates variables
         if self.p.charging:
-            self.tree.set('chargepower', 'val', str(self.p.chargerate) + 'W')
+            self.tree.set('chargepower', 'val', str(self.p.chargerate) + ' W')
+            if self.p.chargerate > self.maxcharge:
+                self.maxcharge = self.p.chargerate
+                self.tree.set('charge', 'max', str(self.maxcharge) + ' W')
         else:
             self.tree.set('dpower', 'val', str(self.p.dischargerate) + ' W')
+            if self.p.dischargerate > self.maxdis:
+                self.maxdis = self.p.dischargerate
+                self.tree.set('dpower', 'maxdis', str(self.maxdis) + ' W')
         
         self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
         self.tree.set('batstat', 'val', self.p.batstat)
         self.tree.set('voltnow', 'val', str(self.p.voltage) + ' V')
 
+        # Max values column
         if self.p.voltage > self.maxv:
             self.maxv = self.p.voltage
             self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
