@@ -1,0 +1,6 @@
+# for python cache
+*cache*
+*.spec
+build/
+dist/
+.idea/

@@ -14,13 +14,13 @@ class Probe:
 
         # ROOT\CIMV2
         self.win = wmi.WMI().instances('win32_battery')[0]  # [0] is battery
-        self.portable = wmi.WMI().instances('win32_portablebattery')[0]
+        # might not exist
+        if wmi.WMI().instances('win32_portablebattery'):
+            self.portable = wmi.WMI().instances('win32_portablebattery')[0]
         # ROOT\WMI
         self.rootwmi = wmi.WMI(moniker="//./root/wmi")
 
         self.runtime = self.tryinstance(self, 'BatteryRunTime')
-        self.hours = int(self.runtime / 60)
-        self.minutes = int(self.runtime % 60)
         
         self.fullcap = self.tryinstance(self, 'BatteryFullChargedCapacity')
         self.cyclecount = self.tryinstance(self, 'BatteryCycleCount')
@@ -91,19 +91,19 @@ class Probe:
         # queries all wmi values and resets variables
         #print('refreshed')
         self.win = wmi.WMI().instances('win32_battery')[0]
-        self.runtime = \
-            self.tryinstance(self, 'BatteryRunTime')
-            #self.rootwmi.ExecQuery('select * from BatteryRunTime')[0].estimatedruntime / 60
 
-        self.hours = int(self.runtime / 60)
-        self.minutes = int(self.runtime % 60)
+        if self.runtime is not None:
+            self.runtime = \
+                self.tryinstance(self, 'BatteryRunTime')
+            self.hours = int(self.runtime / 60)
+            self.minutes = int(self.runtime % 60)
+
         self.fullcap = \
             self.rootwmi.ExecQuery('select FullChargedCapacity from BatteryFullChargedCapacity where FullChargedCapacity > 0')[0].fullchargedcapacity / 1000
         req = self.rootwmi.ExecQuery('select * from BatteryCycleCount')[0]
 
         self.tryinstance(self, 'BatteryTemperature')
         self.tryinstance(self, 'BatteryCycleCount')
-        self.tryinstance(self, 'BatteryRunTime')
 
         # later
         self.tagchange = self.rootwmi.ExecQuery('select * from BatteryTagChange')
@@ -244,7 +244,7 @@ class Probe:
         # for root/wmi instances
         tmp = self.rootwmi.instances(prop)
         if not tmp:     # check if empty
-            return 'N/A'
+            return None
         else:
             if prop == 'BatteryCycleCount':
                 return tmp[0].cyclecount
@@ -254,8 +254,12 @@ class Probe:
                 return tmp[0]
             elif prop == 'BatteryRunTime':
                 if tmp[0].estimatedruntime <= 0:
+                    self.hours = 0
+                    self.minutes = 0
                     return 0
                 else:
+                    self.hours = int(tmp[0].estimatedruntime / 60)
+                    self.minutes = int(tmp[0].estimatedruntime % 60)
                     return tmp[0].estimatedruntime / 60
             elif prop == 'BatteryTemperature':
                 return tmp[0].temperature

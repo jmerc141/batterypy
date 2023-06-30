@@ -13,19 +13,20 @@ wmi seems to update every 3 seconds
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.configure(bg='#2f2f2f')
 
         s = ttk.Style()
         self.tk.call('lappend', 'auto_path', '..\\awthemes-10.4.0')
         try:
             self.tk.call('package', 'require', 'awdark')
             s.theme_use('awdark')
+            self.configure(bg='#2f2f2f')
         except:
             print('default theme')
 
         # Probe object reference
         self.p = probe.Probe()
-        #self.pl = test.Window(self)
+        # Create graph window
+        self.pl = test.Window(self)
 
         # creating tkinter window
         self.title('BatteryInfo')
@@ -39,8 +40,11 @@ class App(tk.Tk):
         self.tree.insert('system', 'end', text='Status', values=(self.p.win.status, ''))
         self.tree.insert('system', 'end', 'chargepercent', text='Charge Percent',
                          values=(str(self.p.win.estimatedchargeremaining) + ' %', ''))
-        self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
+
+        if self.p.runtime is not None:
+            self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
                          values=(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm ', ''))
+
         if self.p.win.maxrechargetime is not None:
             self.tree.insert('system', 'end', 'maxchargetime', text='Max Recharge Time',
             values=(self.p.win.maxrechargetime,''))
@@ -106,7 +110,6 @@ class App(tk.Tk):
 
         for i in self.p.win.properties.keys():
             val = getattr(self.p.win, i)
-            #print(i, val)
             if val:
                 self.tree.insert('Raw', 'end', str('b' + i), text=i, values=(val, ''))
 
@@ -132,7 +135,7 @@ class App(tk.Tk):
         self.tree.configure(yscroll=scrolly.set)
 
         btn = ttk.Button(self, text='Start', command=self.retree)
-        btn.grid(row=0, column=2, sticky='e')
+        btn.grid(row=1, column=2, sticky='s')
 
         s1 = ttk.Scale(self, from_=0, to=12, orient=tk.HORIZONTAL, length=200)
         #s1.pack()
@@ -159,6 +162,7 @@ class App(tk.Tk):
     # on button click (for now)
     def retree(self):
         print('retree')
+        self.pl.Clear()
         # overwrites values in the treeview, use only dynamic values
         self.pb['value'] += 10
         self.p.refresh()  # refreshes instance and updates variables
@@ -172,8 +176,9 @@ class App(tk.Tk):
             if self.p.dischargerate > self.maxdis:
                 self.maxdis = self.p.dischargerate
                 self.tree.set('dpower', 'maxdis', str(self.maxdis) + ' W')
-        
-        self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
+        if self.p.runtime is not None:
+            self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
+
         self.tree.set('batstat', 'val', self.p.batstat)
         self.tree.set('voltnow', 'val', str(self.p.voltage) + ' V')
 

@@ -18,11 +18,10 @@ class Window(Frame):
         self.master = master
         self.init_window()
 
-
+    # Destroys graph element
     def Clear(self):      
-        print("clear")
-        self.textAmplitude.insert(0, "1.0")
-        self.textSpeed.insert(0, "1.0")       
+        print("clear")     
+        self.destroy()
 
 
     def Plot(self):
@@ -36,26 +35,10 @@ class Window(Frame):
 
 
     def init_window(self):
-
-
-
         self.master.title("Use Of FuncAnimation in tkinter based GUI")
-        self.pack(fill='both', expand=1)     
+        self.grid(row=0, column=2)
 
-        #Create the controls, note use of grid
-
-        #self.labelSpeed = Label(self,text="Speed (km/Hr)",width=12)
-        #self.labelSpeed.grid(row=0,column=1)
-        #self.labelAmplitude = Label(self,text="Amplitude",width=12)
-        #self.labelAmplitude.grid(row=0,column=2)
-
-        #self.textSpeed = Entry(self,width=12)
-        #self.textSpeed.grid(row=1,column=1)
-        #self.textAmplitude = Entry(self,width=12)
-        #self.textAmplitude.grid(row=1,column=2)
-
-        #self.textAmplitude.insert(0, "1.0")
-        #self.textSpeed.insert(0, "1.0")
+        
         self.v = 1.0
         self.A = 1.0
 
@@ -75,7 +58,7 @@ class Window(Frame):
 
         self.fig = plt.Figure()
 
-        self.x = 20*np.arange(0, 2*np.pi, 0.01)        # x-array
+        self.x = 10*np.arange(0, 2*np.pi, 0.01)        # x-array
 
 
         self.ax = self.fig.add_subplot(111)
@@ -88,10 +71,3 @@ class Window(Frame):
 
         self.ani = animation.FuncAnimation(self.fig, self.animate, np.arange(1, 200), interval=1000, blit=False)
 
-
-
-
-#root = tk.Tk()
-#root.geometry("700x400")
-#app = Window(root)
-#tk.mainloop()
