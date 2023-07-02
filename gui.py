@@ -98,13 +98,14 @@ class App(tk.Tk):
         self.tree.insert('', 'end', 'portable', text='Portable Battery', open=False)
 
         # Portable Battery (all static values)
-        for i in self.p.portable.properties.keys():
-            val = getattr(self.p.portable, i)
-            # Not none values
-            if val:
-                if 'DesignVoltage' in i or 'DesignCapacity' in i:
-                    val = str(int(val) / 1000)
-                self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
+        if self.p.portable is not None:
+            for i in self.p.portable.properties.keys():
+                val = getattr(self.p.portable, i)
+                # Not none values
+                if val:
+                    if 'DesignVoltage' in i or 'DesignCapacity' in i:
+                        val = str(int(val) / 1000)
+                    self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
 
         self.tree.insert('', 'end', 'Raw', text='Raw Data', open=False)
 
@@ -152,7 +153,7 @@ class App(tk.Tk):
         self.maxamps = self.p.amps
 
         if self.p.charging:
-            self.tree.set('charge', 'max', str(self.maxcharge) + ' W')
+            self.tree.set('chargepower', 'max', str(self.maxcharge) + ' W')
         else:
             self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
@@ -175,7 +176,7 @@ class App(tk.Tk):
             self.tree.set('dpower', 'val', str(self.p.dischargerate) + ' W')
             if self.p.dischargerate > self.maxdis:
                 self.maxdis = self.p.dischargerate
-                self.tree.set('dpower', 'maxdis', str(self.maxdis) + ' W')
+                self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         if self.p.runtime is not None:
             self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
 
