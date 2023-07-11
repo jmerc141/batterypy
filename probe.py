@@ -1,11 +1,8 @@
-"""
-only use win32_battery, cim is parent class
-dont forget other win32_battery properties, root/wmi done
-
-add check for null, try except block
-"""
+# probe.py
 
 import wmi
+#from thread_decorator import *
+
 
 class Probe:
 
@@ -34,7 +31,10 @@ class Probe:
         self.chargerate = status.chargerate / 1000
         self.charging = status.charging
         self.critical = status.critical
-        self.dischargerate = status.dischargerate / 1000
+        if status.dischargerate > 0:
+            self.dischargerate = status.dischargerate / 1000
+        else:
+            self.dischargerate = 0
         self.discharging = status.discharging
         self.poweronline = status.poweronline
         self.remcap = status.remainingcapacity / 1000
@@ -43,7 +43,7 @@ class Probe:
 
         staticdata = self.rootwmi.ExecQuery('select * from BatteryStaticData')[0]
         self.capab = staticdata.capabilities
-        self.chem = staticdata.chemistry
+        self.ogchem = staticdata.chemistry
         self.critbi = staticdata.criticalbias
         self.critalarm = staticdata.defaultalert1 / 1000    #mwh
         self.lowalarm = staticdata.defaultalert2 / 1000
@@ -59,9 +59,12 @@ class Probe:
         self.ah = self.remcap / self.voltage
         self.amps = self.calcamps(self)
         self.bathealth = (self.fullcap / self.descap) * 100  # overall battery degradation %
+        #self.capleft = self.fullcap * (self.estimatedchargeremaining)
 
         # require processing
+        self.ogbatstat = self.win.batterystatus
         self.batstat = self.getStatus(self)
+        self.ogavail = self.win.Availability
         self.avail = self.getAvail(self)
         self.chem = self.getchem(self)
         # look up codes
@@ -69,7 +72,7 @@ class Probe:
         self.pms = self.win.powermanagementsupported
 
         if self.win.maxrechargetime is None:
-            self.maxre = 0
+            self.maxre = None
         else:
             self.maxre = self.win.maxrechargetime
             self.rehours = self.maxre / 60
@@ -85,11 +88,16 @@ class Probe:
         if self.win.timeonbattery is None:
             self.tob = 0
         else:
-            self.tob = self.win.timeonbattery       # in seconds
+            self.tob = self.win.timeonbattery       # in seconds       
 
+
+    def refresh_voltage(self):
+        self.voltage = self.rootwmi.ExecQuery('select * from BatteryStatus')[0].voltage
+
+    
     def refresh(self):
         # queries all wmi values and resets variables
-        #print('refreshed')
+        print('refreshed')
         self.win = wmi.WMI().instances('win32_battery')[0]
 
         if self.runtime is not None:
@@ -106,14 +114,17 @@ class Probe:
         self.tryinstance(self, 'BatteryCycleCount')
 
         # later
-        self.tagchange = self.rootwmi.ExecQuery('select * from BatteryTagChange')
-        self.statchange = self.rootwmi.ExecQuery('selct * from BatteryStatusChange')
+        #self.tagchange = self.rootwmi.ExecQuery('select * from BatteryTagChange')
+        #self.statchange = self.rootwmi.ExecQuery('selct * from BatteryStatusChange')
 
         status = self.rootwmi.ExecQuery('select * from BatteryStatus')[0]
         self.chargerate = status.chargerate / 1000
         self.charging = status.charging
         self.critical = status.critical
-        self.dischargerate = status.dischargerate / 1000
+        if status.dischargerate > 0:
+            self.dischargerate = status.dischargerate / 1000
+        else:
+            self.dischargerate = 0
         self.discharging = status.discharging
         self.poweronline = status.poweronline
         self.remcap = status.remainingcapacity / 1000
@@ -128,6 +139,8 @@ class Probe:
         self.batstat = self.getStatus(self)
         self.avail = self.getAvail(self)
         self.chem = self.getchem(self)
+        #self.proc.join()
+
 
     @staticmethod
     def getStatus(self):
@@ -155,6 +168,7 @@ class Probe:
         elif statcode == 11:
             statcode = 'Partially Charged'
         return statcode
+
 
     @staticmethod
     def getAvail(self):
@@ -206,6 +220,7 @@ class Probe:
             avail = 'Unknown'
         return avail
 
+
     @staticmethod
     def getchem(self):
         # only call from refresh
@@ -236,6 +251,31 @@ class Probe:
             return round(self.chargerate / self.voltage, 3)
         else:
             return 0
+
+
+    # get object by name, used for treeview click to graph
+    # discharge/charge power, amps, voltage, 
+    def getbyname(self, name):
+        # check portable
+        name = name.replace(' ','')
+        wbat = wmi.WMI().instances('win32_battery')[0]
+        wport = wmi.WMI().instances('win32_portablebattery')[0]
+        rwmi = self.rootwmi
+
+        try:
+            if name in rwmi.instances('BatteryStatus')[0].properties.keys():
+                return rwmi.instances('BatteryStatus')[0].voltage
+            if name in wbat.properties.keys():
+                print(name)
+                return getattr(wbat, name)
+
+            if name in rwmi.instances('BatteryTemperature')[0].properties.keys():
+                return rwmi.instances('BatteryTemperature')[0].temperature
+            
+            if name in rwmi.instances('BatteryStatus')[0].properties.keys():
+                return rwmi.instances('BatteryStatus')[0].dischargerate
+        except:
+            print('no instance')
 
 
     # Some instances might not exist
