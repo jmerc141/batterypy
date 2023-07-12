@@ -14,6 +14,8 @@ class Probe:
         # might not exist
         if wmi.WMI().instances('win32_portablebattery'):
             self.portable = wmi.WMI().instances('win32_portablebattery')[0]
+        else:
+            self.portable = None
         # ROOT\WMI
         self.rootwmi = wmi.WMI(moniker="//./root/wmi")
 
@@ -72,7 +74,13 @@ class Probe:
         self.pms = self.win.powermanagementsupported
 
         if self.win.maxrechargetime is None:
+<<<<<<< HEAD
             self.maxre = None
+=======
+            self.maxre = 0
+            self.rehours = 0
+            self.remins = 0
+>>>>>>> origin/main
         else:
             self.maxre = self.win.maxrechargetime
             self.rehours = self.maxre / 60
