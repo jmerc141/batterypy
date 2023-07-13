@@ -74,13 +74,10 @@ class Probe:
         self.pms = self.win.powermanagementsupported
 
         if self.win.maxrechargetime is None:
-<<<<<<< HEAD
             self.maxre = None
-=======
             self.maxre = 0
             self.rehours = 0
             self.remins = 0
->>>>>>> origin/main
         else:
             self.maxre = self.win.maxrechargetime
             self.rehours = self.maxre / 60
@@ -105,7 +102,7 @@ class Probe:
     
     def refresh(self):
         # queries all wmi values and resets variables
-        print('refreshed')
+        #print('refreshed')
         self.win = wmi.WMI().instances('win32_battery')[0]
 
         if self.runtime is not None:

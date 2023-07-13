@@ -1,10 +1,8 @@
 import sys, time
 import tkinter as tk
 from tkinter import ttk
-import probe, test
+import probe, test, plot
 #from multiprocessing import Process
-import threading
-
 
 sys.path.append(".")
 
@@ -15,6 +13,8 @@ wmi seems to update every 3 seconds
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        self.protocol('WM_DELETE_WINDOW', self.on_close)
 
         s = ttk.Style()
         self.tk.call('lappend', 'auto_path', '..\\awthemes-10.4.0')
@@ -27,15 +27,25 @@ class App(tk.Tk):
 
         # Probe object reference
         self.p = probe.Probe()
-        # Create graph window
-        #self.pl = test.Window(self)
-
-        #self.proc = Process(target=App.retree)
-        
+        # Placeholder for internal or external graph
+        self.pl = None
 
         # creating tkinter window
         self.title('BatteryInfo')
-        self.geometry('1300x700')
+        self.geometry('600x700')
+
+        # Menubar
+        mb = tk.Menu(self)
+        self.config(menu=mb)
+        file_menu = tk.Menu(mb, tearoff=False)
+        view_menu = tk.Menu(mb, tearoff=False)
+        mb.add_cascade(label='File', menu=file_menu)
+        mb.add_cascade(label='View', menu=view_menu)
+        
+        view_menu.add_command(label='Graph (internal)', command=self.create_internal_graph)
+        view_menu.add_command(label='Graph (external)', command=self.create_external_graph)
+        #self.file_menu.add_command(label='Exit', command=self.on_close)
+        
 
         # initialize tree view
         self.tree = ttk.Treeview(self, columns=('val', 'max'), height=30)
@@ -106,30 +116,7 @@ class App(tk.Tk):
         
         self.get_portable()
 
-<<<<<<< HEAD
-        # win32_battery
-        self.tree.insert('', 'end', 'Raw', text='win32_battery', open=False)
-        
-=======
-        self.tree.insert('', 'end', 'portable', text='Portable Battery', open=False)
-
-        # Portable Battery (all static values)
-        if self.p.portable is not None:
-            for i in self.p.portable.properties.keys():
-                val = getattr(self.p.portable, i)
-                # Not none values
-                if val:
-                    if 'DesignVoltage' in i or 'DesignCapacity' in i:
-                        val = str(int(val) / 1000)
-                    self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
-
-        self.tree.insert('', 'end', 'Raw', text='Raw Data', open=False)
-
->>>>>>> origin/main
-        for i in self.p.win.properties.keys():
-            val = getattr(self.p.win, i)
-            if val:
-                self.tree.insert('Raw', 'end', str('b' + i), text=i, values=(val, ''))
+        #self.get_win32batt()
 
         #self.get_rootwmi()
 
@@ -154,17 +141,6 @@ class App(tk.Tk):
 
         self.tree.configure(yscroll=scrolly.set)
 
-        btn = ttk.Button(self, text='Start', command=self.retree)
-        btn.grid(row=1, column=1, sticky='s')
-
-        s1 = ttk.Scale(self, from_=0, to=12, orient=tk.HORIZONTAL, length=200)
-        #s1.pack()
-
-        #self.pb = ttk.Progressbar(self, orient='horizontal', mode='determinate', length=200)
-        #self.pb.pack(side=tk.BOTTOM)
-        
-        #self.pl.init_window()
-
         # initialize max var, and initialize column
         self.maxv = self.p.voltage
         self.maxdis = self.p.dischargerate
@@ -172,18 +148,26 @@ class App(tk.Tk):
         self.maxamps = self.p.amps
 
         if self.p.charging:
-<<<<<<< HEAD
             pass
             #self.tree.set('charge', 'max', str(self.maxcharge) + ' W')
-=======
             self.tree.set('chargepower', 'max', str(self.maxcharge) + ' W')
->>>>>>> origin/main
         else:
             self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
         self.tree.set('amps', 'max', str(self.maxamps) + ' A')
 
         self.retree()
+
+
+    def create_internal_graph(self):
+        self.geometry('1300x700')
+        self.plf = ttk.Frame()
+        self.pl = test.Window(self.plf)
+        self.plf.grid(column=2, row=0, sticky='w')
+
+
+    def create_external_graph(self):
+        self.pl = plot.Plot()
 
 
     # takes about 8 seconds
@@ -197,6 +181,15 @@ class App(tk.Tk):
                     self.tree.insert('root/wmi', 'end', i, text=i, open=True)
                     for x in tmp[0].properties.keys():
                         self.tree.insert(i, 'end', str(i)+x, text=x, values=(getattr(tmp[0], x), ''))
+
+
+    def get_win32batt(self):
+        self.tree.insert('', 'end', 'Raw', text='win32_battery', open=False)
+
+        for i in self.p.win.properties.keys():
+            val = getattr(self.p.win, i)
+            if val:
+                self.tree.insert('Raw', 'end', str('b' + i), text=i, values=(val, ''))
 
 
     def get_portable(self):
@@ -216,7 +209,7 @@ class App(tk.Tk):
         #self.pb['value'] += 10
 
         # overwrites values in the treeview, use only dynamic values
-        print('retree')
+        #print('retree')
         self.p.refresh()  # refreshes instance and updates variables
         if self.p.charging:
             self.tree.set('chargepower', 'val', str(self.p.chargerate) + ' W')
@@ -227,12 +220,8 @@ class App(tk.Tk):
             self.tree.set('dpower', 'val', str(self.p.dischargerate) + ' W')
             if self.p.dischargerate > self.maxdis:
                 self.maxdis = self.p.dischargerate
-<<<<<<< HEAD
                 self.tree.set('dpower', 'maxdis', str(self.maxdis) + ' W')
-
-=======
                 self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
->>>>>>> origin/main
         if self.p.runtime is not None:
             self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
 
@@ -264,19 +253,27 @@ class App(tk.Tk):
 
     def item_selected(self, event):
         self.item = self.tree.item(self.tree.selection()[0])['text']
-        # Everything that can be graphed
-        if 'Voltage' == self.item:
-            #self.pl.set_prop(self.p.voltage)
-            self.pl.set_prop(self.item)
-        if 'Amperage' == self.item:
-            self.pl.set_prop(self.item)
-        if 'Discharge Power' == self.item:
-            self.pl.set_prop(self.item)
-        if 'Charge Power' == self.item:
-            self.pl.set_prop(self.item)
+        # If graph is instantiated
+        if self.pl is not None:
+            # Everything that can be graphed
+            if 'Voltage' == self.item:
+                self.pl.set_prop(self.item)
+            if 'Amperage' == self.item:
+                self.pl.set_prop(self.item)
+            if 'Discharge Power' == self.item:
+                self.pl.set_prop(self.item)
+            if 'Charge Power' == self.item:
+                self.pl.set_prop(self.item)
         
-'''
-if __name__ == '__main__':
-    app = App()
-    app.mainloop()
-'''
+
+    def on_close(self):
+        if self.pl is not None:
+            if isinstance(self.pl, plot.Plot):
+                try:
+                    self.pl.proc.terminate()
+                except:
+                    print('Unable to close graph')
+
+        self.destroy()
+
+

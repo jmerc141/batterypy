@@ -25,8 +25,8 @@ class Window(Frame):
 
 
     # Destroys graph element
-    def Clear(self):      
-        print("clear")     
+    def Clear(self):
+
         self.destroy()
 
 
@@ -63,7 +63,7 @@ class Window(Frame):
         if tmp-.25 < self.minY:
             self.minY = tmp-.25
 
-        self.ax.set_ylim([self.minY, self.maxY])
+        #self.ax.set_ylim([self.minY, self.maxY])
         if self.prop == 'Amperage':
             self.ax.plot(self.x, self.y, 'c-')
         if self.prop == 'Voltage':
@@ -79,16 +79,19 @@ class Window(Frame):
         self.x = [0]
         self.y = [0]
         self.maxY = 0
+        self.minY = 100
         self.tick = 0
         self.ax.set_xlim(0, 1)
-        self.minY = 100
         self.ax.cla()
-        
+
+        self.ax.set_ylabel(batprop, color='white')
+        self.ax.set_xlabel('Seconds', color='white')
         self.prop = batprop
 
 
     def init_window(self):
-        self.master.title("Plot")
+        #self.master.title("Plot")
+        print(self)
         self.grid(row=0, column=2)
 
         self.p = probe.Probe()
@@ -113,12 +116,18 @@ class Window(Frame):
         self.ax.tick_params(axis='x', colors='white')
         self.ax.tick_params(axis='y', colors='white')
 
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
-        self.canvas.get_tk_widget().grid(column=0,row=0)
+        self.xbtn = tk.Button(text='X', command=self.Clear)
+        #self.xbtn.grid(self, column=2, row=0, sticky='ne')
 
-        toolbar = NavigationToolbar2Tk(self.canvas, self.master, pack_toolbar=False)
-        toolbar.update()
-        toolbar.grid(column=2, row=0, sticky='n')
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self)
+        #self.canvas.get_tk_widget().grid(column=1,row=1)
+
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self, pack_toolbar=False)
+        self.toolbar.update()
+        #self.toolbar.grid(column=1, row=0, sticky='n')
+
+        self.toolbar.pack(side='top', expand=False)
+        self.canvas.get_tk_widget().pack(side='bottom')
 
         self.ani = animation.FuncAnimation(self.fig, self.animate, cache_frame_data=False, interval=1000, blit=False)
 
