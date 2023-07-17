@@ -80,7 +80,6 @@ class Plot:
 
 
     def run(self, t):
-        print(t)
         self.prop = 0
         style.use('fivethirtyeight')
 

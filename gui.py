@@ -2,7 +2,6 @@ import sys, time
 import tkinter as tk
 from tkinter import ttk
 import probe, test, plot
-#from multiprocessing import Process
 
 sys.path.append(".")
 
@@ -13,7 +12,6 @@ wmi seems to update every 3 seconds
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-
         self.protocol('WM_DELETE_WINDOW', self.on_close)
 
         s = ttk.Style()
@@ -23,7 +21,8 @@ class App(tk.Tk):
             s.theme_use('awdark')
             self.configure(bg='#2f2f2f')
         except:
-            print('default theme')
+            #print('default theme')
+            pass
 
         # Probe object reference
         self.p = probe.Probe()
@@ -286,7 +285,8 @@ class App(tk.Tk):
                 try:
                     self.pl.proc.terminate()
                 except:
-                    print('Unable to close graph')
+                    #print('Unable to close graph')
+                    pass
 
         self.destroy()
 

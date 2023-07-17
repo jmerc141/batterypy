@@ -270,7 +270,6 @@ class Probe:
             if name in rwmi.instances('BatteryStatus')[0].properties.keys():
                 return rwmi.instances('BatteryStatus')[0].voltage
             if name in wbat.properties.keys():
-                print(name)
                 return getattr(wbat, name)
 
             if name in rwmi.instances('BatteryTemperature')[0].properties.keys():
@@ -279,7 +278,8 @@ class Probe:
             if name in rwmi.instances('BatteryStatus')[0].properties.keys():
                 return rwmi.instances('BatteryStatus')[0].dischargerate
         except:
-            print('no instance')
+            #print('no instance')
+            pass
 
 
     # Some instances might not exist
