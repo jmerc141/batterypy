@@ -75,7 +75,6 @@ class Probe:
 
         if self.win.maxrechargetime is None:
             self.maxre = None
-            self.maxre = 0
             self.rehours = 0
             self.remins = 0
         else:

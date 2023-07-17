@@ -7,12 +7,13 @@ from multiprocessing import Process
 class Plot:
 
     def animate(self, i):
+        self.a.refresh()
         self.xs.append(i)
         self.volty.append(self.a.voltage)
         self.ampy.append(self.a.amps)
         self.watty.append(self.a.dischargerate)
         
-        #ax1.clear()
+        self.ax1.set_ylim(self.a.voltage-.1, self.a.voltage+.1)
         self.ax1.plot(self.xs, self.volty, 'r-')
         self.ax2.plot(self.xs, self.ampy, 'c-')
         self.ax3.plot(self.xs, self.watty, 'm-')
@@ -26,8 +27,8 @@ class Plot:
     def run(self):
         self.prop = 0
         style.use('fivethirtyeight')
-        fig = plt.figure(figsize=(10,6))
-        #fig2 = plt.figure(figsize=(5,5))
+        fig = plt.figure(figsize=(10,5))
+        
         self.ax1 = fig.add_subplot(3,1,1)
         self.ax2 = fig.add_subplot(3,1,2)
         self.ax3 = fig.add_subplot(3,1,3)
@@ -37,8 +38,6 @@ class Plot:
         self.ax3.set_ylabel("Watts")
         self.ax1.set_title('Readings')
         fig.subplots_adjust(bottom=.13, left=.11, hspace=.36)
-
-        #plt.ylim([12.2,12.3])
 
         self.a = probe.Probe()
         self.xs = []

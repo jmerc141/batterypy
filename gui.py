@@ -114,11 +114,12 @@ class App(tk.Tk):
         self.tree.insert('info', 'end', text='Critical Alarm', values=(str(self.p.critalarm) + ' Wh', ''))
         self.tree.insert('info', 'end', text='Critical Bias', values=(str(self.p.critbi) + '', ''))
         
-        self.get_portable()
+        if self.p.portable is not None:
+            self.get_portable()
 
-        #self.get_win32batt()
+        self.get_win32batt()
 
-        #self.get_rootwmi()
+        self.get_rootwmi()
 
         # column headings
         self.tree.heading('#0', text='Property', anchor=tk.CENTER)
@@ -243,6 +244,8 @@ class App(tk.Tk):
             self.tree.set('ttf', 'val', str(str(self.p.ttfhours) + 'h ' + str(self.p.ttfmins) + 'm'))
             if self.p.maxre is not None:
                 self.tree.set('rechargetime', 'val', str(str(self.p.rehours) + 'h ' + str(self.p.remins) + 'm'))
+
+        self.tree.set('capleft', 'val', str(self.p.remcap) + ' Wh')
 
         # doubt this changs often
         self.tree.set('fullcap', 'val', str(self.p.fullcap) + ' Wh')
