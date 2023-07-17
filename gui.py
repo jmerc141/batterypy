@@ -39,13 +39,16 @@ class App(tk.Tk):
         self.config(menu=mb)
         file_menu = tk.Menu(mb, tearoff=False)
         view_menu = tk.Menu(mb, tearoff=False)
+        ext = tk.Menu(view_menu, tearoff=False)
         mb.add_cascade(label='File', menu=file_menu)
         mb.add_cascade(label='View', menu=view_menu)
         
         view_menu.add_command(label='Graph (internal)', command=self.create_internal_graph)
-        view_menu.add_command(label='Graph (external)', command=self.create_external_graph)
-        #self.file_menu.add_command(label='Exit', command=self.on_close)
-        
+        #view_menu.add_command(label='Graph (external)', command=self.create_external_graph)
+        view_menu.add_cascade(label='Graph (external)', menu=ext)
+        ext.add_command(label='Single', command=self.create_external_single)
+        ext.add_command(label='Multiple', command=self.create_external_graph)
+        file_menu.add_command(label='Exit', command=self.on_close)
 
         # initialize tree view
         self.tree = ttk.Treeview(self, columns=('val', 'max'), height=30)
@@ -161,14 +164,20 @@ class App(tk.Tk):
 
 
     def create_internal_graph(self):
-        self.geometry('1300x700')
+        self.geometry('1330x700')
         self.plf = ttk.Frame()
         self.pl = test.Window(self.plf)
+        self.xbtn = tk.Button(self, text='X', command=self.destroy_internal, width=5, height=2, bg='#2f2f2f', fg='white')
+        self.xbtn.grid(column=3, row=0, sticky='ne')
         self.plf.grid(column=2, row=0, sticky='w')
 
 
     def create_external_graph(self):
-        self.pl = plot.Plot()
+        self.pl = plot.Plot(0)
+
+
+    def create_external_single(self):
+        self.pl = plot.Plot(1)
 
 
     # takes about 8 seconds
@@ -206,11 +215,7 @@ class App(tk.Tk):
 
 
     def retree(self):
-        #self.pl.Clear()
-        #self.pb['value'] += 10
-
         # overwrites values in the treeview, use only dynamic values
-        #print('retree')
         self.p.refresh()  # refreshes instance and updates variables
         if self.p.charging:
             self.tree.set('chargepower', 'val', str(self.p.chargerate) + ' W')
@@ -267,6 +272,12 @@ class App(tk.Tk):
                 self.pl.set_prop(self.item)
             if 'Charge Power' == self.item:
                 self.pl.set_prop(self.item)
+
+
+    def destroy_internal(self) -> None:
+        self.geometry('600x700')
+        self.xbtn.destroy()
+        self.plf.destroy()
         
 
     def on_close(self):

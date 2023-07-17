@@ -1,3 +1,4 @@
+# internal graph
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import tkinter as tk
 import matplotlib.pyplot as plt
@@ -26,7 +27,6 @@ class Window(Frame):
 
     # Destroys graph element
     def Clear(self):
-
         self.destroy()
 
 
@@ -75,9 +75,7 @@ class Window(Frame):
 
 
     def set_prop(self, batprop):
-        # change y range, reset self.x self.y, min max
-        self.x = [0]
-        
+        self.x = [0]        
         self.maxY = 0
         self.minY = 100
         self.tick = 0
@@ -126,19 +124,17 @@ class Window(Frame):
         self.ax.spines['left'].set_color('white')
         self.ax.tick_params(axis='x', colors='white')
         self.ax.tick_params(axis='y', colors='white')
-
-        self.xbtn = tk.Button(text='X', command=self.Clear)
-        #self.xbtn.grid(self, column=2, row=0, sticky='ne')
+        self.ax.tick_params(grid_color='white')
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
-        #self.canvas.get_tk_widget().grid(column=1,row=1)
+        self.canvas.get_tk_widget().pack(side='top', anchor='n')
 
-        self.toolbar = NavigationToolbar2Tk(self.canvas, self, pack_toolbar=False)
-        self.toolbar.update()
-        #self.toolbar.grid(column=1, row=0, sticky='n')
-
-        self.toolbar.pack(side='top', expand=False)
-        self.canvas.get_tk_widget().pack(side='bottom')
-
+        # Optional toolbar
+        #self.toolbar = NavigationToolbar2Tk(self.canvas, self, pack_toolbar=False)
+        #self.toolbar.config(background='#2f2f2f', highlightbackground='#2f2f2f')
+        #self.toolbar._message_label.config(background='#2f2f2f')#, highlightbackground='#2f2f2f')
+        #self.toolbar.update()
+        #self.toolbar.pack(side='bottom', expand=False)
+        
         self.ani = animation.FuncAnimation(self.fig, self.animate, cache_frame_data=False, interval=1000, blit=False)
 
