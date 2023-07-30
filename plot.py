@@ -8,45 +8,78 @@ from multiprocessing import Process
 
 class Plot:
 
+    # multi graph, heavy on resources when updating
     def anim2(self, i):
+        self.ax1.cla()
+        self.ax2.cla()
+        self.ax3.cla()
         self.a.refresh()
         self.xs.append(i)
         self.volty.append(self.a.voltage)
         self.ampy.append(self.a.amps)
         self.watty.append(self.a.dischargerate)
 
-        ymax = max([self.a.voltage, self.a.amps, self.a.dischargerate])
-        self.ax1.set_ylim(0, ymax+1)
-        self.ax1.plot(self.xs, self.volty, 'r-')
-        self.ax2.plot(self.xs, self.ampy, 'c-')
-        self.ax3.plot(self.xs, self.watty, 'm-')
+        self.ax1.set_title(f'Voltage ({self.a.voltage})' , color='white')
+        self.ax2.set_title(f'Amps ({self.a.amps})', color='white')
+        self.ax3.set_title(f'Watts ({self.a.dischargerate})', color='white')
+        
+        self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
+        self.ax2.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
+        self.ax3.stackplot(self.xs, self.watty, color='magenta', alpha=0.5)
 
-
+    # single plot
     def anim1(self, i):
         self.a.refresh()
-        self.xs.append(i)
         self.volty.append(self.a.voltage)
         self.ampy.append(self.a.amps)
         self.watty.append(self.a.dischargerate)
 
-        ymax = max([self.a.voltage, self.a.amps, self.a.dischargerate])
-        self.ax1.set_ylim(0, ymax+1)
-        self.ax1.plot(self.xs, self.volty, 'r-')
-        self.ax1.plot(self.xs, self.ampy, 'c-')
-        self.ax1.plot(self.xs, self.watty, 'm-')
+        self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
+        self.ax1.set_ylim(0, max(self.ymax) + 1)
+
+        self.volty.pop(0)
+        self.ampy.pop(0)
+        self.watty.pop(0)
+
+        self.L.get_texts()[0].set_text(f'Volts ({self.a.voltage})')
+        self.L.get_texts()[1].set_text(f'Amps ({self.a.amps})')
+        self.L.get_texts()[2].set_text(f'Watts ({self.a.dischargerate})')
+
+        self.l1.set_ydata(self.volty)
+        self.l2.set_ydata(self.ampy)
+        self.l3.set_ydata(self.watty)
+
+        self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
+        self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
+        self.ax1.stackplot(self.xs, self.watty, color='magenta', alpha=0.5)
+
+        return self.l1, self.l2, self.l3, self.L
 
 
     def setup_1(self):
+        self.maxX = 60
+        self.ymax = []
+        for i in range(self.maxX):
+            self.xs.append(i)
+            self.volty.append(0)
+            self.watty.append(0)
+            self.ampy.append(0)
+            self.ymax.append(0)
+        
         self.fig = plt.figure(facecolor='#2f2f2f', figsize=(7,7))
         self.ax1 = self.fig.add_subplot()
-        self.ax1.set_title("Power", color='white')
+        plt.title('Power', color = 'white')
+        plt.xlabel('Seconds', color='white')
         self.ax1.set_facecolor('#2f2f2f')
         self.ax1.tick_params(axis='x', colors='white')
         self.ax1.tick_params(axis='y', colors='white')
-        v_patch = mpatches.Patch(color='red', label='Voltage')
-        a_patch = mpatches.Patch(color='cyan', label='Amps')
-        w_patch = mpatches.Patch(color='magenta', label='Watts')
-        plt.legend(handles=[v_patch, a_patch, w_patch])
+
+        self.fig.subplots_adjust(bottom=0.09, top=0.93)
+
+        self.ax1.set_xlim([0, self.maxX])
+
+        self.L = self.ax1.legend(loc=2)
+        
 
     def setup_2(self):
         self.fig = plt.figure(facecolor='#2f2f2f', figsize=(8,6))
@@ -59,7 +92,8 @@ class Plot:
         self.ax2 = self.fig.add_subplot(1,3,2)
         self.ax3 = self.fig.add_subplot(1,3,3)
 
-        self.ax2.set_xlabel('Time (seconds)', color='white')
+        #self.ax2.set_xlabel('Time (seconds)', color='white')
+        #plt.xlabel('Time (seconds)', color='white')
         self.ax1.set_title('Voltage', color='white')
         self.ax2.set_title('Amps', color='white')
         self.ax3.set_title('Watts', color='white')
@@ -83,19 +117,19 @@ class Plot:
         self.prop = 0
         style.use('fivethirtyeight')
 
-        if t == 0:
-            self.setup_2()
-            ani = animation.FuncAnimation(self.fig, self.anim2, interval=1000, cache_frame_data=False)
-        if t == 1:
-            self.setup_1()
-            ani = animation.FuncAnimation(self.fig, self.anim1, interval=1000, cache_frame_data=False)
-
         self.a = probe.Probe()
         self.xs = []
 
         self.volty = []
         self.ampy  = []
         self.watty = []
+
+        if t == 0:
+            self.setup_2()
+            ani = animation.FuncAnimation(self.fig, self.anim2, interval=1000, cache_frame_data=False)
+        if t == 1:
+            self.setup_1()
+            ani = animation.FuncAnimation(self.fig, self.anim1, interval=1000, cache_frame_data=False, blit=True)
 
         plt.show()
 

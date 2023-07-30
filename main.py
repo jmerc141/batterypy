@@ -6,5 +6,4 @@ if __name__ == '__main__':
     if sys.platform.startswith('win'):
         multiprocessing.freeze_support()
     app = gui.App()
-    p = probe.Probe()
     app.mainloop()

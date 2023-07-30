@@ -30,12 +30,11 @@ class Window(Frame):
         self.destroy()
 
 
-    def Plot(self):
-        self.v = float(self.textSpeed.get())
-        self.A = float(self.textAmplitude.get())
-
-
     def animate(self,i):
+        try:
+            self.line.remove()
+        except:
+            print('Probly doesnt exist')
         self.p.refresh()
         self.tick += 1
         self.x.append(self.tick)
@@ -57,21 +56,17 @@ class Window(Frame):
             # + 1 to add space after line
             self.ax.set_xlim([self.x[0], self.x[-1]+1])
 
-        # set min and max for y-axis
-        if tmp+.25 > self.maxY:
-            self.maxY = tmp+.25
-        if tmp-.25 < self.minY:
-            self.minY = tmp-.25
+        self.ymax = max(self.y)
+        self.ax.set_ylim(0, self.ymax+2)
 
-        #self.ax.set_ylim([self.minY, self.maxY])
         if self.prop == 'Amperage':
-            self.ax.plot(self.x, self.y, 'c-')
+            self.line, = self.ax.stackplot(self.x, self.y, color='cyan', alpha=0.5)
         if self.prop == 'Voltage':
-            self.ax.plot(self.x, self.y, 'r-')
+            self.line, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.5)
         if self.prop == 'Discharge Power':
-            self.ax.plot(self.x, self.y, 'm-')
+            self.line, = self.ax.stackplot(self.x, self.y, color='magenta', alpha=0.5)
         if self.prop == 'Charge Power':
-            self.ax.plot(self.x, self.y, 'y-')
+            self.line, = self.ax.stackplot(self.x, self.y, color='yellow', alpha=0.5)
 
 
     def set_prop(self, batprop):
@@ -79,22 +74,25 @@ class Window(Frame):
         self.maxY = 0
         self.minY = 100
         self.tick = 0
-        self.ax.set_xlim(0, 1)
         self.ax.cla()
 
         self.ax.set_xlabel('Seconds', color='white')
+        
         self.prop = batprop
-
-        self.ax.set_ylabel(batprop, color='white')
 
         if self.prop == 'Amperage':
             tmp = self.p.amps
+            self.ax.set_ylabel('Amperage (A)', color='white')
         if self.prop == 'Voltage':
             tmp = self.p.voltage
+            self.ax.set_ylabel('Voltage (V)', color='white')
         if self.prop == 'Discharge Power':
             tmp = self.p.dischargerate
+            self.ax.set_ylabel('Discharge Power (W)', color='white')
         if self.prop == 'Charge Power':
             tmp = self.p.chargerate
+            self.ax.set_ylabel('Charge Power (W)', color='white')
+        self.ax.set_ylim(0, tmp)
         self.y = [tmp]
 
 
@@ -109,13 +107,15 @@ class Window(Frame):
         self.fig = plt.Figure(facecolor='#2f2f2f', figsize=(7,7))
         self.fig.subplots_adjust(bottom=0.17, top=0.92)
         self.x = [0]
-        self.prop = 'Voltage'
-        self.y = [self.p.voltage]
+        self.prop = 'Discharge Power'
+        self.y = [self.p.dischargerate]
 
         self.ax = self.fig.add_subplot(111, ylim=(0,20))
-        self.ax.plot(self.x, self.y)
+        
         self.ax.set_xlabel('Seconds', color='white')
-        self.ax.set_ylabel('Voltage', color='white')
+        self.ax.set_ylabel('Discharge Power (W)', color='white')
+        plt.xlabel('Seconds', color='white')
+        plt.ylabel('Seconds', color='white')
         self.ax.set_title('Graph', color='white')
         self.ax.set_facecolor('#2f2f2f')
         self.ax.spines['bottom'].set_color('white')
@@ -125,6 +125,8 @@ class Window(Frame):
         self.ax.tick_params(axis='x', colors='white')
         self.ax.tick_params(axis='y', colors='white')
         self.ax.tick_params(grid_color='white')
+
+        self.ax.plot(self.x, self.y)
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(side='top', anchor='n')

@@ -1,4 +1,4 @@
-import sys, time
+import sys, time, os
 import tkinter as tk
 from tkinter import ttk
 import probe, test, plot
@@ -119,9 +119,9 @@ class App(tk.Tk):
         if self.p.portable is not None:
             self.get_portable()
 
-        self.get_win32batt()
+        #self.get_win32batt()
 
-        self.get_rootwmi()
+        #self.get_rootwmi()
 
         # column headings
         self.tree.heading('#0', text='Property', anchor=tk.CENTER)
@@ -158,6 +158,9 @@ class App(tk.Tk):
             self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
         self.tree.set('amps', 'max', str(self.maxamps) + ' A')
+
+        if os.path.exists('./res/battery.ico'):
+            self.iconbitmap('./res/battery.ico')
 
         self.retree()
 
@@ -225,7 +228,7 @@ class App(tk.Tk):
             self.tree.set('dpower', 'val', str(self.p.dischargerate) + ' W')
             if self.p.dischargerate > self.maxdis:
                 self.maxdis = self.p.dischargerate
-                self.tree.set('dpower', 'maxdis', str(self.maxdis) + ' W')
+                self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
                 self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         if self.p.runtime is not None:
             self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
@@ -288,6 +291,5 @@ class App(tk.Tk):
                     #print('Unable to close graph')
                     pass
 
-        self.destroy()
-
+        self.quit()
 
