@@ -32,7 +32,7 @@ class Plot:
         self.a.refresh()
         self.volty.append(self.a.voltage)
         self.ampy.append(self.a.amps)
-        self.watty.append(self.a.dischargerate)
+        self.watty.append(self.a.chargerate)
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
@@ -43,17 +43,17 @@ class Plot:
 
         self.L.get_texts()[0].set_text(f'Volts ({self.a.voltage})')
         self.L.get_texts()[1].set_text(f'Amps ({self.a.amps})')
-        self.L.get_texts()[2].set_text(f'Watts ({self.a.dischargerate})')
+        self.L.get_texts()[2].set_text(f'Watts ({self.a.chargerate})')
 
         self.l1.set_ydata(self.volty)
         self.l2.set_ydata(self.ampy)
         self.l3.set_ydata(self.watty)
 
-        self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
-        self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
-        self.ax1.stackplot(self.xs, self.watty, color='magenta', alpha=0.5)
+        self.sp1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
+        self.sp2, = self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
+        self.sp3, = self.ax1.stackplot(self.xs, self.watty, color='yellow', alpha=0.5)
 
-        return self.l1, self.l2, self.l3, self.L
+        return self.l1, self.l2, self.l3, self.L, self.sp1, #self.sp2, self.sp3
 
 
     def setup_1(self):
@@ -66,7 +66,7 @@ class Plot:
             self.ampy.append(0)
             self.ymax.append(0)
         
-        self.fig = plt.figure(facecolor='#2f2f2f', figsize=(7,7))
+        self.fig = plt.figure(facecolor='#2f2f2f', figsize=(6,6))
         self.ax1 = self.fig.add_subplot()
         plt.title('Power', color = 'white')
         plt.xlabel('Seconds', color='white')
@@ -78,6 +78,9 @@ class Plot:
 
         self.ax1.set_xlim([0, self.maxX])
 
+        self.l1, = plt.plot(self.volty, label='Volts', color='red', linewidth=2)
+        self.l2, = plt.plot(self.ampy, label='Amps', color='blue', linewidth=2)
+        self.l3, = plt.plot(self.watty, label='Watts', color='orange', linewidth=2)
         self.L = self.ax1.legend(loc=2)
         
 

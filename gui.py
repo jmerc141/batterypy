@@ -14,6 +14,10 @@ class App(tk.Tk):
         super().__init__()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
 
+        self.internal = False
+        self.extm = 0
+        self.exts = 0
+
         s = ttk.Style()
         self.tk.call('lappend', 'auto_path', '..\\awthemes-10.4.0')
         try:
@@ -42,8 +46,8 @@ class App(tk.Tk):
         mb.add_cascade(label='File', menu=file_menu)
         mb.add_cascade(label='View', menu=view_menu)
         
-        view_menu.add_command(label='Graph (internal)', command=self.create_internal_graph)
-        #view_menu.add_command(label='Graph (external)', command=self.create_external_graph)
+        #view_menu.add_command(label='Graph (internal)', command=self.create_internal_graph)
+        view_menu.add_checkbutton(label='Graph (Internal)', command=self.create_internal_graph)
         view_menu.add_cascade(label='Graph (external)', menu=ext)
         ext.add_command(label='Single', command=self.create_external_single)
         ext.add_command(label='Multiple', command=self.create_external_graph)
@@ -166,13 +170,22 @@ class App(tk.Tk):
 
 
     def create_internal_graph(self):
-        self.geometry('1330x700')
-        self.plf = ttk.Frame()
-        self.pl = test.Window(self.plf)
-        self.xbtn = tk.Button(self, text='X', command=self.destroy_internal, width=5, height=2, bg='#2f2f2f', fg='white')
-        self.xbtn.grid(column=3, row=0, sticky='ne')
-        self.plf.grid(column=2, row=0, sticky='w')
+        self.internal = not self.internal
+        if self.internal:
+            #try:
+            self.plf = ttk.Frame()
+            self.pl = test.Window(self.plf)
+            self.plf.grid(column=2, row=0, sticky='w')
+            self.geometry('1200x700')
+            #except Exception as e:
+            #    print('Can\'t create internal graph')
+            #    print(sys.exc_info()[2])
 
+        else:
+            self.pl.destroy()
+            self.plf.destroy()
+            self.geometry('600x700')
+            
 
     def create_external_graph(self):
         self.pl = plot.Plot(0)
@@ -278,7 +291,7 @@ class App(tk.Tk):
 
     def destroy_internal(self) -> None:
         self.geometry('600x700')
-        self.xbtn.destroy()
+        #self.xbtn.destroy()
         self.plf.destroy()
         
 
