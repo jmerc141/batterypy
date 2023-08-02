@@ -1,7 +1,7 @@
 import sys, time, os
 import tkinter as tk
-from tkinter import ttk
-import probe, test, plot
+from tkinter import ttk, messagebox
+import probe, test, plot, s_probe
 
 sys.path.append(".")
 
@@ -15,18 +15,19 @@ class App(tk.Tk):
         self.protocol('WM_DELETE_WINDOW', self.on_close)
 
         self.internal = False
-        self.extm = 0
-        self.exts = 0
 
-        s = ttk.Style()
-        self.tk.call('lappend', 'auto_path', '..\\awthemes-10.4.0')
+        # Change directory to get icon resource
         try:
-            self.tk.call('package', 'require', 'awdark')
-            s.theme_use('awdark')
-            self.configure(bg='#2f2f2f')
-        except:
-            #print('default theme')
-            pass
+            os.chdir(sys._MEIPASS)
+        except Exception:
+            self.base_path = os.path.abspath(".")
+
+        if os.path.exists('./res/battery.ico'):
+            self.iconbitmap('./res/battery.ico')
+
+        self.s = ttk.Style()
+        
+        s_probe.sProbe.init()
 
         # Probe object reference
         self.p = probe.Probe()
@@ -39,50 +40,56 @@ class App(tk.Tk):
 
         # Menubar
         mb = tk.Menu(self)
-        self.config(menu=mb)
         file_menu = tk.Menu(mb, tearoff=False)
         view_menu = tk.Menu(mb, tearoff=False)
+        theme_menu = tk.Menu(mb, tearoff=False)
         ext = tk.Menu(view_menu, tearoff=False)
         mb.add_cascade(label='File', menu=file_menu)
         mb.add_cascade(label='View', menu=view_menu)
+        mb.add_cascade(label='Theme', menu=theme_menu)
         
-        #view_menu.add_command(label='Graph (internal)', command=self.create_internal_graph)
         view_menu.add_checkbutton(label='Graph (Internal)', command=self.create_internal_graph)
         view_menu.add_cascade(label='Graph (external)', menu=ext)
         ext.add_command(label='Single', command=self.create_external_single)
         ext.add_command(label='Multiple', command=self.create_external_graph)
         file_menu.add_command(label='Exit', command=self.on_close)
+        theme_menu.add_command(label='Default', command=self.default_theme)
+        theme_menu.add_command(label='Dark', command=self.dark_theme)
+        self.config(menu=mb)
 
-        # initialize tree view
+        # Initialize tree view
         self.tree = ttk.Treeview(self, columns=('val', 'max'), height=30)
-        self.tree.insert('', 'end', 'system', text='System Name', values=(self.p.win.systemname, ''), open=True)
+        self.tree.insert('', 'end', 'system', text='System Name', values=(s_probe.sProbe.system_name, ''), open=True)
         
-        self.tree.insert('system', 0, 'name', text='Name', values=(self.p.win.name, ''))
-        self.tree.insert('system', 'end', text='Status', values=(self.p.win.status, ''))
+        self.tree.insert('system', 0, 'name', text='Name', values=(s_probe.sProbe.name, ''))
+        self.tree.insert('system', 'end', text='Status', values=(s_probe.sProbe.status, ''))
         self.tree.insert('system', 'end', 'chargepercent', text='Charge Percent',
-                         values=(str(self.p.win.estimatedchargeremaining) + ' %', ''))
+                         values=(str(s_probe.sProbe.est_chrg) + ' %', ''))
 
-        if self.p.runtime is not None:
+        if s_probe.sProbe.runtime is not None:
             self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
-                         values=(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm ', ''))
+                values=(str(s_probe.sProbe.hours) + 'h ' + str(s_probe.sProbe.minutes) + 'm ', ''))
 
-        if self.p.win.maxrechargetime is not None:
+        if s_probe.sProbe.maxrechargetime is not None:
             self.tree.insert('system', 'end', 'maxchargetime', text='Max Recharge Time',
-            values=(self.p.win.maxrechargetime,''))
+                values=(s_probe.sProbe.maxrechargetime,''))
 
-        self.tree.insert('system', 'end', 'manufacturedate', text='Manufacture Date', values=(self.p.mdate, ''))
+        self.tree.insert('system', 'end', 'manufacturedate', text='Manufacture Date', values=(s_probe.sProbe.mdate, ''))
+
+        self.tree.insert('system', 'end', 'deviceid', text='Device ID', values=(s_probe.sProbe.device_id, ''))
 
         self.tree.insert('system', 'end', 'power', text='Power', open=True)
 
-        if self.p.charging:
+        # Check "maxrechargetime", ""
+        if s_probe.sProbe.charging:
             self.tree.insert('power', 'end', 'chargepower', text='Charge Power',
-                             values=(str(self.p.chargerate) + ' W', ''))
-            #self.tree.insert('timerem', 'end', 'rechargetime', text='Max Recharge Time',
-            #                 values=(str(self.p.rehours) + 'h ' + str(self.p.remins) + 'm', ''))
+                             values=(str(s_probe.sProbechargerate) + ' W', ''))
+            self.tree.insert('timerem', 'end', 'rechargetime', text='Max Recharge Time',
+                             values=(str(self.p.rehours) + 'h ' + str(self.p.remins) + 'm', ''))
             self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge', values=(str(self.p.ttfhours) + 'h ' + str(self.p.ttfmins) + 'm', ''))
         else:   #discharging
             self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
-                         values=(str(self.p.dischargerate) + ' W', ''))
+                         values=(str(s_probe.sProbe.discharge_rate) + ' W', ''))
 
         self.tree.insert('power', 'end', 'amps', text='Amperage', values=(str(self.p.amps) + ' A', ''))
 
@@ -92,7 +99,7 @@ class App(tk.Tk):
                          values=(str(int(self.p.win.designvoltage) / 1000) + ' V', ''))
 
         self.tree.insert('system', 'end', 'capacity', text='Capacity', open=True)
-        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(str(self.p.descap) + ' Wh', ''))
+        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(str(s_probe.sProbe.descap) + ' Wh', ''))
         self.tree.insert('capacity', 'end', 'fullcap', text='Full Charge Capacity',
                          values=(str(self.p.fullcap) + ' Wh', ''))
         self.tree.insert('capacity', 'end', 'bathealth', text='Battery Health',
@@ -101,11 +108,11 @@ class App(tk.Tk):
 
         # extra info
         self.tree.insert('system', 'end', 'info', text='Extra Info', open=True)
-        self.tree.insert('info', 'end', text='Cycle Count', values=(self.p.cyclecount, ''))
-        self.tree.insert('info', 'end', text='Temperature', values=(self.p.temp, ''))
+        self.tree.insert('info', 'end', text='Cycle Count', values=(s_probe.sProbe.cycle_count, ''))
+        self.tree.insert('info', 'end', text='Temperature', values=(s_probe.sProbe.temp, ''))
         self.tree.insert('info', 'end', 'cap', text='Caption', values=(self.p.win.caption, ''))
         self.tree.insert('info', 'end', 'desc', text='Description', values=(self.p.win.description, ''))
-        self.tree.insert('info', 'end', 'avail', text='Availability', values=(self.p.avail, ''))
+        self.tree.insert('info', 'end', 'avail', text='Availability', values=(s_probe.sProbe.avail, ''))
         self.tree.insert('info', 'end', 'batstat', text='Battery Status', values=(str(self.p.batstat)+' ('+str(self.p.ogbatstat)+')', ''))
         self.tree.insert('info', 'end', 'chem', text='Chemistry', values=(str(self.p.chem)+' ('+str(self.p.ogchem)+')', ''))
 
@@ -162,9 +169,6 @@ class App(tk.Tk):
             self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
         self.tree.set('amps', 'max', str(self.maxamps) + ' A')
-
-        if os.path.exists('./res/battery.ico'):
-            self.iconbitmap('./res/battery.ico')
 
         self.retree()
 
@@ -243,8 +247,8 @@ class App(tk.Tk):
                 self.maxdis = self.p.dischargerate
                 self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
                 self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
-        if self.p.runtime is not None:
-            self.tree.set('timerem', 'val', str(str(self.p.hours) + 'h ' + str(self.p.minutes) + 'm'))
+        if s_probe.sProbe.runtime is not None:
+            self.tree.set('timerem', 'val', str(str(s_probe.sProbe.hours) + 'h ' + str(s_probe.sProbe.minutes) + 'm'))
 
         self.tree.set('batstat', 'val', str(self.p.batstat)+' ('+str(self.p.ogbatstat)+')')
         self.tree.set('voltnow', 'val', str(self.p.voltage) + ' V')
@@ -270,7 +274,7 @@ class App(tk.Tk):
         # doubt this changs often
         self.tree.set('fullcap', 'val', str(self.p.fullcap) + ' Wh')
         self.tree.set('chargepercent', 'val', str(self.p.win.estimatedchargeremaining) + ' %')
-        self.p.refresh_voltage()
+        #self.p.refresh_voltage()
         self.after(1000, self.retree)
 
 
@@ -291,8 +295,22 @@ class App(tk.Tk):
 
     def destroy_internal(self) -> None:
         self.geometry('600x700')
-        #self.xbtn.destroy()
         self.plf.destroy()
+
+
+    def dark_theme(self) -> None:
+        self.tk.call('lappend', 'auto_path', 'res/awthemes-10.4.0')
+        try:
+            self.tk.call('package', 'require', 'awdark')
+            self.s.theme_use('awdark')
+            self.configure(bg='#2f2f2f')
+        except Exception as e:
+            tk.messagebox.showerror('Error', f'Cannot apply theme\n{e}')
+
+    
+    def default_theme(self) -> None:
+        self.configure(bg='#F0F0F0')
+        self.s.theme_use('vista')
         
 
     def on_close(self):
