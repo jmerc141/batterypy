@@ -7,7 +7,6 @@ import wmi
 class Probe:
 
     def __init__(self):
-        # get instance of win32battery, [0] for first entry
 
         # ROOT\CIMV2
         self.win = wmi.WMI().instances('win32_battery')[0]  # [0] is battery
@@ -92,11 +91,7 @@ class Probe:
         if self.win.timeonbattery is None:
             self.tob = 0
         else:
-            self.tob = self.win.timeonbattery       # in seconds       
-
-
-    def refresh_voltage(self):
-        self.voltage = self.rootwmi.ExecQuery('select * from BatteryStatus')[0].voltage
+            self.tob = self.win.timeonbattery       # in seconds
 
     
     def refresh(self):
