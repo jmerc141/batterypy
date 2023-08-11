@@ -51,16 +51,16 @@ class sProbe(object):
             sProbe.dischargerate = stat.dischargerate
             sProbe.amps = sProbe.dischargerate / sProbe.voltage
         else:
-            sProbe.dischargerate = 'N/A'
-            sProbe.amps = 'N/A'
+            sProbe.dischargerate = 0
+            sProbe.amps = 0
         
         # Might be negative
         if stat.chargerate >= 0:
             sProbe.chargerate = stat.chargerate / 1000
             sProbe.amps = round(sProbe.chargerate / sProbe.voltage, 3)
         else:
-            sProbe.chargerate = 'N/A'
-            sProbe.amps = 'N/A'
+            sProbe.chargerate = 0
+            sProbe.amps = 0
 
         sProbe.charging = stat.charging
         sProbe.critical = stat.critical

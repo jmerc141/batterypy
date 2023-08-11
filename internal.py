@@ -1,9 +1,10 @@
 # internal graph
+import tkinter as tk
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import s_probe
-from tkinter import Frame
+from tkinter import Frame, Button, ttk
 from threading import Thread
 
 '''
@@ -13,7 +14,7 @@ Plot resizes after opening external plot (open external then internal and its re
 
 class Window(Frame):
 
-    def __init__(self, master = None):
+    def __init__(self, master = None, dark: bool = None):
         Frame.__init__(self, master)
         self.master = master
         self.maxX = 60
@@ -21,7 +22,20 @@ class Window(Frame):
         self.minY = 12
         self.tick = 0
         self.prop = None
+        self.dark = dark
 
+        self.s = ttk.Style(self)
+
+        if self.dark:
+            self.configure(bg='#2f2f2f')
+            try:
+                self.tk.call('lappend', 'auto_path', 'res/awthemes-10.4.0')
+                self.tk.call('package', 'require', 'awdark')
+                self.s.theme_use('awdark')
+            except Exception as e:
+                print(e)
+                tk.messagebox.showerror('Error', f'Cannot apply theme\n{e}')
+        
         self.init_window()
 
 
@@ -44,7 +58,11 @@ class Window(Frame):
         if self.prop == 'Charge Power':
             tmp = s_probe.sProbe.chargerate
         self.y.append(tmp)
-        self.ax.set_title(str(tmp))
+        
+        if self.dark:
+            self.ax.set_title(str(tmp), color='white')
+        else:
+            self.ax.set_title(str(tmp), color='black')
 
         # adds scrolling x axis after maxX seconds
         if len(self.x) > self.maxX:
@@ -67,7 +85,7 @@ class Window(Frame):
         if self.prop == 'Charge Power':
             self.line, = self.ax.stackplot(self.x, self.y, color='yellow', alpha=0.5)
 
-        return self.line, self.l1,
+        return self.line, self.l1, 
 
 
     def set_prop(self, batprop):
@@ -77,86 +95,104 @@ class Window(Frame):
         self.maxY = 0
         self.minY = 100
         self.tick = 0
-
-        self.ax.set_title('Graph', color='white')
-        self.ax.set_xlabel('Seconds', color='white')
         
         self.prop = batprop
+        self.yl = ''
 
         if self.prop == 'Amperage':
             tmp = s_probe.sProbe.amps
             self.l1, = self.ax.plot(self.x, self.y, color='c')
-            self.ax.set_ylabel('Amperage (A)', color='white')
+            self.yl = 'Amperage (A)'
         if self.prop == 'Voltage':
             tmp = s_probe.sProbe.voltage
             self.l1, = self.ax.plot(self.x, self.y, color='red')
-            self.ax.set_ylabel('Voltage (V)', color='white')
+            self.yl = 'Voltage (V)'
         if self.prop == 'Discharge Power':
             tmp = s_probe.sProbe.dischargerate
             self.l1, = self.ax.plot(self.x, self.y, color='m')
-            self.ax.set_ylabel('Discharge Power (W)', color='white')
+            self.yl = 'Discharge Power (W)'
         if self.prop == 'Charge Power':
             tmp = s_probe.sProbe.chargerate
             self.l1, = self.ax.plot(self.x, self.y, color='orange')
-            self.ax.set_ylabel('Charge Power (W)', color='white')
-
-        self.ax.set_title('Graph', color='white')
-        self.ax.set_facecolor('#2f2f2f')
-        self.ax.spines['bottom'].set_color('white')
-        self.ax.spines['top'].set_color('white')
-        self.ax.spines['right'].set_color('white')
-        self.ax.spines['left'].set_color('white')
-        self.ax.tick_params(axis='x', colors='white')
-        self.ax.tick_params(axis='y', colors='white')
-        self.ax.grid(color='white')
+            self.yl = 'Charge Power (W)'
+        if self.prop == 'All':
+            print('all')
+        
+        if self.dark:
+            self.ax.set_ylabel(self.yl, color='white')
+            self.ax.set_title(str(tmp), color='white')
+            self.ax.grid(color='white')
+        else:
+            self.ax.set_ylabel(self.yl, color='black')
+            self.ax.set_title(str(tmp), color='black')
+            self.ax.grid(color='black')
 
         self.ax.set_xlim(0, 60)
         self.ax.set_ylim(0, tmp + 1)
         self.y = [tmp]
         self.canvas.draw()
-
+        
 
     def init_window(self):
         # Initializes to Voltage for now
         self.grid(row=0, column=2)
 
-        #self.p = probe.Probe()
         self.v = 1.0
         self.A = 1.0
 
-        self.i_fig = plt.Figure(facecolor='#2f2f2f', figsize=(7,8), dpi=75)
-        print('set adj')
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,8), dpi=75)
         self.i_fig.subplots_adjust(bottom=0.1, top=0.92, left=0.11)
         self.x = [0]
         self.prop = 'Voltage'
         self.y = [s_probe.sProbe.voltage]
 
         self.ax = self.i_fig.add_subplot(111, ylim=(0,20))
+        self.ax.set_xlabel('Seconds', color='black')
+        self.ax.set_ylabel('Voltage (V)', color='black')
+        self.ax.grid(color='black')
+
+        south_frame = Frame(self)
         
-        self.ax.set_xlabel('Seconds', color='white')
-        self.ax.set_ylabel('Voltage', color='white')
-        
-        self.ax.set_title('Graph', color='white')
-        self.ax.set_facecolor('#2f2f2f')
-        self.ax.spines['bottom'].set_color('white')
-        self.ax.spines['top'].set_color('white')
-        self.ax.spines['right'].set_color('white')
-        self.ax.spines['left'].set_color('white')
-        self.ax.tick_params(axis='x', colors='white')
-        self.ax.tick_params(axis='y', colors='white')
-        self.ax.grid(color='white')
+        if self.dark:
+            south_frame.configure(bg='#2f2f2f')
+            self.ax.set_xlabel('Seconds', color='white')
+            self.ax.set_ylabel('Voltage', color='white')
+            self.ax.set_title('Graph', color='white')
+            self.ax.set_facecolor('#2f2f2f')
+            self.ax.spines['bottom'].set_color('white')
+            self.ax.spines['top'].set_color('white')
+            self.ax.spines['right'].set_color('white')
+            self.ax.spines['left'].set_color('white')
+            self.ax.tick_params(axis='x', colors='white')
+            self.ax.tick_params(axis='y', colors='white')
+            self.ax.grid(color='white')
+            self.i_fig.set_facecolor('#2f2f2f')
         
         self.ax.set_xlim(0, 60)
 
         self.l1, = self.ax.plot(self.x, self.y, color='red')
 
         self.canvas = FigureCanvasTkAgg(self.i_fig, master=self)
-        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10)
+        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
 
-        self.add_toolbar()
+        
+        south_frame.pack(side='bottom')
+
+        vbtn = ttk.Button(south_frame, text='Volts', command=lambda: self.set_prop('Voltage'))
+        abtn = ttk.Button(south_frame, text='Amps', command=lambda: self.set_prop('Amperage'))
+        wbtn = ttk.Button(south_frame, text='Watts', command=lambda: self.set_prop('Discharge Power'))
+        btn3 = ttk.Button(south_frame, text='All', command=lambda: self.set_prop('All'))
+        
+        vbtn.pack(side='left', padx=5)
+        abtn.pack(side='left', padx=5)
+        wbtn.pack(side='left', padx=5)
+        btn3.pack(side='left', padx=5)
+
+        #self.add_toolbar()
 
         self.i_proc = Thread(target=self.start_anim)
         self.i_proc.start()
+        #self.canvas.draw()
         
 
     def start_anim(self):

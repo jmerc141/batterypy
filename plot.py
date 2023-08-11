@@ -1,10 +1,8 @@
 # external graph
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import matplotlib.animation as animation
 from matplotlib import style
-import probe, s_probe
-#from multiprocessing import Process
+import s_probe
 from threading import Thread
 
 class Plot:
@@ -76,13 +74,23 @@ class Plot:
             self.ampy.append(0)
             self.ymax.append(0)
         
-        self.fig = plt.figure(facecolor='#2f2f2f', dpi=75, figsize=(8,8))
+        self.fig = plt.figure(dpi=75, figsize=(8,8))
         self.ax1 = self.fig.add_subplot()
-        plt.title('Power', color='white')
-        plt.xlabel('Seconds', color='white')
-        self.ax1.set_facecolor('#2f2f2f')
-        self.ax1.tick_params(axis='x', colors='white')
-        self.ax1.tick_params(axis='y', colors='white')
+        print(self.dark)
+        if self.dark:
+            plt.title('Power', color='white')
+            plt.xlabel('Seconds', color='white')
+            self.fig.set_facecolor('#2f2f2f')
+            self.ax1.set_facecolor('#2f2f2f')
+            self.ax1.tick_params(axis='x', colors='white')
+            self.ax1.tick_params(axis='y', colors='white')
+        else:
+            plt.title('Power', color='black')
+            plt.xlabel('Seconds', color='black')
+            #self.fig.set_facecolor('#2f2f2f')
+            #self.ax1.set_facecolor('#2f2f2f')
+            self.ax1.tick_params(axis='x', colors='black')
+            self.ax1.tick_params(axis='y', colors='black')
 
         self.fig.subplots_adjust(bottom=0.09, top=0.93)
 
@@ -98,7 +106,7 @@ class Plot:
     def anim1(self, i):
         self.volty.append(s_probe.sProbe.voltage)
         self.ampy.append(s_probe.sProbe.amps)
-        self.watty.append(s_probe.sProbe.dischargerate)
+        self.watty.append(s_probe.sProbe.chargerate)
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
@@ -109,17 +117,17 @@ class Plot:
 
         self.L.get_texts()[0].set_text(f'Volts ({s_probe.sProbe.voltage})')
         self.L.get_texts()[1].set_text(f'Amps ({s_probe.sProbe.amps})')
-        self.L.get_texts()[2].set_text(f'Watts ({s_probe.sProbe.dischargerate})')
+        self.L.get_texts()[2].set_text(f'Watts ({s_probe.sProbe.chargerate})')
 
         self.l1.set_ydata(self.volty)
         self.l2.set_ydata(self.ampy)
         self.l3.set_ydata(self.watty)
 
-        self.sp1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
-        self.sp2, = self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
-        self.sp3, = self.ax1.stackplot(self.xs, self.watty, color='yellow', alpha=0.5)
+        self.sp1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.2)
+        self.sp2, = self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.2)
+        self.sp3, = self.ax1.stackplot(self.xs, self.watty, color='yellow', alpha=0.2)
 
-        return self.l1, self.l2, self.l3, self.L, self.sp1, #self.sp2, self.sp3
+        return self.l1, self.l2, self.l3, self.L, self.sp3, self.sp2, self.sp1
 
 
     def set_prop(self, prop):
@@ -130,8 +138,9 @@ class Plot:
         ani = animation.FuncAnimation(self.fig, func, interval=1000, cache_frame_data=False, blit=True)
 
 
-    def __init__(self, t):
+    def __init__(self, t, dark: bool = None):
         self.prop = 0
+        self.dark = dark
         style.use('fivethirtyeight')
 
         self.xs = []
@@ -150,6 +159,8 @@ class Plot:
             self.proc.start()
 
         plt.show()
+        
 
     def on_close(self):
-        pass
+        #print('close')
+        plt.close('all')
