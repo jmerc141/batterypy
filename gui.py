@@ -109,7 +109,7 @@ class App(tk.Tk):
 
 
     def create_external_single(self):
-        self.pl = plot.Plot(1)
+        self.pl = plot.Plot(1, self.dark)
         self.pl.on_close()
         self.pl = None
 
@@ -119,14 +119,14 @@ class App(tk.Tk):
         if not self.rootwmi_on:
             self.rootwmi_on = True
             r = s_probe.sProbe.getRootWmi()
-            self.tree.insert('', 'end', 'root/wmi', text='root/wmi', open=True)
+            self.tree.tree.insert('', 'end', 'root/wmi', text='root/wmi', open=True)
             for i in r.classes:
                 if "Battery" in i and "MS" not in i:
                     tmp = r.instances(i)
                     if len(tmp) > 0:
-                        self.tree.insert('root/wmi', 'end', i, text=i, open=True)
+                        self.tree.tree.insert('root/wmi', 'end', i, text=i, open=True)
                         for x in tmp[0].properties.keys():
-                            self.tree.insert(i, 'end', str(i)+x, text=x, values=(getattr(tmp[0], x), ''))
+                            self.tree.tree.insert(i, 'end', str(i)+x, text=x, values=(getattr(tmp[0], x), ''))
         else:
             self.rootwmi_on = False
             self.tree.delete('root/wmi')
@@ -173,7 +173,6 @@ class App(tk.Tk):
     def retree(self):
         # overwrites values in the treeview, use only dynamic values
         s_probe.sProbe.refresh()
-        
         self.tree.re_tree()
         self.after(1000, self.retree)
 

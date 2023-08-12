@@ -43,12 +43,12 @@ class Treev(ttk.Treeview):
                              values=(str(s_probe.sProbe.ttf / 60) + 'h ' + str(s_probe.sProbe.ttf % 60) + 'm', ''))
         else:   #discharging
             self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
-                         values=(str(s_probe.sProbe.dischargerate) + ' W', ''))
-
+                         values=(str(s_probe.sProbe.dischargerate / 1000) + ' W', ''))
+        
         self.tree.insert('power', 'end', 'amps', text='Amperage', values=(str(s_probe.sProbe.amps) + ' A', ''))
 
         self.tree.insert('system', 'end', 'v', text='Voltage', open=True)
-        self.tree.insert('v', 'end', 'voltnow', text='Voltage', values=(str(s_probe.sProbe.voltage) + ' V', ''))
+        self.tree.insert('v', 'end', 'voltnow', text='Voltage', values=(str(s_probe.sProbe.voltage / 1000) + ' V', ''))
         self.tree.insert('v', 'end', 'desvolt', text='Design Voltage',
                          values=(str(int(s_probe.sProbe.design_voltage) / 1000) + ' V', ''))
 
@@ -134,7 +134,7 @@ class Treev(ttk.Treeview):
             if s_probe.sProbe.maxrechargetime is not None:
                 self.tree.set('rechargetime', 'val', str(str(s_probe.sProbe.rehours) + 'h ' + str(s_probe.sProbe.remins) + 'm'))
         else:
-            #self.tree.set('dpower', 'val', str(s_probe.sProbe.dischargerate) + ' W')
+            self.tree.set('dpower', 'val', str(s_probe.sProbe.dischargerate) + ' W')
             if s_probe.sProbe.dischargerate > self.maxdis:
                 self.maxdis = s_probe.sProbe.dischargerate
                 self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
@@ -160,3 +160,4 @@ class Treev(ttk.Treeview):
         # doubt this changs often
         self.tree.set('fullcap', 'val', str(s_probe.sProbe.full_cap / 1000) + ' Wh')
         self.tree.set('chargepercent', 'val', str(s_probe.sProbe.est_chrg) + ' %')
+

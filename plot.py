@@ -106,7 +106,9 @@ class Plot:
     def anim1(self, i):
         self.volty.append(s_probe.sProbe.voltage)
         self.ampy.append(s_probe.sProbe.amps)
-        self.watty.append(s_probe.sProbe.chargerate)
+        #print(s_probe.sProbe.charging)
+        #if s_prob.charging:
+        self.watty.append(s_probe.sProbe.dischargerate)
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
@@ -117,7 +119,7 @@ class Plot:
 
         self.L.get_texts()[0].set_text(f'Volts ({s_probe.sProbe.voltage})')
         self.L.get_texts()[1].set_text(f'Amps ({s_probe.sProbe.amps})')
-        self.L.get_texts()[2].set_text(f'Watts ({s_probe.sProbe.chargerate})')
+        self.L.get_texts()[2].set_text(f'Watts ({s_probe.sProbe.dischargerate})')
 
         self.l1.set_ydata(self.volty)
         self.l2.set_ydata(self.ampy)
@@ -140,6 +142,7 @@ class Plot:
 
     def __init__(self, t, dark: bool = None):
         self.prop = 0
+        print('init', dark)
         self.dark = dark
         style.use('fivethirtyeight')
 

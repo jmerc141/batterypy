@@ -45,22 +45,6 @@ class sProbe(object):
     def getRootWmi():
         r = wmi.WMI(moniker="//./root/wmi")
         stat = r.instances('BatteryStatus')[0]
-        # Assume these always exist
-        sProbe.voltage = stat.voltage / 1000
-        if stat.dischargerate >= 0:
-            sProbe.dischargerate = stat.dischargerate
-            sProbe.amps = sProbe.dischargerate / sProbe.voltage
-        else:
-            sProbe.dischargerate = 0
-            sProbe.amps = 0
-        
-        # Might be negative
-        if stat.chargerate >= 0:
-            sProbe.chargerate = stat.chargerate / 1000
-            sProbe.amps = round(sProbe.chargerate / sProbe.voltage, 3)
-        else:
-            sProbe.chargerate = 0
-            sProbe.amps = 0
 
         sProbe.charging = stat.charging
         sProbe.critical = stat.critical
@@ -73,6 +57,26 @@ class sProbe(object):
         sProbe.full_cap = sProbe.tryinstance('BatteryFullChargedCapacity')
         sProbe.temp = sProbe.tryinstance('BatteryTempurature')
         sProbe.control = sProbe.tryinstance('BatteryControl')
+
+        # Assume these always exist
+        sProbe.voltage = stat.voltage / 1000
+        if not sProbe.charging:
+            if stat.dischargerate >= 0:
+                sProbe.dischargerate = stat.dischargerate / 1000
+                sProbe.amps = round(sProbe.dischargerate / sProbe.voltage, 3)
+                sProbe.chargerate = 0
+            else:
+                sProbe.dischargerate = 0
+                sProbe.amps = 0
+        else:
+            # Might be negative
+            if stat.chargerate >= 0:
+                sProbe.chargerate = stat.chargerate / 1000
+                sProbe.amps = round(sProbe.chargerate / sProbe.voltage, 3)
+            else:
+                sProbe.chargerate = 0
+                sProbe.amps = 0
+
         return r
 
 
