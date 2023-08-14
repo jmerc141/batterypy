@@ -15,13 +15,37 @@ class Probe:
             self.portable = wmi.WMI().instances('win32_portablebattery')[0]
         else:
             self.portable = None
+
+        self.system_name = self.win.systemname
+        self.name = self.win.name
+        self.bstatus = self.win.batterystatus
+        self.stat_str = self.getStatus()
+        self.status = self.win.status
+        self.est_chrg = self.win.estimatedchargeremaining
+        self.maxrechargetime = self.win.maxrechargetime
+        self.device_id = self.win.deviceid
+
+        self.caption = self.win.caption
+        self.chem2 = self.win.chemistry
+        self.chem_str = self.getchem()
+        self.desc = self.win.description
+        self.design_voltage = self.win.designvoltage
+        self.descap2 = self.win.designcapacity
+        self.est_runtime = self.win.estimatedruntime
+        self.exp_bat_life = self.win.expectedbatterylife
+        self.exp_life = self.win.expectedlife
+        self.tob = self.win.timeonbattery
+        self.ttf = self.win.timetofullcharge
+        self.pmc = self.win.powermanagementcapabilities
+        self.err_desc = self.win.errordescription
+        
         # ROOT\WMI
         self.rootwmi = wmi.WMI(moniker="//./root/wmi")
 
         self.runtime = self.tryinstance(self, 'BatteryRunTime')
         
-        self.fullcap = self.tryinstance(self, 'BatteryFullChargedCapacity')
-        self.cyclecount = self.tryinstance(self, 'BatteryCycleCount')
+        self.full_cap = self.tryinstance(self, 'BatteryFullChargedCapacity')
+        self.cycle_count = self.tryinstance(self, 'BatteryCycleCount')
         self.temp = self.tryinstance(self, 'BatteryTemperature')
 
         # later
@@ -38,7 +62,7 @@ class Probe:
             self.dischargerate = 0
         self.discharging = status.discharging
         self.poweronline = status.poweronline
-        self.remcap = status.remainingcapacity / 1000
+        self.rem_cap = status.remainingcapacity / 1000
         self.voltage = status.voltage / 1000
         self.cap2 = status.caption
 
@@ -57,17 +81,17 @@ class Probe:
         self.g3 = staticdata.granularity3
 
         # calculated values
-        self.ah = self.remcap / self.voltage
+        self.ah = self.rem_cap / self.voltage
         self.amps = self.calcamps(self)
-        self.bathealth = (self.fullcap / self.descap) * 100  # overall battery degradation %
+        self.bathealth = (self.full_cap / self.descap) * 100  # overall battery degradation %
         #self.capleft = self.fullcap * (self.estimatedchargeremaining)
 
         # require processing
         self.ogbatstat = self.win.batterystatus
-        self.batstat = self.getStatus(self)
-        self.ogavail = self.win.Availability
-        self.avail = self.getAvail(self)
-        self.chem = self.getchem(self)
+        self.batstat = self.getStatus()
+        self.avail = self.win.Availability
+        self.avail_str = self.getAvail()
+        self.chem = self.getchem()
         # look up codes
         self.pmc = self.win.powermanagementcapabilities
         self.pms = self.win.powermanagementsupported
@@ -116,7 +140,9 @@ class Probe:
         #self.tagchange = self.rootwmi.ExecQuery('select * from BatteryTagChange')
         #self.statchange = self.rootwmi.ExecQuery('selct * from BatteryStatusChange')
 
-        status = self.rootwmi.ExecQuery('select * from BatteryStatus')[0]
+        #status = self.rootwmi.ExecQuery('select * from BatteryStatus')[0]
+        #status = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]
+        status = self.rootwmi.instances('BatteryStatus')[0]
         self.chargerate = status.chargerate / 1000
         self.charging = status.charging
         self.critical = status.critical
@@ -135,13 +161,12 @@ class Probe:
         self.bathealth = (self.fullcap / self.descap) * 100  # percent
 
         # require processing
-        self.batstat = self.getStatus(self)
-        self.avail = self.getAvail(self)
-        self.chem = self.getchem(self)
-        #self.proc.join()
+        #self.batstat = self.getStatus()
+        self.avail = self.win.availability
+        self.avail_str = self.getAvail()
+        #self.chem = self.getchem(self)
 
 
-    @staticmethod
     def getStatus(self):
         statcode = self.win.batterystatus
         if statcode == 1:
@@ -169,7 +194,6 @@ class Probe:
         return statcode
 
 
-    @staticmethod
     def getAvail(self):
         # only call from refresh
         avail = self.win.Availability
@@ -220,7 +244,6 @@ class Probe:
         return avail
 
 
-    @staticmethod
     def getchem(self):
         # only call from refresh
         if self.win.chemistry == 1:

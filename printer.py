@@ -85,4 +85,11 @@ def printbat():
     print('{:>22}{:10}{:<g} Ah'.format('Amp / Hour:', ' ', p.ah))
     print('{:>22}{:10}{:<g} A'.format('Amps:', ' ', p.amps))
 
-printbat()
+#printbat()
+
+import time
+
+while(True):
+    p.refresh()
+    print(p.dischargerate)
+    time.sleep(1)

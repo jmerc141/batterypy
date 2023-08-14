@@ -1,37 +1,33 @@
 # probe.py
 
-import wmi, time
+import wmi, time, pythoncom
+from threading import Thread
 
 class sProbe(object):
 
-    #voltage = amps = watts = runtime = fullcap = remcap = 0
+    voltage = amps = watts = runtime = fullcap = remcap = dischargerate = 0
+    rwmi = wmi.WMI(moniker="//./root/wmi")
+    going = True
 
     @staticmethod
-    def init() -> None:
-        sProbe.getRootWmi()
+    def __init__() -> None:
         sProbe.getStaticData()
-        sProbe.getWin32Bat()
+        sProbe.initWin32Bat()
+        sProbe.getRootWmi()
         sProbe.get_portable()
         sProbe.get_health()
         sProbe.get_chem()
+        sProbe.th = Thread(target=sProbe.refresh)
+        sProbe.th.start()
 
 
     @staticmethod
     def refresh():
-        stat = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]
-
-        sProbe.getRootWmi()
-
-        sProbe.charging = stat.charging
-        sProbe.critical = stat.critical
-        sProbe.discharging = stat.discharging
-        sProbe.rem_cap = stat.remainingcapacity
-        sProbe.power_online = stat.poweronline
-        sProbe.active = stat.active
-        sProbe.runtime = sProbe.tryinstance('BatteryRunTime')
-        sProbe.cycle_count = sProbe.tryinstance('BatteryCycleCount')
-        sProbe.full_cap = sProbe.tryinstance('BatteryFullChargedCapacity')
-        sProbe.temp = sProbe.tryinstance('BatteryTempurature')
+        while(sProbe.going):
+            pythoncom.CoInitialize()
+            sProbe.getWin32Bat()
+            sProbe.getRootWmi()
+            time.sleep(1)
 
 
     @staticmethod
@@ -43,8 +39,10 @@ class sProbe(object):
 
     @staticmethod
     def getRootWmi():
-        r = wmi.WMI(moniker="//./root/wmi")
-        stat = r.instances('BatteryStatus')[0]
+        #r = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]
+        #stat = sProbe.rwmi.instances('BatteryStatus')[0]
+        stat = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]
+        #stat = sProbe.rwmi.ExecQuery('select * from BatteryStatus')[0]
 
         sProbe.charging = stat.charging
         sProbe.critical = stat.critical
@@ -77,8 +75,6 @@ class sProbe(object):
                 sProbe.chargerate = 0
                 sProbe.amps = 0
 
-        return r
-
 
     @staticmethod
     def getStaticData():
@@ -103,6 +99,22 @@ class sProbe(object):
         sProbe.avail = w.availability
         sProbe.avail_str = sProbe.getAvail()
         sProbe.bstatus = w.batterystatus
+        sProbe.est_chrg = w.estimatedchargeremaining
+        sProbe.est_runtime = w.estimatedruntime
+        sProbe.maxrechargetime = w.maxrechargetime
+        sProbe.exp_bat_life = w.expectedbatterylife
+        sProbe.exp_life = w.expectedlife
+        sProbe.tob = w.timeonbattery
+        sProbe.ttf = w.timetofullcharge
+        sProbe.status = w.status
+        sProbe.stat_str = sProbe.getStatus()
+
+    @staticmethod
+    def initWin32Bat():
+        w = wmi.WMI().instances('win32_battery')[0]
+        sProbe.avail = w.availability
+        sProbe.avail_str = sProbe.getAvail()
+        sProbe.bstatus = w.batterystatus
         sProbe.caption = w.caption
         sProbe.chem2 = w.chemistry
         sProbe.desc = w.description
@@ -122,7 +134,11 @@ class sProbe(object):
         sProbe.stat_str = sProbe.getStatus()
         sProbe.system_name = w.systemname
         sProbe.err_desc = w.errordescription
-        return w
+    
+
+    @staticmethod
+    def getw32bat_inst():
+            return wmi.WMI().instances('win32_battery')[0]
 
 
     @staticmethod
@@ -158,7 +174,7 @@ class sProbe(object):
                     sProbe.minutes = 0
                     return None
                 else:
-                    sProbe.hours = int(tmp[0].estimatedruntime / 60)
+                    sProbe.hours = int(tmp[0].estimatedruntime / 3600)
                     sProbe.minutes = int(tmp[0].estimatedruntime % 60)
                     return tmp[0].estimatedruntime / 60
             elif prop == 'BatteryTemperature':
@@ -270,3 +286,10 @@ class sProbe(object):
         else:
             avail = 'Unknown'
         return avail
+    
+
+    @staticmethod
+    def on_close():
+        print('closing')
+        sProbe.going = False
+

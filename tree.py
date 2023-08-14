@@ -7,6 +7,8 @@ class Treev(ttk.Treeview):
     def __init__(self, master = None):
         self.master = master
         self.tree = ttk.Treeview(master, columns=('val', 'max'), height=30, padding=[2,2])
+        s_probe.sProbe()
+        
         self.init()
         
 
@@ -37,7 +39,7 @@ class Treev(ttk.Treeview):
             self.tree.insert('power', 'end', 'chargepower', text='Charge Power',
                              values=(str(s_probe.sProbe.chargerate) + ' W', ''))
             #self.tree.insert('timerem', 'end', 'rechargetime', text='Max Recharge Time',
-            #                 values=(str(self.p.rehours) + 'h ' + str(self.p.remins) + 'm', ''))
+            #                 values=(str(s_probe.sProbe.rehours) + 'h ' + str(s_probe.sProbe.remins) + 'm', ''))
             if s_probe.sProbe.ttf is not None:
                 self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge',
                              values=(str(s_probe.sProbe.ttf / 60) + 'h ' + str(s_probe.sProbe.ttf % 60) + 'm', ''))
@@ -117,10 +119,6 @@ class Treev(ttk.Treeview):
 
         #self.tree.bind('<<TreeviewSelect>>', self.item_selected)
         return self.tree
-    
-
-    #def insert(self):
-    #    self.t.insert()
 
 
     def re_tree(self):
@@ -160,4 +158,63 @@ class Treev(ttk.Treeview):
         # doubt this changs often
         self.tree.set('fullcap', 'val', str(s_probe.sProbe.full_cap / 1000) + ' Wh')
         self.tree.set('chargepercent', 'val', str(s_probe.sProbe.est_chrg) + ' %')
+
+
+    # takes about 8 seconds
+    def get_rootwmi(self):
+        if not self.rootwmi_on:
+            self.rootwmi_on = True
+            r = s_probe.sProbe.getRootWmi()
+            self.tree.tree.insert('', 'end', 'root/wmi', text='root/wmi', open=True)
+            for i in r.classes:
+                if "Battery" in i and "MS" not in i:
+                    tmp = r.instances(i)
+                    if len(tmp) > 0:
+                        self.tree.tree.insert('root/wmi', 'end', i, text=i, open=True)
+                        for x in tmp[0].properties.keys():
+                            self.tree.tree.insert(i, 'end', str(i)+x, text=x, values=(getattr(tmp[0], x), ''))
+        else:
+            self.rootwmi_on = False
+            self.tree.delete('root/wmi')
+
+
+    def get_win32batt(self):
+        if not self.win32bat_on:
+            self.win32bat_on = True
+            w = s_probe.sProbe.getw32bat_inst()
+            self.tree.insert('', 'end', 'Raw', text='win32_battery', open=True)
+            for i in w.properties.keys():
+                val = getattr(w, i)
+                if val:
+                    self.tree.insert('Raw', 'end', str('b' + i), text=i, values=(val, ''))
+            self.tree.yview_moveto('1.0')
+        else:
+            self.win32bat_on = False
+            self.tree.delete('Raw')
+
+
+    def get_portable(self):
+        if s_probe.sProbe.portable is not None:
+            if not s_probe.sProbeortable_on:
+                s_probe.sProbeortable_on = True
+                self.tree.insert('', 'end', 'portable', text='Portable Battery', open=True)
+                # Portable Battery (all static values)
+                for i in s_probe.sProbe.portable.properties.keys():
+                    val = getattr(s_probe.sProbe.portable, i)
+                    # Not none values
+                    if val:
+                        if 'DesignVoltage' in i or 'DesignCapacity' in i:
+                            val = str(int(val) / 1000)
+                        self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
+                # Scroll to bottom
+                self.tree.yview_moveto('1.0')
+            else:
+                s_probe.sProbeortable_on = False
+                self.tree.delete('portable')
+        else:
+            print('Portable does not exist')
+
+
+    def on_close(self):
+        s_probe.sProbe.on_close()
 
