@@ -7,12 +7,16 @@ class Treev(ttk.Treeview):
     def __init__(self, master = None):
         self.master = master
         self.tree = ttk.Treeview(master, columns=('val', 'max'), height=30, padding=[2,2])
-        s_probe.sProbe()
+        try:
+            s_probe.sProbe()
+        except TypeError as e:
+            raise TypeError(e)
         
         self.init()
         
 
     def init(self):
+        #self.tree.tag_configure(font=['FiraMono Nerd Font Mono', 12, 'normal'])
         self.tree.insert('', 'end', 'system', text='System Name', values=(s_probe.sProbe.system_name, ''), open=True)
         
         self.tree.insert('system', 0, 'name', text='Name', values=(s_probe.sProbe.name, ''))
@@ -32,10 +36,9 @@ class Treev(ttk.Treeview):
 
         self.tree.insert('system', 'end', 'deviceid', text='Device ID', values=(s_probe.sProbe.device_id, ''))
 
-        self.tree.insert('system', 'end', 'power', text='Power', open=True)
-
         # Check "maxrechargetime", ""
         if s_probe.sProbe.charging:
+            self.tree.insert('system', 'end', 'power', text=str('Power' + '🔌'), open=True)
             self.tree.insert('power', 'end', 'chargepower', text='Charge Power',
                              values=(str(s_probe.sProbe.chargerate) + ' W', ''))
             #self.tree.insert('timerem', 'end', 'rechargetime', text='Max Recharge Time',
@@ -44,6 +47,7 @@ class Treev(ttk.Treeview):
                 self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge',
                              values=(str(s_probe.sProbe.ttf / 60) + 'h ' + str(s_probe.sProbe.ttf % 60) + 'm', ''))
         else:   #discharging
+            self.tree.insert('system', 'end', 'power', text=str('Power' + ' ⚡'), open=True)
             self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
                          values=(str(s_probe.sProbe.dischargerate / 1000) + ' W', ''))
         

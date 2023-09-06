@@ -25,6 +25,7 @@ class App(tk.Tk):
             self.iconbitmap('./res/battery.ico')
 
         self.s = ttk.Style()
+        self.s.configure('Treeview', font=['CascadiaMono', 10, 'normal'])
         try:
             self.tk.call('lappend', 'auto_path', 'res/awthemes-10.4.0')
             self.tk.call('package', 'require', 'awdark')
@@ -40,7 +41,11 @@ class App(tk.Tk):
         self.title('BatteryInfo')
         self.geometry('600x700')
 
-        self.tree = tree.Treev(self)
+        try:
+            self.tree = tree.Treev(self)
+        except TypeError as e:
+            tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{e}')
+            self.on_close()
 
         # Menubar
         mb = tk.Menu(self)
@@ -77,8 +82,6 @@ class App(tk.Tk):
         self.columnconfigure(0, weight=1)
 
         self.retree()
-        #self.th = Thread(target=self.retree)
-        #self.th.start()
 
 
     def create_internal_graph(self):
@@ -156,7 +159,10 @@ class App(tk.Tk):
         
 
     def on_close(self):
-        self.tree.on_close()
+        try:
+            self.tree.on_close()
+        except Exception as e:
+            print('bad')
         plot.plt.close()
         self.update()
         self.destroy()

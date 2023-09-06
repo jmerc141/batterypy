@@ -11,8 +11,11 @@ class sProbe(object):
 
     @staticmethod
     def __init__() -> None:
+        try:
+            sProbe.initWin32Bat()
+        except TypeError as e:
+            raise TypeError('Win32Battery is null', e)
         sProbe.getStaticData()
-        sProbe.initWin32Bat()
         sProbe.getRootWmi()
         sProbe.get_portable()
         sProbe.get_health()
@@ -28,7 +31,7 @@ class sProbe(object):
             sProbe.getWin32Bat()
             sProbe.getRootWmi()
             time.sleep(1)
-
+            
 
     @staticmethod
     def get_portable():
