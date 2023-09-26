@@ -90,15 +90,14 @@ class Treev(ttk.Treeview):
 
         # initialize max var, and initialize column
         self.maxv = s_probe.sProbe.voltage
-        self.maxdis = s_probe.sProbe.dischargerate
-        self.maxcharge = s_probe.sProbe.chargerate
         self.maxamps = s_probe.sProbe.amps
 
         if s_probe.sProbe.charging:
-            pass
+            self.maxcharge = s_probe.sProbe.chargerate
             #self.tree.set('charge', 'max', str(self.maxcharge) + ' W')
             self.tree.set('chargepower', 'max', str(self.maxcharge) + ' W')
         else:
+            self.maxdis = s_probe.sProbe.dischargerate
             self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
         self.tree.set('amps', 'max', str(self.maxamps) + ' A')
