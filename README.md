@@ -5,4 +5,7 @@ Requires wmi module
 (pip install wmi)
 
 Build:
-pyinstaller --onedir --windowed --add-data "res/*;res" main.py
+windows:
+  pyinstaller --onedir --windowed --add-data "res/*;res" main.py
+linux:
+  pyinstaller -F -w --add-data "res/*:res" main.py
