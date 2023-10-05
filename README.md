@@ -7,9 +7,11 @@ Use pip or package manager to install:
 wmi matplotlib tkinter
 ```
 ## Build:
+### Windows:
 ```
-windows:
-  pyinstaller --onedir --windowed --add-data "res/*;res" main.py
-linux:
-  pyinstaller -F -w --add-data "res/*:res" main.py
+pyinstaller --onedir --windowed --add-data "res/*;res" main.py
+```
+### Linux:
+```
+pyinstaller -F -w --add-data "res/*:res" main.py
 ```
