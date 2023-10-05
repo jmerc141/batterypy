@@ -19,7 +19,8 @@ class Treev(ttk.Treeview):
         #self.tree.tag_configure(font=['FiraMono Nerd Font Mono', 12, 'normal'])
         self.tree.insert('', 'end', 'system', text='System Name', values=(s_probe_l.sProbe.props['sysname'], ''), open=True)
         
-        self.tree.insert('system', 0, 'name', text='Name', values=(s_probe_l.sProbe.props['model_name'], ''))
+        self.tree.insert('system', 'end', 'manu', text="Manufacturer", values=(s_probe_l.sProbe.props['manufacturer'], ''))
+        self.tree.insert('system', 'end', 'name', text='Name', values=(s_probe_l.sProbe.props['model_name'], ''))
         self.tree.insert('system', 'end', 'batstat', text='Status', values=(s_probe_l.sProbe.props['status'], ''))
         self.tree.insert('system', 'end', 'chargepercent', text='Charge Percent',
                          values=(str(s_probe_l.sProbe.props['capacity']) + ' %', ''))
@@ -55,7 +56,7 @@ class Treev(ttk.Treeview):
                     values=(str(s_probe_l.sProbe.hours) + 'h ' + str(s_probe_l.sProbe.minutes) + 'm ', ''))
             self.tree.insert('system', 'end', 'power', text=str('Power' + ' ⚡'), open=True)
             self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
-                         values=(str(int(s_probe_l.sProbe.props['watts']) / 1000000) + ' W', ''))
+                         values=(str(int(s_probe_l.sProbe.calculated_props['watts']) / 1000000) + ' W', ''))
             self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
         else:   #Uknown status
             self.tree.insert('system', 'end', 'power', text="Power Unknown", open=True)
@@ -152,6 +153,7 @@ class Treev(ttk.Treeview):
     def re_tree(self):
         v = int(s_probe_l.sProbe.props['voltage_now']) / 1000000
         w = int(s_probe_l.sProbe.calculated_props['watts']) / 1000000
+        a = round(s_probe_l.sProbe.calculated_props['amps'] / 1000000, 3)
 
         if s_probe_l.sProbe.props['status'] == 'Charging':
             # CHARGING
@@ -170,14 +172,14 @@ class Treev(ttk.Treeview):
 
         self.tree.set('batstat', 'val', str(s_probe_l.sProbe.props['status']))
         self.tree.set('voltnow', 'val', str(v) + ' V')
-        self.tree.set('amps', 'val', str(round(s_probe_l.sProbe.calculated_props['amps'] / 1000000, 3)) + ' A')
+        self.tree.set('amps', 'val', str(a) + ' A')
 
         # Max values column
         if v > self.maxv:
-            self.maxv = int(s_probe_l.sProbe.props['voltage_now'])
+            self.maxv = v
             self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
-        if v > self.maxamps:
-            self.maxamps = s_probe_l.sProbe.calculated_props['amps']
+        if a > self.maxamps:
+            self.maxamps = a
             self.tree.set('amps', 'max', str(self.maxamps) + ' A')
 
         if s_probe_l.sProbe.wh:

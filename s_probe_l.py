@@ -29,9 +29,8 @@ class sProbe(object):
             'serial_number': '', 'type': '', 'current_avg': '','current_max': '', 'current_now': '', 'technology': '', 'voltage_avg': '',
             'input_voltage_limit': '', 'input_power_limit': '', 'online': '', 'usb_type': '', 'charge_now': '', 'fast_charge_timer': '', 
             'top_off_threshold_current': '', 'top_off_timer': '', 'cycle_count': '', 'ovp_voltage': '', 'manufacture_year': '', 'manufacture_month': '',
-            'manufacture_day': '', 'power_now': '', 'power_avg': ''}
+            'manufacture_day': '', 'power_now': '', 'power_avg': '', 'manufacturer': ''}
     going = True
-
 
     @staticmethod
     def __init__() -> None:
@@ -89,9 +88,9 @@ class sProbe(object):
             sProbe.wh = True
             sProbe.calculated_props['watts'] = sProbe.props['power_now']
             try:
-                total = int(sProbe.props['energy_now']) / int(sProbe.props['power_now'])
-                hours = int(total)
-                mins = (total - int(total) * 60)
+                total_hours = int(sProbe.props['energy_now']) / int(sProbe.props['power_now'])
+                hours = int(total_hours)
+                mins = round(((total_hours - hours) * 60), 1)
                 sProbe.calculated_props['timerem'] = str(hours) + 'h ' + str(mins) + 'm'
             except ZeroDivisionError as z:
                 sProbe.calculated_props['timerem'] = 'N/A'
