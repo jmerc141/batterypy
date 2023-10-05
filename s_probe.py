@@ -5,7 +5,7 @@ from threading import Thread
 
 class sProbe(object):
 
-    voltage = amps = watts = runtime = fullcap = remcap = dischargerate = 0
+    voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = 0
     rwmi = wmi.WMI(moniker="//./root/wmi")
     going = True
 

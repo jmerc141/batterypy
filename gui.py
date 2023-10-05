@@ -1,10 +1,11 @@
-import sys, os, internal, plot, tree
+import sys, os, internal, plot
 import tkinter as tk
 from tkinter import ttk
 
 sys.path.append(".")
 
 class App(tk.Tk):
+
     def __init__(self):
         super().__init__()
         self.protocol('WM_DELETE_WINDOW', self.on_close)
@@ -21,17 +22,13 @@ class App(tk.Tk):
         except Exception:
             self.base_path = os.path.abspath(".")
 
-        if os.path.exists('./res/battery.ico'):
-            self.iconbitmap('./res/battery.ico')
-
         self.s = ttk.Style()
         self.s.configure('Treeview', font=['CascadiaMono', 10, 'normal'])
         try:
             self.tk.call('lappend', 'auto_path', 'res/awthemes-10.4.0')
             self.tk.call('package', 'require', 'awdark')
-        except:
-            #tk.messagebox.showerror('Error', f'Could not load themes\n{e}')
-            pass
+        except Exception as e:
+            tk.messagebox.showerror('Error', f'Could not load themes\n{e}')
 
         # Placeholder for internal or external graph
         self.i_pl = None
@@ -41,11 +38,28 @@ class App(tk.Tk):
         self.title('BatteryInfo')
         self.geometry('600x700')
 
-        try:
-            self.tree = tree.Treev(self)
-        except TypeError as e:
-            tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{e}')
-            self.on_close()
+        if sys.platform == 'linux':
+            import tree_l
+            self.tree = tree_l.Treev(self)
+            if os.path.exists('./res/bat2.png'):
+                # should set small top-right corner icon
+                i = tk.PhotoImage(file='./res/bat2.png')
+                self.iconphoto(False, i)
+        elif sys.platform == 'win32':
+            try:
+                import tree
+                self.tree = tree.Treev(self)
+            except TypeError as t:
+                tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{e}')
+                self.on_close()
+
+            if os.path.exists('./res/battery.ico'):
+                self.iconbitmap('./res/battery.ico')
+        else:
+            print('Incompatible system, exiting')
+            sys.exit()
+
+        #self.tree = tree.Treev(self)
 
         # Menubar
         mb = tk.Menu(self)
@@ -66,9 +80,10 @@ class App(tk.Tk):
         graph.add_command(label='Single', command=self.create_external_single)
         graph.add_command(label='Multiple', command=self.create_external_graph)
         
-        ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
-        ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
-        ext.add_command(label='Root\Wmi', command=self.tree.get_rootwmi)
+        if sys.platform == 'win32':
+            ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
+            ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
+            ext.add_command(label='Root\Wmi', command=self.tree.get_rootwmi)
 
         file_menu.add_command(label='Exit', command=self.on_close)
         #theme_menu.add_command(label='Default', command=self.default_theme)
@@ -110,7 +125,6 @@ class App(tk.Tk):
         self.pl = None
             
 
-    # Maybe put in thread
     def retree(self):
         # overwrites values in the treeview, use only dynamic values
         self.tree.re_tree()
@@ -150,7 +164,7 @@ class App(tk.Tk):
     
     def default_theme(self) -> None:
         self.configure(bg='#F0F0F0')
-        self.s.theme_use('vista')
+        self.s.theme_use('default')
         if self.i_pl is not None:
                 self.dark = False
                 self.create_internal_graph()

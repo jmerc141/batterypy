@@ -8,15 +8,17 @@ class Treev(ttk.Treeview):
         self.master = master
         self.tree = ttk.Treeview(master, columns=('val', 'max'), height=30, padding=[2,2])
         try:
+            # initiate sProbe static class, decide windows or linux and import
             s_probe.sProbe()
         except TypeError as e:
             raise TypeError(e)
         
-        self.init()
+        self.init_windows()
         
 
-    def init(self):
+    def init_windows(self):
         #self.tree.tag_configure(font=['FiraMono Nerd Font Mono', 12, 'normal'])
+        dc = round((s_probe.sProbe.descap / s_probe.sProbe.voltage) / 1000, 3)
         self.tree.insert('', 'end', 'system', text='System Name', values=(s_probe.sProbe.system_name, ''), open=True)
         
         self.tree.insert('system', 0, 'name', text='Name', values=(s_probe.sProbe.name, ''))
@@ -59,7 +61,8 @@ class Treev(ttk.Treeview):
                          values=(str(int(s_probe.sProbe.design_voltage) / 1000) + ' V', ''))
 
         self.tree.insert('system', 'end', 'capacity', text='Capacity', open=True)
-        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(str(s_probe.sProbe.descap / 1000) + ' Wh', ''))
+        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(str(s_probe.sProbe.descap / 1000) + ' Wh(' + 
+                                                                                      str(dc) + ' Ah)', ''))
         self.tree.insert('capacity', 'end', 'fullcap', text='Full Charge Capacity',
                          values=(str(s_probe.sProbe.full_cap / 1000) + ' Wh', ''))
         self.tree.insert('capacity', 'end', 'bathealth', text='Battery Health',
@@ -119,12 +122,13 @@ class Treev(ttk.Treeview):
 
         self.tree.configure(yscroll=scrolly.set)
 
-
         #self.tree.bind('<<TreeviewSelect>>', self.item_selected)
         return self.tree
 
 
     def re_tree(self):
+        rem_ah = str(round((s_probe.sProbe.rem_cap / s_probe.sProbe.voltage) / 1000, 3))
+        full_ah = str(round((s_probe.sProbe.full_cap / s_probe.sProbe.voltage) / 1000, 3))
         if s_probe.sProbe.charging:
             self.tree.set('chargepower', 'val', str(s_probe.sProbe.chargerate) + ' W')
             if s_probe.sProbe.ttf is not None:
@@ -156,10 +160,10 @@ class Treev(ttk.Treeview):
             self.maxamps = s_probe.sProbe.amps
             self.tree.set('amps', 'max', str(self.maxamps) + ' A')
         
-        self.tree.set('capleft', 'val', str(s_probe.sProbe.rem_cap / 1000) + ' Wh')
+        self.tree.set('capleft', 'val', str(s_probe.sProbe.rem_cap / 1000) + ' Wh (' + rem_ah + ' Ah)')
 
         # doubt this changs often
-        self.tree.set('fullcap', 'val', str(s_probe.sProbe.full_cap / 1000) + ' Wh')
+        self.tree.set('fullcap', 'val', str(s_probe.sProbe.full_cap / 1000) + ' Wh (' + full_ah + ' Ah)')
         self.tree.set('chargepercent', 'val', str(s_probe.sProbe.est_chrg) + ' %')
 
 

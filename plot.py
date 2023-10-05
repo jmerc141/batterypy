@@ -2,10 +2,55 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import style
-import s_probe
+import sys
 from threading import Thread
 
 class Plot:
+
+    def __init__(self, t, dark: bool = None):
+        if sys.platform == 'win32':
+            import s_probe
+            self.sp = s_probe
+        elif sys.platform == 'linux':
+            import s_probe_l
+            self.sp = s_probe_l
+
+        self.prop = 0
+        print('init', dark)
+        self.dark = dark
+        style.use('fivethirtyeight')
+
+        self.xs = []
+
+        self.volty = []
+        self.ampy  = []
+        self.watty = []
+
+        if t == 0:
+            self.setup_2()
+            self.proc = Thread(target=self.a, args=(self.anim2,))
+            self.proc.start()
+        if t == 1:
+            self.setup_1()
+            self.proc = Thread(target=self.a, args=(self.anim1,))
+            self.proc.start()
+
+        plt.show()
+
+
+    def update_values_win(self):
+        self.amps  = self.sp.sProbe.amps
+        self.volts = self.sp.sProbe.voltage
+        self.disch = self.sp.sProbe.dischargerate
+        self.charg = self.sp.sProbe.chargerate
+
+
+    def update_values_linux(self):
+        self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
+        self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
+        self.disch = int(self.sp.sProbe.props['power_now']) / 1000000
+        self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
+
 
     def setup_2(self):
         self.fig = plt.figure(facecolor='#2f2f2f', figsize=(8,6), dpi=80)
@@ -42,14 +87,19 @@ class Plot:
 
  
     def anim2(self, i):
+        if sys.platform == 'win32':
+            self.update_values_win()
+        elif sys.platform == 'linux':
+            self.update_values_linux()
+            
         self.xs.append(i)
-        self.volty.append(s_probe.sProbe.voltage)
-        self.ampy.append(s_probe.sProbe.amps)
-        self.watty.append(s_probe.sProbe.dischargerate)
+        self.volty.append(self.volts)
+        self.ampy.append(self.amps)
+        self.watty.append(self.disch)
 
-        self.ax1.set_title(f'Voltage ({s_probe.sProbe.voltage})', color='white', fontsize=12)
-        self.ax2.set_title(f'Amps ({s_probe.sProbe.amps})', color='white', fontsize=12)
-        self.ax3.set_title(f'Watts ({s_probe.sProbe.dischargerate})', color='white', fontsize=12)
+        self.ax1.set_title(f'Voltage ({self.volts})', color='white', fontsize=12)
+        self.ax2.set_title(f'Amps ({self.amps})', color='white', fontsize=12)
+        self.ax3.set_title(f'Watts ({self.disch})', color='white', fontsize=12)
 
         self.vline.set_data(self.xs, self.volty)
         self.aline.set_data(self.xs, self.ampy)
@@ -138,30 +188,6 @@ class Plot:
 
     def a(self, func):
         ani = animation.FuncAnimation(self.fig, func, interval=1000, cache_frame_data=False, blit=True)
-
-
-    def __init__(self, t, dark: bool = None):
-        self.prop = 0
-        print('init', dark)
-        self.dark = dark
-        style.use('fivethirtyeight')
-
-        self.xs = []
-
-        self.volty = []
-        self.ampy  = []
-        self.watty = []
-
-        if t == 0:
-            self.setup_2()
-            self.proc = Thread(target=self.a, args=(self.anim2,))
-            self.proc.start()
-        if t == 1:
-            self.setup_1()
-            self.proc = Thread(target=self.a, args=(self.anim1,))
-            self.proc.start()
-
-        plt.show()
         
 
     def on_close(self):

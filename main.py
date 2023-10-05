@@ -1,5 +1,5 @@
 # main.py
-import gui, probe, time, multiprocessing, sys
+import gui, multiprocessing, sys
 
 if __name__ == '__main__':
     # Necessary for windows multiprocessing
