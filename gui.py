@@ -1,4 +1,4 @@
-import sys, os, internal, plot
+import sys, os, internal, plot, matplotlib.font_manager
 import tkinter as tk
 from tkinter import ttk
 
@@ -73,7 +73,7 @@ class App(tk.Tk):
         mb.add_cascade(label='View', menu=view_menu)
         mb.add_cascade(label='Theme', menu=theme_menu)
         mb.add_cascade(label='Extra', menu=ext)
-        
+        # TODO add fonts
         view_menu.add_checkbutton(label='Graph (Internal)', command=self.create_internal_graph)
 
         view_menu.add_cascade(label='Graph (external)', menu=graph)
