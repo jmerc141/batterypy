@@ -49,13 +49,11 @@ class Treev(ttk.Treeview):
             
             # no need to check, only initializing max column
             self.tree.set('chargepower', 'max', str(self.maxcharge) + ' W')
-<<<<<<< HEAD
-            
-=======
+
             if s_probe_l.sProbe.props['time_to_full'] != '':
                 self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge',
                              values=(str(s_probe_l.sProbe.ttf / 60) + 'h ' + str(s_probe_l.sProbe.ttf % 60) + 'm', ''))
->>>>>>> refs/remotes/origin/main
+
         elif s_probe_l.sProbe.props['status'] == 'Discharging':   #discharging
             self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
                          values=(str(s_probe_l.sProbe.calculated_props['timerem']),''))
@@ -163,11 +161,8 @@ class Treev(ttk.Treeview):
         if s_probe_l.sProbe.props['status'] == 'Charging':
             # CHARGING
             self.tree.set('chargepower', 'val', str(w) + ' W')
-<<<<<<< HEAD
+
             if s_probe_l.sProbe.props['time_to_full'] != '':
-=======
-            if s_probe_l.sProbe.props['time_to_full']:  # fix this
->>>>>>> refs/remotes/origin/main
                 self.tree.set('ttf', 'val', str(str(s_probe_l.sProbe.ttfhours) + 'h ' + str(s_probe_l.sProbe.ttfmins) + 'm'))
             if w > self.maxcharge:
                 self.maxcharge = w
