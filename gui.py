@@ -35,7 +35,7 @@ class App(tk.Tk):
         self.pl = None
 
         # creating tkinter window
-        self.title('BatteryInfo')
+        self.title('BatteryPy')
         self.geometry('600x700')
 
         if sys.platform == 'linux':

@@ -94,6 +94,7 @@ class sProbe(object):
                 sProbe.calculated_props['timerem'] = str(hours) + 'h ' + str(mins) + 'm'
             except ZeroDivisionError as z:
                 sProbe.calculated_props['timerem'] = 'N/A'
+
             try:
                 sProbe.calculated_props['amps'] = (int(sProbe.props['power_now']) / int(sProbe.props['voltage_now']) * 1000000)
             except ZeroDivisionError as z:
@@ -105,17 +106,21 @@ class sProbe(object):
         elif sProbe.props['charge_now'] != '':
             sProbe.wh = False
             # amp-hours / charge_now are available
-            hours = int(sProbe.props['charge_now']) / int(sProbe.props['current_now'])
-            sProbe.calculated_props['watts'] = (int(sProbe.props['voltage_now']) / 100) * \
-                (int(sProbe.props['current_now']) / 100)
+            try:
+                total_hours = int(sProbe.props['charge_now']) / int(sProbe.props['current_now'])
+                hours = int(total_hours)
+                mins = round(((total_hours - hours) * 60), 1)
+                sProbe.calculated_props['timerem'] = str(hours) + 'h ' + str(mins) + 'm'
+            except ZeroDivisionError as z:
+                sProbe.calculated_props['timerem'] = 'N/A'
+
+            v = int(sProbe.props['voltage_now']) / 1000000
+            sProbe.calculated_props['watts'] = (v * float(sProbe.props['current_now']))
             sProbe.calculated_props['amps'] = float(sProbe.props['current_now'])
-            sProbe.calculated_props['timerem'] = hours
-            sProbe.calculated_props['wh_full'] = round((int(sProbe.props['charge_full']) / 1000000) * 
-                                                    (int(sProbe.props['voltage_now']) / 1000000), 3)
+            sProbe.calculated_props['wh_full'] = round((float(sProbe.props['charge_full']) / 1000000) * v, 3)
             sProbe.calculated_props['wh_full_design'] = round((int(sProbe.props['charge_full_design']) / 1000000) * 
-                                                    (int(sProbe.props['voltage_now']) / 1000000), 3)
-            sProbe.calculated_props['wh_now'] = round((int(sProbe.props['current_now']) / 1000000) *
-                                                    (int(sProbe.props['voltage_now']) / 1000000), 3)
+                                                    v, 3)
+            sProbe.calculated_props['wh_now'] = round((int(sProbe.props['charge_now']) / 1000000) * v, 3)
 
         if sProbe.props['manufacture_year'] != '':
             m_year = sProbe.__catFile('manufacture_year')

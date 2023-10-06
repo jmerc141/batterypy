@@ -55,7 +55,7 @@ class Window(Frame):
     def update_values_linux(self):
         self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
         self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
-        self.disch = int(self.sp.sProbe.props['power_now']) / 1000000
+        self.disch = int(self.sp.sProbe.calculated_props['watts']) / 1000000
         self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
 
 
