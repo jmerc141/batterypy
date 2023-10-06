@@ -9,9 +9,9 @@ wmi matplotlib tkinter
 ## Build:
 ### Windows:
 ```
-pyinstaller --onedir --windowed --add-data "res/*;res" main.py
+pyinstaller --onefile --windowed --add-data "res/*;res" main.py
 ```
 ### Linux:
 ```
-pyinstaller -F -w --add-data "res/*:res" main.py
+pyinstaller --onefile --windowed --add-data "res/*:res" main.py
 ```
