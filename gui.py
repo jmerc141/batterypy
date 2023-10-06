@@ -1,3 +1,7 @@
+'''
+credit to Freepik for battery image: <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
+'''
+
 import sys, os, internal, plot, matplotlib.font_manager
 import tkinter as tk
 from tkinter import ttk
@@ -41,9 +45,9 @@ class App(tk.Tk):
         if sys.platform == 'linux':
             import tree_l
             self.tree = tree_l.Treev(self)
-            if os.path.exists('./res/bat2.png'):
+            if os.path.exists('./res/battery.png'):
                 # should set small top-right corner icon
-                i = tk.PhotoImage(file='./res/bat2.png')
+                i = tk.PhotoImage(file='./res/battery.png')
                 self.iconphoto(False, i)
         elif sys.platform == 'win32':
             try:
