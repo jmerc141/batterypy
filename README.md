@@ -9,7 +9,7 @@ wmi matplotlib tkinter
 ## Build:
 ### Windows:
 ```
-pyinstaller --onefile --windowed --add-data "res/*;res" main.py
+pyinstaller --onefile --windowed --icon=.\res\battery.ico --add-data "res/*;res" main.py
 ```
 ### Linux:
 ```
