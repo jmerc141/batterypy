@@ -50,6 +50,7 @@ class Window(Frame):
         self.volts = self.sp.sProbe.voltage
         self.disch = self.sp.sProbe.dischargerate
         self.charg = self.sp.sProbe.chargerate
+        self.charging = self.sp.sProbe.charging
 
     
     def update_values_linux(self):
@@ -57,6 +58,7 @@ class Window(Frame):
         self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
         self.disch = int(self.sp.sProbe.calculated_props['watts']) / 1000000
         self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
+        self.charging = (self.sp.sProbe.props['status'] == 'Charging')
 
 
     # Destroys graph element
@@ -69,6 +71,7 @@ class Window(Frame):
             self.get_windows_stuff()
         elif sys.platform == 'linux':
             self.update_values_linux()
+
         self.tick += 1
         self.x.append(self.tick)
 
@@ -209,7 +212,7 @@ class Window(Frame):
 
         vbtn = ttk.Button(south_frame, text='Volts', command=lambda: self.set_prop('Voltage'))
         abtn = ttk.Button(south_frame, text='Amps', command=lambda: self.set_prop('Amperage'))
-        wbtn = ttk.Button(south_frame, text='Watts', command=lambda: self.set_prop('Discharge Power'))
+        wbtn = ttk.Button(south_frame, text='Watts', command=self.wattBtn)
         btn3 = ttk.Button(south_frame, text='All', command=lambda: self.set_prop('All'))
         
         vbtn.pack(side='left', padx=5)
@@ -223,6 +226,11 @@ class Window(Frame):
         self.i_proc.start()
         #self.canvas.draw()
         
+    def wattBtn(self):
+        if self.charging:
+            self.set_prop('Charge Power')
+        else:
+            self.set_prop('Discharge Power')
 
     def start_anim(self):
         self.ani = animation.FuncAnimation(self.i_fig, self.animate, cache_frame_data=False, interval=1000, blit=True)
