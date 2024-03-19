@@ -30,7 +30,7 @@ class Treev(ttk.Treeview):
         self.tree.insert('system', 'end', 'bathealth', text='Battery Health',
                         values=(s_probe_l.sProbe.check_prop('health'), ''))
         
-        #self.tree.insert('system', 'end', 'time', text='Time Remaining', values=(s_probe_l.sProbe.calculated_props['timerem'], ''))
+        self.tree.insert('system', 'end', 'timerem', text='Time Remaining', values=(s_probe_l.sProbe.calculated_props['timerem'], ''))
         self.tree.insert('system', 'end', 'cycle', text='Cycle Count', values=(s_probe_l.sProbe.props['cycle_count'], ''))
 
         # initialize max var, and initialize column

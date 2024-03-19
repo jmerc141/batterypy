@@ -91,6 +91,7 @@ class sProbe(object):
                 total_hours = int(sProbe.props['energy_now']) / int(sProbe.props['power_now'])
                 hours = int(total_hours)
                 mins = round(((total_hours - hours) * 60), 1)
+                print(hours, mins)
                 sProbe.calculated_props['timerem'] = str(hours) + 'h ' + str(mins) + 'm'
             except ZeroDivisionError as z:
                 sProbe.calculated_props['timerem'] = 'N/A'
