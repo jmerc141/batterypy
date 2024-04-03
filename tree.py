@@ -38,20 +38,15 @@ class Treev(ttk.Treeview):
 
         self.tree.insert('system', 'end', 'deviceid', text='Device ID', values=(s_probe.sProbe.device_id, ''))
 
+        self.tree.insert('system', 'end', 'power', text='', open=True)
+        self.tree.insert('power', 'end', 'wattage', text='Watt')
+
         # Check "maxrechargetime", ""
         if s_probe.sProbe.charging:
-            self.tree.insert('system', 'end', 'power', text=str('Power' + '🔌'), open=True)
-            self.tree.insert('power', 'end', 'chargepower', text='Charge Power',
-                             values=(str(s_probe.sProbe.chargerate) + ' W', ''))
-            #self.tree.insert('timerem', 'end', 'rechargetime', text='Max Recharge Time',
-            #                 values=(str(s_probe.sProbe.rehours) + 'h ' + str(s_probe.sProbe.remins) + 'm', ''))
             if s_probe.sProbe.ttf is not None:
                 self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge',
                              values=(str(s_probe.sProbe.ttf / 60) + 'h ' + str(s_probe.sProbe.ttf % 60) + 'm', ''))
-        else:   #discharging
-            self.tree.insert('system', 'end', 'power', text=str('Power' + ' ⚡'), open=True)
-            self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
-                         values=(str(s_probe.sProbe.dischargerate / 1000) + ' W', ''))
+        
         
         self.tree.insert('power', 'end', 'amps', text='Amperage', values=(str(s_probe.sProbe.amps) + ' A', ''))
 
@@ -96,12 +91,14 @@ class Treev(ttk.Treeview):
         self.maxamps = s_probe.sProbe.amps
 
         if s_probe.sProbe.charging:
+            self.maxdis = 0
             self.maxcharge = s_probe.sProbe.chargerate
             #self.tree.set('charge', 'max', str(self.maxcharge) + ' W')
-            self.tree.set('chargepower', 'max', str(self.maxcharge) + ' W')
+            self.tree.set('wattage', 'max', str(self.maxcharge) + ' W')
         else:
+            self.maxcharge = 0
             self.maxdis = s_probe.sProbe.dischargerate
-            self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
+            self.tree.set('wattage', 'max', str(self.maxdis) + ' W')
         self.tree.set('voltnow', 'max', str(self.maxv) + ' V')
         self.tree.set('amps', 'max', str(self.maxamps) + ' A')
 
@@ -129,21 +126,27 @@ class Treev(ttk.Treeview):
     def re_tree(self):
         rem_ah = str(round((s_probe.sProbe.rem_cap / s_probe.sProbe.voltage) / 1000, 3))
         full_ah = str(round((s_probe.sProbe.full_cap / s_probe.sProbe.voltage) / 1000, 3))
+        
+
         if s_probe.sProbe.charging:
-            self.tree.set('chargepower', 'val', str(s_probe.sProbe.chargerate) + ' W')
+            self.tree.item('power', text=str('Charging Power' + ' 🔌'))
+            self.tree.set('wattage', 'val', str(s_probe.sProbe.chargerate) + 'W')
+            #self.tree.set('chargepower', 'val', str(s_probe.sProbe.chargerate) + ' W')
             if s_probe.sProbe.ttf is not None:
                 self.tree.set('ttf', 'val', str(str(s_probe.sProbe.ttfhours) + 'h ' + str(s_probe.sProbe.ttfmins) + 'm'))
             if s_probe.sProbe.chargerate > self.maxcharge:
                 self.maxcharge = s_probe.sProbe.chargerate
-                self.tree.set('chargepower', 'max', str(self.maxcharge) + ' W')
+                self.tree.set('wattage', 'max', str(self.maxcharge) + ' W')
             if s_probe.sProbe.maxrechargetime is not None:
                 self.tree.set('rechargetime', 'val', str(str(s_probe.sProbe.rehours) + 'h ' + str(s_probe.sProbe.remins) + 'm'))
         else:
-            self.tree.set('dpower', 'val', str(s_probe.sProbe.dischargerate) + ' W')
+            self.tree.item('power', text=str('Discharge Power' + ' ⚡'))
+            self.tree.set('wattage', 'val', str(s_probe.sProbe.dischargerate) + ' W')
             if s_probe.sProbe.dischargerate > self.maxdis:
                 self.maxdis = s_probe.sProbe.dischargerate
-                self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
-                self.tree.set('dpower', 'max', str(self.maxdis) + ' W')
+                self.tree.set('wattage', 'max', str(self.maxdis) + ' W')
+                self.tree.set('wattage', 'max', str(self.maxdis) + ' W')
+        
         if s_probe.sProbe.runtime != 'N/A':
             self.tree.set('timerem', 'val', str(str(s_probe.sProbe.hours) + 'h ' + str(s_probe.sProbe.minutes) + 'm'))
 

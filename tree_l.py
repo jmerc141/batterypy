@@ -41,9 +41,8 @@ class Treev(ttk.Treeview):
 
         # Check "maxrechargetime", ""
         if s_probe_l.sProbe.props['status'] == 'Charging':
-            self.tree.insert('system', 'end', 'timerem', text='Time to Full Charge',
-                         values=(str(s_probe_l.sProbe.calculated_props['timerem']), ''))
             self.tree.insert('system', 'end', 'power', text=str('Power' + '🔌'), open=True)
+            
             self.tree.insert('power', 'end', 'chargepower', text='Charge Power',
                              values=(str(s_probe_l.sProbe.calculated_props['watts']) + ' W', ''))
             
@@ -55,8 +54,6 @@ class Treev(ttk.Treeview):
                              values=(str(s_probe_l.sProbe.ttf / 60) + 'h ' + str(s_probe_l.sProbe.ttf % 60) + 'm', ''))
 
         elif s_probe_l.sProbe.props['status'] == 'Discharging':   #discharging
-            self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
-                         values=(str(s_probe_l.sProbe.calculated_props['timerem']),''))
             self.tree.insert('system', 'end', 'power', text=str('Power' + ' ⚡'), open=True)
             self.tree.insert('power', 'end', 'dpower', text='Discharge Power',
                          values=(str(int(s_probe_l.sProbe.calculated_props['watts']) / 1000000) + ' W', ''))
