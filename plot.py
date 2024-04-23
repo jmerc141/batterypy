@@ -8,6 +8,7 @@ from threading import Thread
 class Plot:
 
     def __init__(self, t, dark: bool = None):
+        print(sys.platform)
         if sys.platform == 'win32':
             import s_probe
             self.sp = s_probe
@@ -16,7 +17,6 @@ class Plot:
             self.sp = s_probe_l
 
         self.prop = 0
-        print('init', dark)
         self.dark = dark
         style.use('fivethirtyeight')
 
@@ -38,20 +38,19 @@ class Plot:
         plt.show()
 
 
-    def update_values_win(self):
-        self.amps  = self.sp.sProbe.amps
-        self.volts = self.sp.sProbe.voltage
-        self.disch = self.sp.sProbe.dischargerate
-        self.charg = self.sp.sProbe.chargerate
-        self.charging = self.sp.sProbe.charging
-
-
-    def update_values_linux(self):
-        self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
-        self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
-        self.disch = int(self.sp.sProbe.props['power_now']) / 1000000
-        self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
-        self.charging = (self.sp.sProbe.props['status'] == 'Charging')
+    def updateValues(self):
+        if sys.platform == 'win32':
+            self.amps  = self.sp.sProbe.amps
+            self.volts = self.sp.sProbe.voltage
+            self.disch = self.sp.sProbe.dischargerate
+            self.charg = self.sp.sProbe.chargerate
+            self.charging = self.sp.sProbe.charging
+        elif sys.platform == 'linux':
+            self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
+            self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
+            self.disch = int(self.sp.sProbe.props['power_now']) / 1000000
+            self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
+            self.charging = (self.sp.sProbe.props['status'] == 'Charging') 
 
 
     def setup_2(self):
@@ -107,28 +106,25 @@ class Plot:
 
     # multiple graph
     def anim2(self, i):
-        if sys.platform == 'win32':
-            self.update_values_win()
-        else:
-            self.update_values_linux()
+        self.updateValues()
 
-        if self.sp.sProbe.charging:
+        if self.charging:
             w = self.charg
         else:
             w = self.disch
 
         self.xs.append(i)
-        self.volty.append(self.sp.sProbe.voltage)
-        self.ampy.append(self.sp.sProbe.amps)
+        self.volty.append(self.volts)
+        self.ampy.append(self.amps)
         self.watty.append(w)
 
         if self.dark:
-            self.ax1.set_title(f'Voltage ({self.sp.sProbe.voltage})', color='white', fontsize=12)
-            self.ax2.set_title(f'Amps ({self.sp.sProbe.amps})', color='white', fontsize=12)
+            self.ax1.set_title(f'Voltage ({self.volts})', color='white', fontsize=12)
+            self.ax2.set_title(f'Amps ({self.amps})', color='white', fontsize=12)
             self.ax3.set_title(f'Watts ({w})', color='white', fontsize=12)
         else:
-            self.ax1.set_title(f'Voltage ({self.sp.sProbe.voltage})', color='black', fontsize=12)
-            self.ax2.set_title(f'Amps ({self.sp.sProbe.amps})', color='black', fontsize=12)
+            self.ax1.set_title(f'Voltage ({self.volts})', color='black', fontsize=12)
+            self.ax2.set_title(f'Amps ({self.amps})', color='black', fontsize=12)
             self.ax3.set_title(f'Watts ({w})', color='black', fontsize=12)
 
         self.vline.set_data(self.xs, self.volty)
@@ -188,17 +184,16 @@ class Plot:
 
     # single plot
     def anim1(self, i):
-        v = self.sp.sProbe.voltage
-        a = self.sp.sProbe.amps
+        self.updateValues()
         
-        if self.sp.sProbe.charging:
-            w = self.sp.sProbe.chargerate
+        if self.charging:
+            w = self.charg
         else:
-            w = self.sp.sProbe.dischargerate
+            w = self.disch
 
         self.watty.append(w)
-        self.volty.append(v)
-        self.ampy.append(a)
+        self.volty.append(self.volts)
+        self.ampy.append(self.amps)
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
@@ -207,8 +202,8 @@ class Plot:
         self.ampy.pop(0)
         self.watty.pop(0)
 
-        self.L.get_texts()[0].set_text(f'Volts ({v})')
-        self.L.get_texts()[1].set_text(f'Amps ({a})')
+        self.L.get_texts()[0].set_text(f'Volts ({self.volts})')
+        self.L.get_texts()[1].set_text(f'Amps ({self.amps})')
         self.L.get_texts()[2].set_text(f'Watts ({w})')
 
         self.l1.set_ydata(self.volty)

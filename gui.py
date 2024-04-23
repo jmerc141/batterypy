@@ -1,5 +1,6 @@
 '''
-credit to Freepik for battery image: <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
+credit to Freepik for battery image:
+    <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
 '''
 
 import sys, os, internal, plot, matplotlib.font_manager
@@ -9,9 +10,9 @@ from tkinter import ttk
 sys.path.append(".")
 
 class App(tk.Tk):
-
     def __init__(self):
         super().__init__()
+        # Run on_close when window is closed
         self.protocol('WM_DELETE_WINDOW', self.on_close)
 
         self.internal = False
@@ -63,8 +64,6 @@ class App(tk.Tk):
             print('Incompatible system, exiting')
             sys.exit()
 
-        #self.tree = tree.Treev(self)
-
         # Menubar
         mb = tk.Menu(self)
         file_menu = tk.Menu(mb, tearoff=False)
@@ -74,7 +73,7 @@ class App(tk.Tk):
         ext = tk.Menu(mb, tearoff=False)
 
         mb.add_cascade(label='File', menu=file_menu)
-        mb.add_cascade(label='View', menu=view_menu)
+        mb.add_cascade(label='Graph', menu=view_menu)
         mb.add_cascade(label='Theme', menu=theme_menu)
         mb.add_cascade(label='Extra', menu=ext)
         # TODO add fonts

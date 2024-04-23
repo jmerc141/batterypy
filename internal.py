@@ -45,20 +45,19 @@ class Window(Frame):
         self.init_window()
 
 
-    def get_windows_stuff(self):
-        self.amps  = self.sp.sProbe.amps
-        self.volts = self.sp.sProbe.voltage
-        self.disch = self.sp.sProbe.dischargerate
-        self.charg = self.sp.sProbe.chargerate
-        self.charging = self.sp.sProbe.charging
-
-    
-    def update_values_linux(self):
-        self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
-        self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
-        self.disch = int(self.sp.sProbe.calculated_props['watts']) / 1000000
-        self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
-        self.charging = (self.sp.sProbe.props['status'] == 'Charging')
+    def updateValues(self):
+        if sys.platform == 'win32':
+            self.amps  = self.sp.sProbe.amps
+            self.volts = self.sp.sProbe.voltage
+            self.disch = self.sp.sProbe.dischargerate
+            self.charg = self.sp.sProbe.chargerate
+            self.charging = self.sp.sProbe.charging
+        elif sys.platform == 'linux':
+            self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
+            self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
+            self.disch = int(self.sp.sProbe.calculated_props['watts']) / 1000000
+            self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
+            self.charging = (self.sp.sProbe.props['status'] == 'Charging')
 
 
     # Destroys graph element
@@ -67,10 +66,7 @@ class Window(Frame):
 
 
     def animate(self,i):
-        if sys.platform == 'win32':
-            self.get_windows_stuff()
-        elif sys.platform == 'linux':
-            self.update_values_linux()
+        self.updateValues()
 
         self.tick += 1
         self.x.append(self.tick)
@@ -83,6 +79,8 @@ class Window(Frame):
             tmp = self.disch
         if self.prop == 'Charge Power':
             tmp = self.charg
+        if self.prop == 'All':
+            tmp = self.charg or self.disch
         self.y.append(tmp)
 
         # adds scrolling x axis after maxX seconds
@@ -141,7 +139,7 @@ class Window(Frame):
             self.l1, = self.ax.plot(self.x, self.y, color='orange')
             self.yl = 'Charge Power (W)'
         if self.prop == 'All':
-            print('all')
+            pass
         
         if self.dark:
             self.ax.set_ylabel(self.yl, color='white')
@@ -213,12 +211,12 @@ class Window(Frame):
         vbtn = ttk.Button(south_frame, text='Volts', command=lambda: self.set_prop('Voltage'))
         abtn = ttk.Button(south_frame, text='Amps', command=lambda: self.set_prop('Amperage'))
         wbtn = ttk.Button(south_frame, text='Watts', command=self.wattBtn)
-        btn3 = ttk.Button(south_frame, text='All', command=lambda: self.set_prop('All'))
+        #btn3 = ttk.Button(south_frame, text='All', command=lambda: self.set_prop('All'))
         
         vbtn.pack(side='left', padx=5)
         abtn.pack(side='left', padx=5)
         wbtn.pack(side='left', padx=5)
-        btn3.pack(side='left', padx=5)
+        #btn3.pack(side='left', padx=5)
 
         #self.add_toolbar()
 

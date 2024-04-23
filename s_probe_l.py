@@ -131,6 +131,7 @@ class sProbe(object):
         else:
             sProbe.calculated_props['manufacture_date'] = 'N/A'
 
+
     @staticmethod
     def refresh():
         while(sProbe.going):
