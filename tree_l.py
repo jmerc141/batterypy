@@ -1,7 +1,10 @@
-import tkinter as tk
 from tkinter import ttk
 import s_probe_l
 
+'''
+    Wrapper class for treeview
+    linux implementation
+'''
 class Treev(ttk.Treeview):
 
     def __init__(self, master = None):
@@ -15,6 +18,9 @@ class Treev(ttk.Treeview):
         self.init()
         
 
+    '''
+        Create entries in treeview
+    '''
     def init(self):
         #self.tree.tag_configure(font=['FiraMono Nerd Font Mono', 12, 'normal'])
         self.tree.insert('', 'end', 'system', text='System Name', values=(s_probe_l.sProbe.props['sysname'], ''), open=True)
@@ -130,26 +136,19 @@ class Treev(ttk.Treeview):
             '''
 
         # column headings
-        self.tree.heading('#0', text='Property', anchor=tk.CENTER)
-        self.tree.column('#0', width=200, stretch=tk.YES)
+        self.tree.heading('#0', text='Property')
+        self.tree.column('#0', width=220, stretch=True)
         self.tree.heading('0', text='Value')
-        self.tree.column('0', width=200)
+        self.tree.column('0', width=220, stretch=True)
         self.tree.heading('1', text='Max')
-        self.tree.column('1', width=150)
-
-        self.tree.grid(row=0, column=0, sticky='nsew', padx=(10,0), pady=(10,2))
-
-        scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.yview)
-        scrollx = ttk.Scrollbar(self.master, orient=tk.HORIZONTAL, command=self.tree.xview)
-        scrolly.grid(row=0, column=1, sticky='ns', pady=(10,0))
-        #scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
-
-        self.tree.configure(yscroll=scrolly.set)
+        self.tree.column('1', width=50, stretch=True)
 
         #self.tree.bind('<<TreeviewSelect>>', self.item_selected)
         return self.tree
 
-
+    '''
+        Called from gui, sets values in treeview
+    '''
     def re_tree(self):
         v = int(s_probe_l.sProbe.props['voltage_now']) / 1000000
         w = round(int(s_probe_l.sProbe.calculated_props['watts']) / 1000000, 3)

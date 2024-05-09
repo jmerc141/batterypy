@@ -7,5 +7,6 @@ if __name__ == '__main__':
     # Necessary for windows multiprocessing and pyinstaller
     if sys.platform.startswith('win'):
         multiprocessing.freeze_support()
-    app = gui.App()
-    app.mainloop()
+        
+    app = gui.App('azure', 'dark')
+    app.run()

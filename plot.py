@@ -1,13 +1,15 @@
 # external graph
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib import style
 import sys
 from threading import Thread
 
+'''
+    Wrapper class for external plots
+'''
 class Plot:
 
-    def __init__(self, t, dark: bool = None):
+    def __init__(self, t):
         print(sys.platform)
         if sys.platform == 'win32':
             import s_probe
@@ -17,8 +19,6 @@ class Plot:
             self.sp = s_probe_l
 
         self.prop = 0
-        self.dark = dark
-        style.use('fivethirtyeight')
 
         self.xs = []
 
@@ -26,6 +26,7 @@ class Plot:
         self.ampy  = []
         self.watty = []
 
+        # Create a seperate thread that runs the animation function
         if t == 0:
             self.setup_2()
             self.proc = Thread(target=self.a, args=(self.anim2,))
@@ -37,7 +38,9 @@ class Plot:
 
         plt.show()
 
-
+    '''
+        Re-set values for graphing
+    '''
     def updateValues(self):
         if sys.platform == 'win32':
             self.amps  = self.sp.sProbe.amps
@@ -53,6 +56,9 @@ class Plot:
             self.charging = (self.sp.sProbe.props['status'] == 'Charging') 
 
 
+    '''
+        Sets up figure, lines, axes for multi-plot window
+    '''
     def setup_2(self):
         self.fig = plt.figure(figsize=(8,6), dpi=80)
         # horizontal graphs
@@ -77,34 +83,26 @@ class Plot:
         self.ax2.set_xlim(0, 10)
         self.ax3.set_xlim(0, 10)
 
-        if self.dark:
-            self.ax1.set_title('Voltage', color='white', fontsize=12)
-            self.ax2.set_title('Amps', color='white', fontsize=12)
-            self.ax3.set_title('Watts', color='white', fontsize=12)
-            self.fig.set_facecolor('#2f2f2f')
-            self.ax1.set_facecolor('#2f2f2f')
-            self.ax2.set_facecolor('#2f2f2f')
-            self.ax3.set_facecolor('#2f2f2f')
-            self.ax1.tick_params(axis='x', colors='white', labelsize=10)
-            self.ax1.tick_params(axis='y', colors='white', labelsize=10)
-            self.ax2.tick_params(axis='x', colors='white', labelsize=10)
-            self.ax2.tick_params(axis='y', colors='white', labelsize=10)
-            self.ax3.tick_params(axis='x', colors='white', labelsize=10)
-            self.ax3.tick_params(axis='y', colors='white', labelsize=10)
-        else:
-            self.ax1.set_title('Voltage', color='black', fontsize=12)
-            self.ax2.set_title('Amps', color='black', fontsize=12)
-            self.ax3.set_title('Watts', color='black', fontsize=12)
-            self.ax1.tick_params(axis='x', colors='black', labelsize=10)
-            self.ax1.tick_params(axis='y', colors='black', labelsize=10)
-            self.ax2.tick_params(axis='x', colors='black', labelsize=10)
-            self.ax2.tick_params(axis='y', colors='black', labelsize=10)
-            self.ax3.tick_params(axis='x', colors='black', labelsize=10)
-            self.ax3.tick_params(axis='y', colors='black', labelsize=10)
+
+        self.ax1.set_title('Voltage', color='white', fontsize=12)
+        self.ax2.set_title('Amps', color='white', fontsize=12)
+        self.ax3.set_title('Watts', color='white', fontsize=12)
+        self.fig.set_facecolor('#2f2f2f')
+        self.ax1.set_facecolor('#2f2f2f')
+        self.ax2.set_facecolor('#2f2f2f')
+        self.ax3.set_facecolor('#2f2f2f')
+        self.ax1.tick_params(axis='x', colors='white', labelsize=10)
+        self.ax1.tick_params(axis='y', colors='white', labelsize=10)
+        self.ax2.tick_params(axis='x', colors='white', labelsize=10)
+        self.ax2.tick_params(axis='y', colors='white', labelsize=10)
+        self.ax3.tick_params(axis='x', colors='white', labelsize=10)
+        self.ax3.tick_params(axis='y', colors='white', labelsize=10)
 
         self.fig.subplots_adjust(bottom=.13, left=.07, hspace=.36, wspace=0.3)
 
-    # multiple graph
+    '''
+        Function that returns elements to FuncAnimation for animating the multi-plot window
+    '''
     def anim2(self, i):
         self.updateValues()
 
@@ -118,14 +116,9 @@ class Plot:
         self.ampy.append(self.amps)
         self.watty.append(w)
 
-        if self.dark:
-            self.ax1.set_title(f'Voltage ({self.volts})', color='white', fontsize=12)
-            self.ax2.set_title(f'Amps ({self.amps})', color='white', fontsize=12)
-            self.ax3.set_title(f'Watts ({w})', color='white', fontsize=12)
-        else:
-            self.ax1.set_title(f'Voltage ({self.volts})', color='black', fontsize=12)
-            self.ax2.set_title(f'Amps ({self.amps})', color='black', fontsize=12)
-            self.ax3.set_title(f'Watts ({w})', color='black', fontsize=12)
+        self.ax1.set_title(f'Voltage ({self.volts})', color='white', fontsize=12)
+        self.ax2.set_title(f'Amps ({self.amps})', color='white', fontsize=12)
+        self.ax3.set_title(f'Watts ({w})', color='white', fontsize=12)
 
         self.vline.set_data(self.xs, self.volty)
         self.aline.set_data(self.xs, self.ampy)
@@ -143,7 +136,9 @@ class Plot:
 
         return self.vline, self.aline, self.wline, # self.spm1, self.spm2, self.spm3,
 
-
+    '''
+        Sets up figure, lines, axes, etc. for single plot window
+    '''
     def setup_1(self):
         self.maxX = 60
         self.ymax = []
@@ -156,21 +151,13 @@ class Plot:
         
         self.fig = plt.figure(dpi=75, figsize=(8,8))
         self.ax1 = self.fig.add_subplot()
-        print(self.dark)
-        if self.dark:
-            plt.title('Power', color='white')
-            plt.xlabel('Seconds', color='white')
-            self.fig.set_facecolor('#2f2f2f')
-            self.ax1.set_facecolor('#2f2f2f')
-            self.ax1.tick_params(axis='x', colors='white')
-            self.ax1.tick_params(axis='y', colors='white')
-        else:
-            plt.title('Power', color='black')
-            plt.xlabel('Seconds', color='black')
-            #self.fig.set_facecolor('#2f2f2f')
-            #self.ax1.set_facecolor('#2f2f2f')
-            self.ax1.tick_params(axis='x', colors='black')
-            self.ax1.tick_params(axis='y', colors='black')
+
+        plt.title('Power', color='white')
+        plt.xlabel('Seconds', color='white')
+        self.fig.set_facecolor('#2f2f2f')
+        self.ax1.set_facecolor('#2f2f2f')
+        self.ax1.tick_params(axis='x', colors='white')
+        self.ax1.tick_params(axis='y', colors='white')
 
         self.fig.subplots_adjust(bottom=0.09, top=0.93)
 
@@ -182,7 +169,9 @@ class Plot:
         self.L = self.ax1.legend(loc=2)
         
 
-    # single plot
+    '''
+        Function that returns elements to FuncAnimation for animating the single plot window
+    '''
     def anim1(self, i):
         self.updateValues()
         
@@ -220,7 +209,9 @@ class Plot:
     def set_prop(self, prop):
         self.prop = prop    
 
-
+    '''
+        Function to animate the plot window
+    '''
     def a(self, func):
         ani = animation.FuncAnimation(self.fig, func, interval=1000, cache_frame_data=False, blit=True)
         

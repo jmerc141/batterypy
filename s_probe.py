@@ -3,8 +3,10 @@
 import wmi, time, pythoncom
 from threading import Thread
 
+'''
+    Class for extracting battery data from windows WMI
+'''
 class sProbe(object):
-
     voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = 0
     rwmi = wmi.WMI(moniker="//./root/wmi")
     going = True
@@ -39,6 +41,8 @@ class sProbe(object):
             sProbe.portable = wmi.WMI().instances('win32_portablebattery')[0]
         else:
             sProbe.portable = None
+        return wmi.WMI().instances('win32_portablebattery')[0]
+
 
     @staticmethod
     def getRootWmi():
@@ -293,6 +297,5 @@ class sProbe(object):
 
     @staticmethod
     def on_close():
-        print('closing')
         sProbe.going = False
 

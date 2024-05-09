@@ -1,21 +1,31 @@
-import tkinter as tk
 from tkinter import ttk
 import s_probe
 
+'''
+    Wrapper class for treeview
+    windows implementation
+'''
 class Treev(ttk.Treeview):
 
     def __init__(self, master = None):
         self.master = master
-        self.tree = ttk.Treeview(master, columns=('val', 'max'), height=30, padding=[2,2])
+        self.tree = ttk.Treeview(master, columns=('val', 'max'), height=30, padding=2)
         try:
             # initiate sProbe static class, decide windows or linux and import
             s_probe.sProbe()
         except TypeError as e:
             raise TypeError(e)
         
+        self.win32bat_on = False
+        self.rootwmi_on = False
+        self.portable_on = False
+        
         self.init_windows()
         
 
+    '''
+        Create entries in treeview
+    '''
     def init_windows(self):
         #self.tree.tag_configure(font=['FiraMono Nerd Font Mono', 12, 'normal'])
         dc = round((s_probe.sProbe.descap / s_probe.sProbe.voltage) / 1000, 3)
@@ -103,30 +113,24 @@ class Treev(ttk.Treeview):
         self.tree.set('amps', 'max', str(self.maxamps) + ' A')
 
         # column headings
-        self.tree.heading('#0', text='Property', anchor=tk.CENTER)
-        self.tree.column('#0', width=200, stretch=tk.YES)
+        self.tree.heading('#0', text='Property')
+        self.tree.column('#0', width=220, minwidth=10, stretch=True)
         self.tree.heading('0', text='Value')
-        self.tree.column('0', width=200)
+        self.tree.column('0', width=220, minwidth=10, stretch=True)
         self.tree.heading('1', text='Max')
-        self.tree.column('1', width=150)
-
-        self.tree.grid(row=0, column=0, sticky='nsew', padx=(10,0), pady=(10,2))
-
-        scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.yview)
-        scrollx = ttk.Scrollbar(self.master, orient=tk.HORIZONTAL, command=self.tree.xview)
-        scrolly.grid(row=0, column=1, sticky='ns', pady=(10,0))
-        #scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
-
-        self.tree.configure(yscroll=scrolly.set)
+        self.tree.column('1', width=50, minwidth=10, stretch=True)
 
         #self.tree.bind('<<TreeviewSelect>>', self.item_selected)
+
         return self.tree
 
 
+    '''
+        Called from gui, sets values in treeview
+    '''
     def re_tree(self):
         rem_ah = str(round((s_probe.sProbe.rem_cap / s_probe.sProbe.voltage) / 1000, 3))
         full_ah = str(round((s_probe.sProbe.full_cap / s_probe.sProbe.voltage) / 1000, 3))
-        
 
         if s_probe.sProbe.charging:
             self.tree.item('power', text=str('Charging Power' + ' 🔌'))
@@ -170,24 +174,29 @@ class Treev(ttk.Treeview):
         self.tree.set('chargepercent', 'val', str(s_probe.sProbe.est_chrg) + ' %')
 
 
-    # takes about 8 seconds
+    '''
+        Toggles root/wmi entries in treeview
+        takes about 8 seconds
+    '''
     def get_rootwmi(self):
         if not self.rootwmi_on:
             self.rootwmi_on = True
             r = s_probe.sProbe.getRootWmi()
-            self.tree.tree.insert('', 'end', 'root/wmi', text='root/wmi', open=True)
+            self.tree.insert('', 'end', 'root/wmi', text='root/wmi', open=True)
             for i in r.classes:
                 if "Battery" in i and "MS" not in i:
                     tmp = r.instances(i)
                     if len(tmp) > 0:
-                        self.tree.tree.insert('root/wmi', 'end', i, text=i, open=True)
+                        self.tree.insert('root/wmi', 'end', i, text=i, open=True)
                         for x in tmp[0].properties.keys():
-                            self.tree.tree.insert(i, 'end', str(i)+x, text=x, values=(getattr(tmp[0], x), ''))
+                            self.tree.insert(i, 'end', str(i)+x, text=x, values=(getattr(tmp[0], x), ''))
         else:
             self.rootwmi_on = False
             self.tree.delete('root/wmi')
 
-
+    '''
+        Toggles win32battery entries in treeview
+    '''
     def get_win32batt(self):
         if not self.win32bat_on:
             self.win32bat_on = True
@@ -202,27 +211,27 @@ class Treev(ttk.Treeview):
             self.win32bat_on = False
             self.tree.delete('Raw')
 
-
+    '''
+        Toggles portable_battery entries in treeview
+    '''
     def get_portable(self):
-        if s_probe.sProbe.portable is not None:
-            if not s_probe.sProbeortable_on:
-                s_probe.sProbeortable_on = True
-                self.tree.insert('', 'end', 'portable', text='Portable Battery', open=True)
-                # Portable Battery (all static values)
-                for i in s_probe.sProbe.portable.properties.keys():
-                    val = getattr(s_probe.sProbe.portable, i)
-                    # Not none values
-                    if val:
-                        if 'DesignVoltage' in i or 'DesignCapacity' in i:
-                            val = str(int(val) / 1000)
-                        self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
-                # Scroll to bottom
-                self.tree.yview_moveto('1.0')
-            else:
-                s_probe.sProbeortable_on = False
-                self.tree.delete('portable')
+        if not self.portable_on:
+            self.portable_on = True
+            self.tree.insert('', 'end', 'portable', text='Portable Battery', open=True)
+            # Portable Battery (all static values)
+            p = s_probe.sProbe.get_portable()
+            for i in p.properties.keys():
+                val = getattr(s_probe.sProbe.portable, i)
+                # Not none values
+                if val:
+                    if 'DesignVoltage' in i or 'DesignCapacity' in i:
+                        val = str(int(val) / 1000)
+                    self.tree.insert('portable', 'end', i, text=i, values=(val, ''))
+            # Scroll to bottom
+            self.tree.yview_moveto('1.0')
         else:
-            print('Portable does not exist')
+            self.portable_on = False
+            self.tree.delete('portable')
 
 
     def on_close(self):

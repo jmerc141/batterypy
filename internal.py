@@ -14,7 +14,7 @@ Plot resizes after opening external plot (open external then internal and its re
 
 class Window(Frame):
 
-    def __init__(self, master = None, dark: bool = None):
+    def __init__(self, master = None):
         if sys.platform == 'win32':
             import s_probe
             self.sp = s_probe
@@ -28,20 +28,9 @@ class Window(Frame):
         self.minY = 12
         self.tick = 0
         self.prop = None
-        self.dark = dark
 
-        self.s = ttk.Style(self)
-
-        if self.dark:
-            self.configure(bg='#2f2f2f')
-            try:
-                self.tk.call('lappend', 'auto_path', 'res/awthemes-10.4.0')
-                self.tk.call('package', 'require', 'awdark')
-                self.s.theme_use('awdark')
-            except Exception as e:
-                print(e)
-                tk.messagebox.showerror('Error', f'Cannot apply theme\n{e}')
-        
+        self.configure(bg='#2f2f2f')
+            
         self.init_window()
 
 
@@ -141,17 +130,12 @@ class Window(Frame):
         if self.prop == 'All':
             pass
         
-        if self.dark:
-            self.ax.set_ylabel(self.yl, color='white')
-            self.ax.grid(color='white')
-            self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                  transform=self.ax.transAxes, ha='center', fontsize=20, color='white')
-        else:
-            self.ax.set_ylabel(self.yl, color='black')
-            self.ax.set_title(str(tmp), color='black')
-            self.ax.grid(color='black')
-            self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                  transform=self.ax.transAxes, ha='center', fontsize=20)
+        
+        self.ax.set_ylabel(self.yl, color='white')
+        self.ax.grid(color='white')
+        self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
+                                transform=self.ax.transAxes, ha='center', fontsize=20, color='white')
+        
 
         self.ax.set_xlim(0, 60)
         self.ax.set_ylim(0, tmp + 1)
@@ -179,24 +163,23 @@ class Window(Frame):
 
         south_frame = Frame(self)
         
-        if self.dark:
-            south_frame.configure(bg='#2f2f2f')
-            self.ax.set_xlabel('Seconds', color='white')
-            self.ax.set_ylabel('Voltage (V)', color='white')
-            self.ax.set_facecolor('#2f2f2f')
-            self.ax.spines['bottom'].set_color('white')
-            self.ax.spines['top'].set_color('white')
-            self.ax.spines['right'].set_color('white')
-            self.ax.spines['left'].set_color('white')
-            self.ax.tick_params(axis='x', colors='white')
-            self.ax.tick_params(axis='y', colors='white')
-            self.ax.grid(color='white')
-            self.i_fig.set_facecolor('#2f2f2f')
-            self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                  transform=self.ax.transAxes, ha='center', fontsize=16, color='white')
-        else:
-            self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                  transform=self.ax.transAxes, ha='center', fontsize=16)
+        south_frame.configure(bg='#2f2f2f')
+        self.ax.set_xlabel('Seconds', color='white')
+        self.ax.set_ylabel('Voltage (V)', color='white')
+        self.ax.set_facecolor('#2f2f2f')
+        self.ax.spines['bottom'].set_color('white')
+        self.ax.spines['top'].set_color('white')
+        self.ax.spines['right'].set_color('white')
+        self.ax.spines['left'].set_color('white')
+        self.ax.tick_params(axis='x', colors='white')
+        self.ax.tick_params(axis='y', colors='white')
+        self.ax.grid(color='white')
+        self.i_fig.set_facecolor('#2f2f2f')
+        self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
+                                transform=self.ax.transAxes, ha='center', fontsize=16, color='white')
+        #else:
+        #    self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
+        #                          transform=self.ax.transAxes, ha='center', fontsize=16)
         
         self.ax.set_xlim(0, 60)
 
