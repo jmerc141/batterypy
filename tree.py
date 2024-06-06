@@ -182,7 +182,9 @@ class Treev(ttk.Treeview):
         if not self.rootwmi_on:
             self.rootwmi_on = True
             r = s_probe.sProbe.getRootWmi()
+            #print(r)
             self.tree.insert('', 'end', 'root/wmi', text='root/wmi', open=True)
+            r = s_probe.sProbe.rwmi
             for i in r.classes:
                 if "Battery" in i and "MS" not in i:
                     tmp = r.instances(i)

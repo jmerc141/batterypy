@@ -46,10 +46,7 @@ class sProbe(object):
 
     @staticmethod
     def getRootWmi():
-        #r = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]
-        #stat = sProbe.rwmi.instances('BatteryStatus')[0]
         stat = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]
-        #stat = sProbe.rwmi.ExecQuery('select * from BatteryStatus')[0]
 
         sProbe.charging = stat.charging
         sProbe.critical = stat.critical
@@ -61,6 +58,7 @@ class sProbe(object):
         sProbe.cycle_count = sProbe.tryinstance('BatteryCycleCount')
         sProbe.full_cap = sProbe.tryinstance('BatteryFullChargedCapacity')
         sProbe.temp = sProbe.tryinstance('BatteryTempurature')
+        sProbe.status_change = sProbe.tryinstance('BatteryStatusChange')
         sProbe.control = sProbe.tryinstance('BatteryControl')
 
         # Assume these always exist
