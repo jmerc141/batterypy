@@ -10,7 +10,6 @@ from threading import Thread
 class Plot:
 
     def __init__(self, t):
-        print(sys.platform)
         if sys.platform == 'win32':
             import s_probe
             self.sp = s_probe
@@ -25,6 +24,8 @@ class Plot:
         self.volty = []
         self.ampy  = []
         self.watty = []
+
+        self.dpi = 85
 
         # Create a seperate thread that runs the animation function
         if t == 0:
@@ -149,7 +150,7 @@ class Plot:
             self.ampy.append(0)
             self.ymax.append(0)
         
-        self.fig = plt.figure(dpi=75, figsize=(8,8))
+        self.fig = plt.figure(dpi=self.dpi, figsize=(8,8))
         self.ax1 = self.fig.add_subplot()
 
         plt.title('Power', color='white')
@@ -158,6 +159,11 @@ class Plot:
         self.ax1.set_facecolor('#2f2f2f')
         self.ax1.tick_params(axis='x', colors='white')
         self.ax1.tick_params(axis='y', colors='white')
+        self.ax1.grid(color='white')
+        self.ax1.spines['bottom'].set_color('white')
+        self.ax1.spines['top'].set_color('white')
+        self.ax1.spines['right'].set_color('white')
+        self.ax1.spines['left'].set_color('white')
 
         self.fig.subplots_adjust(bottom=0.09, top=0.93)
 

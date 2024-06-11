@@ -43,7 +43,7 @@ class App(TKMT.ThemedTKinterFrame):
         # Create Treev object depending on linux/win platform because
         # implementations are different
         if sys.platform == 'linux':
-            import tree_l
+            import tree_l, s_probe_l
             self.tree = tree_l.Treev(self.master)
             if os.path.exists('./res/battery.png'):
                 # should set small top-right corner icon
@@ -51,7 +51,7 @@ class App(TKMT.ThemedTKinterFrame):
                 self.master.iconphoto(False, i)
         elif sys.platform == 'win32':
             try:
-                import tree
+                import tree, s_probe
                 self.tree = tree.Treev(self.master)
             except TypeError as t:
                 tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{t}')
@@ -90,17 +90,39 @@ class App(TKMT.ThemedTKinterFrame):
 
         self.tree.tree.bind('<<TreeviewSelect>>', self.item_selected)
 
-        scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.tree.yview)
+        # Horizontal scrollbar
         #scrollx = ttk.Scrollbar(self.master, orient=tk.HORIZONTAL, command=self.tree.tree.xview)
-        scrolly.grid(row=0, column=1, sticky='nse', padx=(0,5), pady=10)
         #scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
+
+        # Vertical scrollbar
+        scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.tree.yview)
+        scrolly.grid(row=0, column=0, sticky='nse', padx=(10,0), pady=10)
         self.tree.tree.configure(yscroll=scrolly.set)
+        
+        self.tree.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10, columnspan=1)
 
-        self.tree.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10)
+        # TODO implement linux
+        v = tk.DoubleVar(value=s_probe.sProbe.voltage)
+        c = tk.DoubleVar(value=s_probe.sProbe.amps)
+        w = tk.DoubleVar(value=s_probe.sProbe.watts)
+        pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=5)
+        
+        pi.Label('Current (Amps)', row=0, col=0, size=10, pady=0, sticky='w')
+        pi.Label(c.get(), row=0, col=1, size=10, pady=0, sticky='e')
+        pi.Progressbar(variable=c, row=1, col=0, pady=0, colspan=2)
+        
+        pi.Label('Voltage', row=2, col=0, size=10, pady=(10,0), sticky='w')
+        pi.Label(v.get(), row=2, col=1, size=10, pady=0, sticky='e')
+        pi.Progressbar(variable=v, row=3, col=0, upper=20, pady=0, colspan=2)
 
-        # treeview stretches with window
-        #self.master.rowconfigure(0, weight=1)
-        self.master.columnconfigure(0, weight=1)
+        pi.Label('Wattage', row=4, col=0, size=10, pady=(10,0), sticky='w')
+        pi.Label(w.get(), row=4, col=1, size=10, pady=0, sticky='e')
+        pi.Progressbar(variable=w, row=5, col=0, pady=0, colspan=2)
+
+        # Strech progressbars horizontally
+        pi.master.columnconfigure(0, weight=1)
+
+        #self.debugPrint()
 
         self.retree()
 

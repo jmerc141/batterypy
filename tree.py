@@ -5,11 +5,11 @@ import s_probe
     Wrapper class for treeview
     windows implementation
 '''
-class Treev(ttk.Treeview):
+class Treev(ttk.Frame):
 
     def __init__(self, master = None):
         self.master = master
-        self.tree = ttk.Treeview(master, columns=('val', 'max'), height=30, padding=2)
+        self.tree = ttk.Treeview(self.master, columns=('val', 'max'), height=20, padding=5)
         try:
             # initiate sProbe static class, decide windows or linux and import
             s_probe.sProbe()

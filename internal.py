@@ -29,6 +29,8 @@ class Window(Frame):
         self.tick = 0
         self.prop = None
 
+        self.internal_dpi = 70
+
         self.configure(bg='#2f2f2f')
             
         self.init_window()
@@ -150,7 +152,7 @@ class Window(Frame):
         self.v = 1.0
         self.A = 1.0
 
-        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,8), dpi=80)
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,8), dpi=self.internal_dpi)
         self.i_fig.subplots_adjust(bottom=0.06, top=0.975, left=0.08, right=0.975)
         self.x = [0]
         self.prop = 'Voltage'
@@ -175,6 +177,7 @@ class Window(Frame):
         self.ax.tick_params(axis='y', colors='white')
         self.ax.grid(color='white')
         self.i_fig.set_facecolor('#2f2f2f')
+
         self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
                                 transform=self.ax.transAxes, ha='center', fontsize=16, color='white')
         #else:
@@ -188,24 +191,39 @@ class Window(Frame):
         self.canvas = FigureCanvasTkAgg(self.i_fig, master=self)
         self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
 
-        
-        south_frame.pack(side='bottom', pady=20)
+        south_frame.pack(side='bottom', pady=10)
 
         vbtn = ttk.Button(south_frame, text='Volts', command=lambda: self.set_prop('Voltage'))
         abtn = ttk.Button(south_frame, text='Amps', command=lambda: self.set_prop('Amperage'))
         wbtn = ttk.Button(south_frame, text='Watts', command=self.wattBtn)
+        #outbtn = ttk.Button(south_frame, text='-', command=self.zoomOut)
+        #inbtn = ttk.Button(south_frame, text='+', command=self.zoomIn)
         #btn3 = ttk.Button(south_frame, text='All', command=lambda: self.set_prop('All'))
         
         vbtn.pack(side='left', padx=5)
         abtn.pack(side='left', padx=5)
         wbtn.pack(side='left', padx=5)
-        #btn3.pack(side='left', padx=5)
+        #outbtn.pack(side='left', padx=5)
+        #inbtn.pack(side='left', padx=5)
 
         #self.add_toolbar()
 
         self.i_proc = Thread(target=self.start_anim)
         self.i_proc.start()
         #self.canvas.draw()
+
+    
+    def zoomOut(self):
+        plt.close(self.i_fig)
+        self.init_window()
+        self.internal_dpi -= 5
+        self.i_fig.set_dpi(self.internal_dpi)
+
+    
+    def zoomIn(self):
+        self.internal_dpi += 5
+        self.i_fig.set_dpi(self.internal_dpi)
+
         
     def wattBtn(self):
         if self.charging:

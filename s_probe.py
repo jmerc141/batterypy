@@ -7,7 +7,7 @@ from threading import Thread
     Class for extracting battery data from windows WMI
 '''
 class sProbe(object):
-    voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = 0
+    voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = 0.0
     rwmi = wmi.WMI(moniker="//./root/wmi")
     going = True
 
