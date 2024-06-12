@@ -3,7 +3,6 @@ credit to Freepik for battery image:
     <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
 
 add gridlines to single / multi plot
-treeview not sticking to east with scrollbar
 '''
 
 import sys, os, internal, plot, matplotlib.font_manager
@@ -52,6 +51,7 @@ class App(TKMT.ThemedTKinterFrame):
         elif sys.platform == 'win32':
             try:
                 import tree, s_probe
+                self.sp = s_probe
                 self.tree = tree.Treev(self.master)
             except TypeError as t:
                 tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{t}')
@@ -102,22 +102,23 @@ class App(TKMT.ThemedTKinterFrame):
         self.tree.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10, columnspan=1)
 
         # TODO implement linux
-        v = tk.DoubleVar(value=s_probe.sProbe.voltage)
-        c = tk.DoubleVar(value=s_probe.sProbe.amps)
-        w = tk.DoubleVar(value=s_probe.sProbe.watts)
+        self.v = tk.DoubleVar(value=s_probe.sProbe.voltage)
+        self.w = tk.DoubleVar(value=s_probe.sProbe.watts)
+        self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
+
         pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=5)
-        
+        # TODO change upper value
         pi.Label('Current (Amps)', row=0, col=0, size=10, pady=0, sticky='w')
-        pi.Label(c.get(), row=0, col=1, size=10, pady=0, sticky='e')
-        pi.Progressbar(variable=c, row=1, col=0, pady=0, colspan=2)
+        pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
+        pi.Progressbar(variable=self.c, upper=5, row=1, col=0, pady=0, colspan=2)
         
         pi.Label('Voltage', row=2, col=0, size=10, pady=(10,0), sticky='w')
-        pi.Label(v.get(), row=2, col=1, size=10, pady=0, sticky='e')
-        pi.Progressbar(variable=v, row=3, col=0, upper=20, pady=0, colspan=2)
-
+        pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
+        pi.Progressbar(variable=self.v, row=3, col=0, upper=20, pady=0, colspan=2)
+        # TODO change upper value
         pi.Label('Wattage', row=4, col=0, size=10, pady=(10,0), sticky='w')
-        pi.Label(w.get(), row=4, col=1, size=10, pady=0, sticky='e')
-        pi.Progressbar(variable=w, row=5, col=0, pady=0, colspan=2)
+        pi.Label('', row=4, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.w})
+        pi.Progressbar(variable=self.w, row=5, col=0, pady=0, colspan=2)
 
         # Strech progressbars horizontally
         pi.master.columnconfigure(0, weight=1)
@@ -165,6 +166,10 @@ class App(TKMT.ThemedTKinterFrame):
     '''
     def retree(self):
         # overwrites values in the treeview, use only dynamic values
+        self.c.set(self.sp.sProbe.amps)
+        self.v.set(self.sp.sProbe.voltage)
+        self.w.set(self.sp.sProbe.watts)
+        
         self.tree.re_tree()
         self.master.after(1000, self.retree)
 

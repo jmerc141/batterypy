@@ -39,9 +39,10 @@ class sProbe(object):
     def get_portable():
         if wmi.WMI().instances('win32_portablebattery'):
             sProbe.portable = wmi.WMI().instances('win32_portablebattery')[0]
+            return wmi.WMI().instances('win32_portablebattery')[0]
         else:
             sProbe.portable = None
-        return wmi.WMI().instances('win32_portablebattery')[0]
+        
 
 
     @staticmethod
@@ -66,7 +67,7 @@ class sProbe(object):
         if not sProbe.charging:
             if stat.dischargerate >= 0:
                 sProbe.dischargerate = stat.dischargerate / 1000
-                sProbe.amps = round(sProbe.dischargerate / sProbe.voltage, 3)
+                sProbe.amps = round(stat.dischargerate / stat.voltage, 3)
                 sProbe.chargerate = 0
             else:
                 sProbe.dischargerate = 0
@@ -75,11 +76,13 @@ class sProbe(object):
             # Might be negative
             if stat.chargerate >= 0:
                 sProbe.chargerate = stat.chargerate / 1000
-                sProbe.amps = round(sProbe.chargerate / sProbe.voltage, 3)
+                sProbe.amps = round(stat.chargerate / stat.voltage, 3)
             else:
                 sProbe.chargerate = 0
                 sProbe.amps = 0
-
+        
+        sProbe.watts = (stat.chargerate or stat.dischargerate) / 1000
+                
 
     @staticmethod
     def getStaticData():
