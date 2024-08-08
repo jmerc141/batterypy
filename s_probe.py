@@ -1,6 +1,6 @@
 # probe.py
 
-import wmi, time, pythoncom
+import wmi, time, pythoncom, tracker
 from threading import Thread
 
 '''
@@ -22,6 +22,9 @@ class sProbe(object):
         sProbe.get_portable()
         sProbe.get_health()
         sProbe.get_chem()
+
+        sProbe.track = tracker.Tracker()
+
         sProbe.th = Thread(target=sProbe.refresh)
         sProbe.th.start()
 
@@ -32,6 +35,9 @@ class sProbe(object):
             pythoncom.CoInitialize()
             sProbe.getWin32Bat()
             sProbe.getRootWmi()
+            if sProbe.charging:
+                sProbe.track.track_mAh()
+                
             time.sleep(1)
             
 
