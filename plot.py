@@ -1,8 +1,8 @@
 # external graph
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import sys
 from threading import Thread
+import sys, json
 
 '''
     Wrapper class for external plots
@@ -215,12 +215,29 @@ class Plot:
     def set_prop(self, prop):
         self.prop = prop    
 
+
     '''
         Function to animate the plot window
     '''
     def a(self, func):
         ani = animation.FuncAnimation(self.fig, func, interval=1000, cache_frame_data=False, blit=True)
-        
+
+
+    @staticmethod
+    def show_history_data():
+        data = {}
+        try:
+            with open('history.dat') as hist:
+                data = json.load(hist)
+        except Exception as e:
+            print(e)
+
+        print(type(data), data)
+
+        fig = plt.figure(figsize=(8,6), dpi=80)
+        #ax1 = fig.add_subplot()
+        plt.show()
+
 
     def on_close(self):
         #print('close')

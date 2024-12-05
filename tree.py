@@ -34,7 +34,7 @@ class Treev(ttk.Frame):
         self.tree.insert('system', 0, 'name', text='Name', values=(s_probe.sProbe.name, ''))
         self.tree.insert('system', 'end', text='Status', values=(s_probe.sProbe.status, ''))
         self.tree.insert('system', 'end', 'chargepercent', text='Charge Percent',
-                         values=(str(s_probe.sProbe.est_chrg) + ' %', ''))
+                         values=(str(s_probe.sProbe.est_chrg) + '%', ''))
 
         if s_probe.sProbe.runtime != 'N/A':
             self.tree.insert('system', 'end', 'timerem', text='Time Remaining',
@@ -66,8 +66,8 @@ class Treev(ttk.Frame):
                          values=(str(int(s_probe.sProbe.design_voltage) / 1000) + ' V', ''))
 
         self.tree.insert('system', 'end', 'capacity', text='Capacity', open=True)
-        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(str(s_probe.sProbe.descap / 1000) + ' Wh(' + 
-                                                                                      str(dc) + ' Ah)', ''))
+        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(
+            str(s_probe.sProbe.descap / 1000) + ' Wh (' + str(dc) + ' Ah)', ''))
         self.tree.insert('capacity', 'end', 'fullcap', text='Full Charge Capacity',
                          values=(str(s_probe.sProbe.full_cap / 1000) + ' Wh', ''))
         self.tree.insert('capacity', 'end', 'bathealth', text='Battery Health',
@@ -171,7 +171,7 @@ class Treev(ttk.Frame):
 
         # doubt this changs often
         self.tree.set('fullcap', 'val', str(s_probe.sProbe.full_cap / 1000) + ' Wh (' + full_ah + ' Ah)')
-        self.tree.set('chargepercent', 'val', str(s_probe.sProbe.est_chrg) + ' %')
+        self.tree.set('chargepercent', 'val', str(s_probe.sProbe.est_chrg) + '%')
 
 
     '''

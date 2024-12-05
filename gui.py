@@ -73,16 +73,19 @@ class App(TKMT.ThemedTKinterFrame):
         mb.add_cascade(label='File', menu=file_menu)
         mb.add_cascade(label='Graph', menu=view_menu)
         mb.add_cascade(label='Extra', menu=ext)
+
         # TODO add fonts
         view_menu.add_checkbutton(label='Graph (Internal)', command=self.create_internal_graph)
         view_menu.add_cascade(label='Graph (external)', menu=graph)
         graph.add_command(label='Single', command=self.create_external_single)
         graph.add_command(label='Multiple', command=self.create_external_graph)
+        view_menu.add_checkbutton(label='View History', command=self.show_history)
+        ext.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
         
         if sys.platform == 'win32':
             ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
             ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
-            ext.add_command(label='Root\Wmi', command=self.tree.get_rootwmi)
+            ext.add_command(label='Root\\Wmi', command=self.tree.get_rootwmi)
 
         file_menu.add_command(label='Exit', command=self.on_close)
         
@@ -152,6 +155,10 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = plot.Plot(0)
         self.pl.on_close()
         self.pl = None
+
+
+    def show_history(self):
+        plot.Plot.show_history_data()
 
     '''
         Creates external window with single plot
