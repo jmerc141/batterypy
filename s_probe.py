@@ -58,6 +58,7 @@ class sProbe(object):
         while(sProbe.tracking and sProbe.going):
             sProbe.track.track_man()
             time.sleep(1)
+        sProbe.track.end_tracking()
 
 
     '''

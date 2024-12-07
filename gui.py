@@ -5,7 +5,7 @@ credit to Freepik for battery image:
 add gridlines to single / multi plot
 '''
 
-import sys, os, internal, plot, matplotlib.font_manager
+import sys, os, internal, plot, hist_plot
 import tkinter as tk
 from tkinter import ttk
 import TKinterModernThemes as TKMT
@@ -79,7 +79,7 @@ class App(TKMT.ThemedTKinterFrame):
         view_menu.add_cascade(label='Graph (external)', menu=graph)
         graph.add_command(label='Single', command=self.create_external_single)
         graph.add_command(label='Multiple', command=self.create_external_graph)
-        view_menu.add_checkbutton(label='View History', command=self.show_history)
+        view_menu.add_command(label='View History', command=self.show_history)
         ext.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
         
         if sys.platform == 'win32':
@@ -110,14 +110,17 @@ class App(TKMT.ThemedTKinterFrame):
         self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
 
         pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=5)
+
+        pi.Label('Voltage', row=0, col=0, size=10, pady=(10,0), sticky='w')
+        pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
+        pi.Progressbar(variable=self.v, row=1, col=0, upper=20, pady=0, colspan=2)
+
         # TODO change upper value
-        pi.Label('Current (Amps)', row=0, col=0, size=10, pady=0, sticky='w')
-        pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
-        pi.Progressbar(variable=self.c, upper=5, row=1, col=0, pady=0, colspan=2)
+        pi.Label('Current (Amps)', row=2, col=0, size=10, pady=0, sticky='w')
+        pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
+        pi.Progressbar(variable=self.c, upper=5, row=3, col=0, pady=0, colspan=2)
         
-        pi.Label('Voltage', row=2, col=0, size=10, pady=(10,0), sticky='w')
-        pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
-        pi.Progressbar(variable=self.v, row=3, col=0, upper=20, pady=0, colspan=2)
+
         # TODO change upper value
         pi.Label('Wattage', row=4, col=0, size=10, pady=(10,0), sticky='w')
         pi.Label('', row=4, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.w})
@@ -158,7 +161,10 @@ class App(TKMT.ThemedTKinterFrame):
 
 
     def show_history(self):
-        plot.Plot.show_history_data()
+        if os.path.exists('history.dat'):
+            hist_plot.Hist_plot.show_history_data()
+        else:
+            tk.messagebox.showerror('Error', f'No history data found\n')
 
     '''
         Creates external window with single plot
