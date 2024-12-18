@@ -25,6 +25,8 @@ class App(TKMT.ThemedTKinterFrame):
         self.win32bat_on = False
         self.rootwmi_on = False
 
+        self.hist_init = False
+
         # Change directory to get icon resource
         try:
             os.chdir(sys._MEIPASS)
@@ -69,9 +71,11 @@ class App(TKMT.ThemedTKinterFrame):
         view_menu = tk.Menu(mb, tearoff=False)
         graph = tk.Menu(view_menu, tearoff=False)
         ext = tk.Menu(mb, tearoff=False)
+        track_menu = tk.Menu(mb, tearoff=False)
 
         mb.add_cascade(label='File', menu=file_menu)
         mb.add_cascade(label='Graph', menu=view_menu)
+        mb.add_cascade(label='Tracking', menu=track_menu)
         mb.add_cascade(label='Extra', menu=ext)
 
         # TODO add fonts
@@ -79,8 +83,9 @@ class App(TKMT.ThemedTKinterFrame):
         view_menu.add_cascade(label='Graph (external)', menu=graph)
         graph.add_command(label='Single', command=self.create_external_single)
         graph.add_command(label='Multiple', command=self.create_external_graph)
-        view_menu.add_command(label='View History', command=self.show_history)
-        ext.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
+        track_menu.add_command(label='View History', command=self.show_history)
+        track_menu.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
+        #track_menu.add_command(label='Clear History')
         
         if sys.platform == 'win32':
             ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
@@ -161,10 +166,16 @@ class App(TKMT.ThemedTKinterFrame):
 
 
     def show_history(self):
-        if os.path.exists('history.dat'):
-            hist_plot.Hist_plot.show_history_data()
+        if not self.hist_init:
+            if os.path.exists('history.dat'):
+                hist_plot.Hist_plot.init_history_data()
+                self.hist_init = True
+                hist_plot.Hist_plot.show_plot()
+                hist_plot.Hist_plot.onClose()
+            else:
+                tk.messagebox.showerror('Error', f'No history data found\n')
         else:
-            tk.messagebox.showerror('Error', f'No history data found\n')
+            hist_plot.Hist_plot.show_plot()
 
     '''
         Creates external window with single plot

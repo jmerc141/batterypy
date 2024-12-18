@@ -192,6 +192,7 @@ class Plot:
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
+        print(max(self.ymax))
 
         self.volty.pop(0)
         self.ampy.pop(0)

@@ -1,16 +1,16 @@
 '''
  - Get linear regression line for predicted battery health
-and capacity loss (percentage) per month/year
+    and capacity loss (percentage) per month/year
  - Test with charging
  - Reset tracking when plugged in / out
  - 1 write every 10s = 1MB per hour
  - Rewrite json.dumps to handle multiple sessions
  - get % per hour
+ - add charging / discharging status
 '''
 
-import sys, os, json, time
+import sys, os, json
 from datetime import datetime
-from threading import Thread
 
 class Tracker(object):
     def __init__(self):
@@ -22,21 +22,31 @@ class Tracker(object):
             import s_probe
             self.probe = s_probe.sProbe
 
+       
+
         # If the history file exists, do not create a new one
         if os.path.exists('history.dat'):
             print('history')
+            with open('history.dat', 'r') as r:
+                self.sessions = json.load(r)
+                self.num_sessions = len(self.sessions)
         else:
             # Make a new history.dat file
             print('new')
-        
-        # Get time for key dict
-        curtime = datetime.today().strftime('%Y-%m-%d|%H:%M:%S')
-        
+            # List of charging sessions, holds history_data
+            self.sessions = []
+
+            # Total number of sessions
+            self.num_sessions = 0
+
+        self.sessions.append([])
+
         # Dict for writing info to history file
         self.history_data = {}
         
-        # Calculated value of mWh (watts * seconds)
-        self.measured_mWh = 0
+        self.history_data['measured_Ah'] = 0
+        self.history_data['measured_Wh'] = 0
+
         # Number of readings taken, increments every second
         self.readings = 0
         
@@ -65,6 +75,9 @@ class Tracker(object):
                 self.readings = 0
 
 
+    '''
+    
+    '''
     def track_man(self):
         self.readings +=1
         self.get_readings()
@@ -72,19 +85,20 @@ class Tracker(object):
             self.write_history()
             
             self.readings = 0
-        #print(json.dumps(self.history_data, indent=4))
-        #print()
+        
         
     '''
         Stops writing JSON to file, checks for ending bracket
         and adds one if needed
     '''
     def end_tracking(self):
-        with open('history.dat', 'rb') as r:
-            r.seek(-1, 2)
-            if not r.read(1).decode() == ']':
-                with open('history.dat', 'a') as f:
-                    f.write(']')
+        #with open('history.dat', 'rb') as r:
+        #    r.seek(-1, 2)
+        #    if not r.read(1).decode() == ']':
+        #        with open('history.dat', 'a') as f:
+        #            f.write(']')
+        pass
+
 
     '''
         Seperate function to populate the history_data dict
@@ -92,47 +106,55 @@ class Tracker(object):
     def get_readings(self):
         # Get current time and add a new dict to history_data with time as key
         curtime = datetime.today().strftime('%Y-%m-%d|%H:%M:%S')
-        self.history_data[curtime] = {}
-
-        self.history_data[curtime]['health_percent'] = round(self.probe.bathealth, 3)
-        self.history_data[curtime]['rem_mAh'] = (self.probe.rem_cap / self.probe.voltage)
-        # Get mAh every second
-        self.history_data[curtime]['measured_mAh'] = round(self.probe.amps * (1/3600), 3)
+        #self.sessions
+        self.history_data['curtime'] = curtime
+        # This probably wont change in a single session
+        self.history_data['health_percent'] = round(self.probe.bathealth, 3)
         
         # Last measured full charged battery capacity
-        self.history_data[curtime]['probes_full_mWh'] = self.probe.full_cap
+        self.history_data['probes_full_Wh'] = self.probe.full_cap / 1000
+        
+        # Get mAh every second
+        self.history_data['measured_Ah'] += self.probe.amps * (1/3600)
+
         # Manually measure mWh used or charged
-        self.history_data[curtime]['measured_mWh'] = round(self.probe.watts * (1/3600), 3)
+        self.history_data['measured_Wh'] += self.probe.watts * (1/3600)
 
-        # If discharging starting_cap - rem_cap,
-        # if charging rem_cap - starting_cap to get laptops measured mWh difference
-        self.history_data[curtime]['rem_mWh'] = self.probe.rem_cap
+        # Remaining amp hour given by the system
+        self.history_data['rem_Ah'] = round((self.probe.rem_cap / self.probe.voltage) / 1000, 3)
 
+        # Remaining watt hour given by the system
+        self.history_data['rem_Wh'] = self.probe.rem_cap / 1000
+
+        # The difference between the remaining cap of the system and the starting 
+        # cap when tracking started in Wh
+        # Essentially how many Wh were spent / gained
         if self.probe.charging:
-            self.history_data[curtime]['cap_diff'] = self.probe.rem_cap - self.starting_cap
+            self.history_data['cap_diff'] = (self.probe.rem_cap - self.starting_cap) / 1000
         else:
-            self.history_data[curtime]['cap_diff'] = self.starting_cap - self.probe.rem_cap
+            self.history_data['cap_diff'] = self.starting_cap - (-self.probe.rem_cap)
 
-        self.history_data[curtime]['voltage'] = self.probe.voltage
+        self.history_data['voltage'] = self.probe.voltage
 
-        self.history_data[curtime]['chrg_percent'] = self.probe.est_chrg
+        self.history_data['amps'] = self.probe.amps
 
-            
+        self.history_data['watts'] = self.probe.watts
+
+        self.history_data['chrg_percent'] = self.probe.est_chrg
+
+        # Add history data to only the session
+        self.sessions[self.num_sessions].append(self.history_data)
+
+
     '''
         Write history_data dict to history.dat file as JSON
-        Possibly empty history_data here so we dont have to rewrite entire file
     '''
     def write_history(self):
-        with open('history.dat', 'a') as f:
-            # If the file is empty, write the opening bracket for the JSON array
-            if f.tell() == 0:
-                f.write("[")
-            else:
-                # Add a comma before appending the new object, unless it's the first entry
-                f.write(",\n")
+        with open('history.dat', 'w') as f:
+            jsonobj = json.dump(self.sessions, f, indent=4)
 
-            jsonobj = json.dump(self.history_data, f, indent=4)
-        
         # Reset history_data
         self.history_data = {}
+        self.history_data['measured_Ah'] = 0
+        self.history_data['measured_Wh'] = 0
             
