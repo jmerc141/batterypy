@@ -1,95 +1,64 @@
-"""
-all win32_battery properties
-Availability: 3
-BatteryRechargeTime:
-BatteryStatus: 1
-Caption: Internal Battery
-Chemistry: 2
-ConfigManagerErrorCode:
-ConfigManagerUserConfig:
-CreationClassName: Win32_Battery
-Description: Internal Battery
-DesignCapacity:
-DesignVoltage: 7600
-DeviceID: 00EmdoorLi-ion Battery
-ErrorCleared:
-ErrorDescription:
-EstimatedChargeRemaining: 75
-EstimatedRunTime: 252
-ExpectedBatteryLife:
-ExpectedLife:
-FullChargeCapacity:
-InstallDate:
-LastErrorCode:
-MaxRechargeTime:
-Name: Li-ion Battery
-PNPDeviceID:
-PowerManagementCapabilities: 1
-PowerManagementSupported: False
-SmartBatteryVersion:
-Status: OK
-StatusInfo:
-SystemCreationClassName: Win32_ComputerSystem
-SystemName: DESKTOP-3QOIFTC
-TimeOnBattery:
-TimeToFullCharge:
+'''
+    TODO Make CLI option
+'''
 
+import sys
 
-"""
-
-
-import probe
-
-p = probe.Probe()
+if sys.platform == 'linux':
+    import s_probe_l
+    probe = s_probe_l.sProbe
+elif sys.platform == 'win32':
+    import s_probe
+    probe = s_probe.sProbe
 
 
 def printbat():
     # all win32battery properties
-    print('{:>22}{:10}{:<}'.format('Name:', ' ', p.win.name))
-    print('{:>22}{:10}{:<}'.format('Caption:', ' ', p.win.Caption))
-    print('{:>22}{:10}{:<}'.format('Description:', ' ', p.win.description))
-    print('{:>22}{:10}{:<d}'.format('Availability:', ' ', p.win.Availability))  # decode
-    print('{:>22}{:10}{:<d}'.format('Battery Status:', ' ', p.win.batterystatus))   # decode
-    print('{:>22}{:10}{:<d}'.format('Chemistry:', ' ', p.win.Chemistry))    # decode number
+    print('{:>22}{:10}{:<}'.format('Name:', ' ', probe.win.name))
+    print('{:>22}{:10}{:<}'.format('Caption:', ' ', probe.win.Caption))
+    print('{:>22}{:10}{:<}'.format('Description:', ' ', probe.win.description))
+    print('{:>22}{:10}{:<d}'.format('Availability:', ' ', probe.win.Availability))  # decode
+    print('{:>22}{:10}{:<d}'.format('Battery Status:', ' ', probe.win.batterystatus))   # decode
+    print('{:>22}{:10}{:<d}'.format('Chemistry:', ' ', probe.win.Chemistry))    # decode number
     print('{:>22}{:10}{:<d}h {:d}m'.format('Time Remaining:', ' ',
-                                           p.win.Estimatedruntime // 60 % 24, p.win.estimatedruntime % 60))
+                                           probe.win.Estimatedruntime // 60 % 24, probe.win.estimatedruntime % 60))
 
-    print('{:>22}{:10}{:<g} V'.format('Design Voltage:', ' ', int(p.win.designvoltage) / 1000))
-    print('{:>22}{:10}{:<d}%'.format('Charge:', ' ', p.win.estimatedchargeremaining))
-    print('{:>22}{:10}{:<}'.format('Status:', ' ', p.win.Status))
+    print('{:>22}{:10}{:<g} V'.format('Design Voltage:', ' ', int(probe.win.designvoltage) / 1000))
+    print('{:>22}{:10}{:<d}%'.format('Charge:', ' ', probe.win.estimatedchargeremaining))
+    print('{:>22}{:10}{:<}'.format('Status:', ' ', probe.win.Status))
 
     print('\nFrom root/wmi:')
-    print('{:>22}{:10}{:<d}h {:<d}m'.format('Other Estimated Time:', ' ', int(p.hours), int(p.minutes)))
-    print('{:>22}{:10}{:<g} Wh'.format('Designed Capacity:', ' ', p.descap))
-    print('{:>22}{:10}{:<g} Wh'.format('Full Charged Capacity:', ' ', p.fullcap))
-    print('{:>22}{:10}{:<} Cycles'.format('Cycle Count:', ' ', p.cyclecount))
-    print('{:>22}{:10}{:<} C'.format('Temperature:', ' ', p.temp))
-    print('{:>22}{:10}{:<}'.format('Charging:', ' ', str(p.charging)))
-    print('{:>22}{:10}{:<g} W'.format('Charge Rate:', ' ', p.chargerate))
-    print('{:>22}{:10}{:<}'.format('Discharging:', ' ', str(p.discharging)))
-    print('{:>22}{:10}{:<g} W'.format('Discharge Rate:', ' ', p.dischargerate))
-    print('{:>22}{:10}{:<g} Wh'.format('Remaining Capacity:', ' ', p.remcap))
-    print('{:>22}{:10}{:<g} V'.format('Voltage:', ' ', p.voltage))
-    print('{:>22}{:10}{:<}'.format('Power Online:', ' ', str(p.poweronline)))
-    print('{:>22}{:10}{:<}'.format('Critical:', ' ', str(p.critical)))
-    print('{:>22}{:10}{:<}'.format('Capabilities:', ' ', str(p.capab)))
-    print('{:>22}{:10}{:<}'.format('Chemistry?:', ' ', str(p.chem)))
-    print('{:>22}{:10}{:<g} Wh'.format('Low Alarm:', ' ', p.lowalarm))
-    print('{:>22}{:10}{:<g} Wh'.format('Critical Alarm:', ' ', p.critalarm))
-    print('{:>22}{:10}{:<}'.format('Critical Bias:', ' ', str(p.critbi)))
-    print('{:>22}{:10}{:<}'.format('Manufacture Date:', ' ', p.mdate))
-    print('{:>22}{:10}{:<}'.format('Serial Number:', ' ', p.sn))
-    print('{:>22}{:10}{:<g} Wh'.format('Granularity 1:', ' ', p.g0))
-    print('{:>22}{:10}{:<g} Wh'.format('Granularity 2:', ' ', p.g1))
+    print('{:>22}{:10}{:<d}h {:<d}m'.format('Other Estimated Time:', ' ', int(probe.hours), int(probe.minutes)))
+    print('{:>22}{:10}{:<g} Wh'.format('Designed Capacity:', ' ', probe.descap))
+    print('{:>22}{:10}{:<g} Wh'.format('Full Charged Capacity:', ' ', probe.fullcap))
+    print('{:>22}{:10}{:<} Cycles'.format('Cycle Count:', ' ', probe.cyclecount))
+    print('{:>22}{:10}{:<} C'.format('Temperature:', ' ', probe.temp))
+    print('{:>22}{:10}{:<}'.format('Charging:', ' ', str(probe.charging)))
+    print('{:>22}{:10}{:<g} W'.format('Charge Rate:', ' ', probe.chargerate))
+    print('{:>22}{:10}{:<}'.format('Discharging:', ' ', str(probe.discharging)))
+    print('{:>22}{:10}{:<g} W'.format('Discharge Rate:', ' ', probe.dischargerate))
+    print('{:>22}{:10}{:<g} Wh'.format('Remaining Capacity:', ' ', probe.remcap))
+    print('{:>22}{:10}{:<g} V'.format('Voltage:', ' ', probe.voltage))
+    print('{:>22}{:10}{:<}'.format('Power Online:', ' ', str(probe.poweronline)))
+    print('{:>22}{:10}{:<}'.format('Critical:', ' ', str(probe.critical)))
+    print('{:>22}{:10}{:<}'.format('Capabilities:', ' ', str(probe.capab)))
+    print('{:>22}{:10}{:<}'.format('Chemistry?:', ' ', str(probe.chem)))
+    print('{:>22}{:10}{:<g} Wh'.format('Low Alarm:', ' ', probe.lowalarm))
+    print('{:>22}{:10}{:<g} Wh'.format('Critical Alarm:', ' ', probe.critalarm))
+    print('{:>22}{:10}{:<}'.format('Critical Bias:', ' ', str(probe.critbi)))
+    print('{:>22}{:10}{:<}'.format('Manufacture Date:', ' ', probe.mdate))
+    print('{:>22}{:10}{:<}'.format('Serial Number:', ' ', probe.sn))
+    print('{:>22}{:10}{:<g} Wh'.format('Granularity 1:', ' ', probe.g0))
+    print('{:>22}{:10}{:<g} Wh'.format('Granularity 2:', ' ', probe.g1))
 
-    print('{:>22}{:10}{:<g} Ah'.format('Amp / Hour:', ' ', p.ah))
-    print('{:>22}{:10}{:<g} A'.format('Amps:', ' ', p.amps))
+    print('{:>22}{:10}{:<g} Ah'.format('Amp / Hour:', ' ', probe.ah))
+    print('{:>22}{:10}{:<g} A'.format('Amps:', ' ', probe.amps))
 
 #printbat()
 
 import time
 
 while(True):
-    p.refresh()
-    print(p.dischargerate)
+    probe.refresh()
+    print(probe.dischargerate)
     time.sleep(1)

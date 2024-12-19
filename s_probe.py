@@ -1,15 +1,19 @@
-# probe.py
+'''
+    Make amps negative if discharging?
+'''
 
-import wmi, time, pythoncom
+import wmi, time, pythoncom, tracker
 from threading import Thread
 
 '''
     Class for extracting battery data from windows WMI
 '''
 class sProbe(object):
+    # Should keep all possible battery attributes in here
     voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = 0.0
     rwmi = wmi.WMI(moniker="//./root/wmi")
     going = True
+    tracking = False
 
     @staticmethod
     def __init__() -> None:
@@ -22,19 +26,71 @@ class sProbe(object):
         sProbe.get_portable()
         sProbe.get_health()
         sProbe.get_chem()
+
+        # Tracker object
+        sProbe.track = tracker.Tracker()
+        sProbe.tth = Thread(target=sProbe.track_thread)
+
+        # Start seperate thread for refreshing probe values
         sProbe.th = Thread(target=sProbe.refresh)
         sProbe.th.start()
 
 
+    '''
+        Run when menu is clicked, start track_thread Thread
+    '''
+    @staticmethod
+    def activate_tracking():
+        if not sProbe.tth.is_alive() and not sProbe.tracking:
+            sProbe.tracking = True
+            sProbe.tth.start()
+        else:
+            sProbe.tracking = False
+            sProbe.tth.join()
+
+
+    '''
+        If enabled, runs tracker.track_man every second
+        tracking and going must be True
+    '''
+    @staticmethod
+    def track_thread():
+        while(sProbe.tracking and sProbe.going):
+            sProbe.track.track_man()
+            time.sleep(1)
+        sProbe.track.end_tracking()
+
+    
+    '''
+        Deletes history file
+    '''
+    @staticmethod
+    def del_history():
+        sProbe.track.clear_history()
+
+
+    '''
+        Main sProbe refresh function
+        Sets all data in the sProbe class
+    '''
     @staticmethod
     def refresh():
         while(sProbe.going):
             pythoncom.CoInitialize()
             sProbe.getWin32Bat()
             sProbe.getRootWmi()
+            
+            # If battery is < 95% charged
+            #if sProbe.rem_cap < 95:
+            #sProbe.track.track_norm()
+            
+            # Set speed of sProbe data refresh
             time.sleep(1)
             
 
+    '''
+
+    '''
     @staticmethod
     def get_portable():
         if wmi.WMI().instances('win32_portablebattery'):
@@ -44,7 +100,9 @@ class sProbe(object):
             sProbe.portable = None
         
 
-
+    '''
+    
+    '''
     @staticmethod
     def getRootWmi():
         stat = wmi.WMI(moniker="//./root/wmi").instances('BatteryStatus')[0]

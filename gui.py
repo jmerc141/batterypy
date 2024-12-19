@@ -5,7 +5,7 @@ credit to Freepik for battery image:
 add gridlines to single / multi plot
 '''
 
-import sys, os, internal, plot, matplotlib.font_manager
+import sys, os, internal, plot, hist_plot
 import tkinter as tk
 from tkinter import ttk
 import TKinterModernThemes as TKMT
@@ -24,6 +24,8 @@ class App(TKMT.ThemedTKinterFrame):
         self.portable_on = False
         self.win32bat_on = False
         self.rootwmi_on = False
+
+        self.hist_init = False
 
         # Change directory to get icon resource
         try:
@@ -69,20 +71,26 @@ class App(TKMT.ThemedTKinterFrame):
         view_menu = tk.Menu(mb, tearoff=False)
         graph = tk.Menu(view_menu, tearoff=False)
         ext = tk.Menu(mb, tearoff=False)
+        track_menu = tk.Menu(mb, tearoff=False)
 
         mb.add_cascade(label='File', menu=file_menu)
         mb.add_cascade(label='Graph', menu=view_menu)
+        mb.add_cascade(label='Tracking', menu=track_menu)
         mb.add_cascade(label='Extra', menu=ext)
+
         # TODO add fonts
         view_menu.add_checkbutton(label='Graph (Internal)', command=self.create_internal_graph)
         view_menu.add_cascade(label='Graph (external)', menu=graph)
         graph.add_command(label='Single', command=self.create_external_single)
         graph.add_command(label='Multiple', command=self.create_external_graph)
+        track_menu.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
+        track_menu.add_command(label='View History', command=self.show_history)
+        track_menu.add_command(label='Clear History', command=self.ask_clear_hist)
         
         if sys.platform == 'win32':
             ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
             ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
-            ext.add_command(label='Root\Wmi', command=self.tree.get_rootwmi)
+            ext.add_command(label='Root\\Wmi', command=self.tree.get_rootwmi)
 
         file_menu.add_command(label='Exit', command=self.on_close)
         
@@ -107,14 +115,17 @@ class App(TKMT.ThemedTKinterFrame):
         self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
 
         pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=5)
+
+        pi.Label('Voltage', row=0, col=0, size=10, pady=(10,0), sticky='w')
+        pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
+        pi.Progressbar(variable=self.v, row=1, col=0, upper=20, pady=0, colspan=2)
+
         # TODO change upper value
-        pi.Label('Current (Amps)', row=0, col=0, size=10, pady=0, sticky='w')
-        pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
-        pi.Progressbar(variable=self.c, upper=5, row=1, col=0, pady=0, colspan=2)
+        pi.Label('Current (Amps)', row=2, col=0, size=10, pady=0, sticky='w')
+        pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
+        pi.Progressbar(variable=self.c, upper=5, row=3, col=0, pady=0, colspan=2)
         
-        pi.Label('Voltage', row=2, col=0, size=10, pady=(10,0), sticky='w')
-        pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
-        pi.Progressbar(variable=self.v, row=3, col=0, upper=20, pady=0, colspan=2)
+
         # TODO change upper value
         pi.Label('Wattage', row=4, col=0, size=10, pady=(10,0), sticky='w')
         pi.Label('', row=4, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.w})
@@ -152,6 +163,32 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = plot.Plot(0)
         self.pl.on_close()
         self.pl = None
+
+
+    '''
+    
+    '''
+    def show_history(self):
+        if not self.hist_init:
+            try:
+                hist_plot.Hist_plot.init_history_data()
+                self.hist_init = True
+            except Exception as e:
+                tk.messagebox.showerror('Error', f'No history data found\n{e}')
+            
+            hist_plot.Hist_plot.show_plot()
+            hist_plot.Hist_plot.onClose()
+            
+        else:
+            hist_plot.Hist_plot.show_plot()
+
+    
+    '''
+    
+    '''
+    def ask_clear_hist(self):
+        if tk.messagebox.askyesno('Delete?', 'Delete all history data?'):
+            self.sp.sProbe.del_history()
 
     '''
         Creates external window with single plot

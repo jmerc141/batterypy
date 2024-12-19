@@ -1,8 +1,8 @@
 # external graph
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import sys
 from threading import Thread
+import sys, json
 
 '''
     Wrapper class for external plots
@@ -192,6 +192,7 @@ class Plot:
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
+        print(max(self.ymax))
 
         self.volty.pop(0)
         self.ampy.pop(0)
@@ -215,13 +216,17 @@ class Plot:
     def set_prop(self, prop):
         self.prop = prop    
 
+
     '''
         Function to animate the plot window
     '''
     def a(self, func):
         ani = animation.FuncAnimation(self.fig, func, interval=1000, cache_frame_data=False, blit=True)
-        
 
+
+    '''
+    
+    '''
     def on_close(self):
         #print('close')
         plt.close('all')
