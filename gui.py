@@ -83,9 +83,9 @@ class App(TKMT.ThemedTKinterFrame):
         view_menu.add_cascade(label='Graph (external)', menu=graph)
         graph.add_command(label='Single', command=self.create_external_single)
         graph.add_command(label='Multiple', command=self.create_external_graph)
-        track_menu.add_command(label='View History', command=self.show_history)
         track_menu.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
-        #track_menu.add_command(label='Clear History')
+        track_menu.add_command(label='View History', command=self.show_history)
+        track_menu.add_command(label='Clear History', command=self.ask_clear_hist)
         
         if sys.platform == 'win32':
             ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
@@ -165,17 +165,30 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = None
 
 
+    '''
+    
+    '''
     def show_history(self):
         if not self.hist_init:
-            if os.path.exists('history.dat'):
+            try:
                 hist_plot.Hist_plot.init_history_data()
                 self.hist_init = True
-                hist_plot.Hist_plot.show_plot()
-                hist_plot.Hist_plot.onClose()
-            else:
-                tk.messagebox.showerror('Error', f'No history data found\n')
+            except Exception as e:
+                tk.messagebox.showerror('Error', f'No history data found\n{e}')
+            
+            hist_plot.Hist_plot.show_plot()
+            hist_plot.Hist_plot.onClose()
+            
         else:
             hist_plot.Hist_plot.show_plot()
+
+    
+    '''
+    
+    '''
+    def ask_clear_hist(self):
+        if tk.messagebox.askyesno('Delete?', 'Delete all history data?'):
+            self.sp.sProbe.del_history()
 
     '''
         Creates external window with single plot

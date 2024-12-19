@@ -22,17 +22,13 @@ class Tracker(object):
             import s_probe
             self.probe = s_probe.sProbe
 
-       
+        self.filename = 'history.json'
 
-        # If the history file exists, do not create a new one
-        if os.path.exists('history.dat'):
-            print('history')
-            with open('history.dat', 'r') as r:
+        if os.path.exists(self.filename):
+            with open(self.filename, 'r') as r:
                 self.sessions = json.load(r)
                 self.num_sessions = len(self.sessions)
         else:
-            # Make a new history.dat file
-            print('new')
             # List of charging sessions, holds history_data
             self.sessions = []
 
@@ -44,8 +40,8 @@ class Tracker(object):
         # Dict for writing info to history file
         self.history_data = {}
         
-        self.history_data['measured_Ah'] = 0
-        self.history_data['measured_Wh'] = 0
+        self.measured_Ah = 0
+        self.measured_Wh = 0
 
         # Number of readings taken, increments every second
         self.readings = 0
@@ -92,11 +88,6 @@ class Tracker(object):
         and adds one if needed
     '''
     def end_tracking(self):
-        #with open('history.dat', 'rb') as r:
-        #    r.seek(-1, 2)
-        #    if not r.read(1).decode() == ']':
-        #        with open('history.dat', 'a') as f:
-        #            f.write(']')
         pass
 
 
@@ -104,10 +95,9 @@ class Tracker(object):
         Seperate function to populate the history_data dict
     '''
     def get_readings(self):
-        # Get current time and add a new dict to history_data with time as key
-        curtime = datetime.today().strftime('%Y-%m-%d|%H:%M:%S')
-        #self.sessions
-        self.history_data['curtime'] = curtime
+
+        self.history_data['curtime'] = datetime.today().strftime('%Y-%m-%d|%H:%M:%S')
+        
         # This probably wont change in a single session
         self.history_data['health_percent'] = round(self.probe.bathealth, 3)
         
@@ -115,10 +105,12 @@ class Tracker(object):
         self.history_data['probes_full_Wh'] = self.probe.full_cap / 1000
         
         # Get mAh every second
-        self.history_data['measured_Ah'] += self.probe.amps * (1/3600)
+        self.measured_Ah += self.probe.amps * (1/3600)
+        self.history_data['measured_Ah'] = self.measured_Ah
 
         # Manually measure mWh used or charged
-        self.history_data['measured_Wh'] += self.probe.watts * (1/3600)
+        self.measured_Wh += self.probe.watts * (1/3600)
+        self.history_data['measured_Wh'] = self.measured_Wh
 
         # Remaining amp hour given by the system
         self.history_data['rem_Ah'] = round((self.probe.rem_cap / self.probe.voltage) / 1000, 3)
@@ -132,7 +124,7 @@ class Tracker(object):
         if self.probe.charging:
             self.history_data['cap_diff'] = (self.probe.rem_cap - self.starting_cap) / 1000
         else:
-            self.history_data['cap_diff'] = self.starting_cap - (-self.probe.rem_cap)
+            self.history_data['cap_diff'] = (self.starting_cap - (-self.probe.rem_cap)) / 1000
 
         self.history_data['voltage'] = self.probe.voltage
 
@@ -141,20 +133,24 @@ class Tracker(object):
         self.history_data['watts'] = self.probe.watts
 
         self.history_data['chrg_percent'] = self.probe.est_chrg
-
+        
         # Add history data to only the session
         self.sessions[self.num_sessions].append(self.history_data)
 
+        # Reset dict
+        self.history_data = {}
+
 
     '''
-        Write history_data dict to history.dat file as JSON
+        Write session list to history.json file as JSON
     '''
     def write_history(self):
-        with open('history.dat', 'w') as f:
+        with open(self.filename, 'w') as f:
             jsonobj = json.dump(self.sessions, f, indent=4)
 
-        # Reset history_data
-        self.history_data = {}
-        self.history_data['measured_Ah'] = 0
-        self.history_data['measured_Wh'] = 0
-            
+        
+    '''
+    
+    '''
+    def clear_history(self):
+        os.remove(self.filename)

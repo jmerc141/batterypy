@@ -60,6 +60,14 @@ class sProbe(object):
             time.sleep(1)
         sProbe.track.end_tracking()
 
+    
+    '''
+        Deletes history file
+    '''
+    @staticmethod
+    def del_history():
+        sProbe.track.clear_history()
+
 
     '''
         Main sProbe refresh function
