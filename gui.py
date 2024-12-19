@@ -32,7 +32,7 @@ class App(TKMT.ThemedTKinterFrame):
             os.chdir(sys._MEIPASS)
         except Exception:
             self.base_path = os.path.abspath(".")
-
+        
 
         # Placeholder for internal or external graph
         self.i_pl = None
@@ -58,12 +58,17 @@ class App(TKMT.ThemedTKinterFrame):
             except TypeError as t:
                 tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{t}')
                 self.master.on_close()
-
             if os.path.exists('./res/battery.ico'):
                 self.master.iconbitmap('./res/battery.ico')
         else:
             print('Incompatible system, exiting')
             sys.exit()
+
+        # Change dir again so history.json write to .exe dir
+        if getattr(sys, 'frozen', False):
+            os.chdir(os.path.dirname(sys.executable))
+        else:
+            os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
         # Menubar
         mb = tk.Menu(self.master, background='black', fg='white')
