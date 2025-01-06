@@ -49,7 +49,9 @@ class Tracker(object):
         # Percentage of battery when tracking begins
         self.starting_percent = self.probe.est_chrg
         # mWh reading when tracking begins
-        self.starting_cap = self.probe.rem_cap   
+        self.starting_cap = self.probe.rem_cap
+
+        self.start_state = s_probe.sProbe.charging
         
     
     '''
@@ -75,6 +77,9 @@ class Tracker(object):
     
     '''
     def track_man(self):
+        # if unplugged or plugged in, create a new session
+        if self.start_state != self.probe.charging:
+            self.sessions += 1
         self.readings +=1
         self.get_readings()
         if self.readings == 10:
@@ -82,13 +87,6 @@ class Tracker(object):
             
             self.readings = 0
         
-        
-    '''
-        Stops writing JSON to file, checks for ending bracket
-        and adds one if needed
-    '''
-    def end_tracking(self):
-        pass
 
 
     '''

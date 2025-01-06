@@ -1,6 +1,6 @@
 '''
     TODO add linear regression
-    
+    TODO make plot a canvas so buttons etc can be added
 '''
 
 from matplotlib.widgets import Button, Slider
@@ -183,7 +183,9 @@ class Hist_plot:
         Hist_plot.ax1.set_ylim(0, max([max(v), max(a), max(w)])+1)
         Hist_plot.ax1.set_xlim(0, len(v)-1)
 
-        Hist_plot.ax1.legend([f'Volts {sum(v)/len(v)}'], loc=2)
+        Hist_plot.ax1.legend([f'Volts {round(sum(v)/len(v), 2)}',
+                              f'Amps {round(sum(a)/len(a), 2)}',
+                              f'Watts {round(sum(w)/len(w), 2)}'], loc=2)
         
         plt.draw()
             

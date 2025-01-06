@@ -10,7 +10,7 @@ from threading import Thread
 '''
 class sProbe(object):
     # Should keep all possible battery attributes in here
-    voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = 0.0
+    voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = charging = 0.0
     rwmi = wmi.WMI(moniker="//./root/wmi")
     going = True
     tracking = False
@@ -51,7 +51,8 @@ class sProbe(object):
 
     '''
         If enabled, runs tracker.track_man every second
-        tracking and going must be True
+        tracking and going must be True.
+        time.sleep(1) is main loop time
     '''
     @staticmethod
     def track_thread():
