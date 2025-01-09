@@ -5,7 +5,7 @@ credit to Freepik for battery image:
 add gridlines to single / multi plot
 '''
 
-import sys, os, internal, plot, hist_plot
+import sys, os, internal, plot, hist_plot, hplot
 import tkinter as tk
 from tkinter import ttk
 import TKinterModernThemes as TKMT
@@ -174,6 +174,11 @@ class App(TKMT.ThemedTKinterFrame):
     
     '''
     def show_history(self):
+        history_plot = hplot.Window(master=self.master)
+        
+        
+        
+        '''
         if not self.hist_init:
             try:
                 hist_plot.Hist_plot.init_history_data()
@@ -186,6 +191,7 @@ class App(TKMT.ThemedTKinterFrame):
             
         else:
             hist_plot.Hist_plot.show_plot()
+        '''
 
     
     '''
