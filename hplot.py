@@ -3,13 +3,15 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.colors as mcolors
 from tkinter import Frame, ttk
 from collections import defaultdict
 from enum import Enum
 import sys, os, csv, json, settings
 
 '''
-Referencing plt will cause hanging,
+Referencing plt will cause hanging
+
 
 '''
 
@@ -39,84 +41,68 @@ class Window(Frame):
         #    print('Error with hplot', e)
 
 
-
-    '''
-        Read csv file into memory
-        key = session number, value = array of readings
-    '''
-    def readCsv(self):
-        self.hdata = defaultdict(list)
-        with open(settings.s['filename'], 'r') as f:
-            csvFile = csv.reader(f)
-            #csvDict = csv.DictReader(f)
-
-            # Skip header
-            self.headers = next(csvFile, None)[2:]
-
-            # Each line is x chunks of readings
-            for l in csvFile:
-                self.hdata[l[0]].append(l[1:])
-                
-        #print(self.hdata, len(self.hdata))
-
-
-    def change_sesh(self, e):
-        self.current_sesh = e-1
-        self.ax.cla()
-        self.lined()
-        #self.canvas.draw()
-
-    def change_info(self, e):
-        print(e)
-
-
-    def lined(self, enum: Enum, color: str):
-        self.lines.append(self.ax.plot(self.get_session_element(enum), label=enum, color=color, linewidth=2))
-
-
     def init_graph(self, master):
         tl = tk.Toplevel(master)
         Frame.__init__(self, tl)
         self.master = master
-
+        
         self.internal_dpi = 65
 
-        self.configure(bg='#2f2f2f')
+        self.configure(bg='#2f2f2f', highlightbackground='blue', highlightthickness=3)
 
         topFrame = ttk.Frame(self)
+        bottomFrame = ttk.Frame(self)
+
+        session_times = []
 
         self.sel = tk.StringVar(self)
-        sesh_options = [*range(len(self.hdata))]
-        dd = ttk.OptionMenu(topFrame, self.sel, sesh_options[0], *sesh_options, command=self.change_sesh)
-        
-        self.headers.insert(0, 'power')
-        self.sel2 = tk.StringVar(self)
-        dd2 = ttk.OptionMenu(topFrame, self.sel2, self.headers[0], *self.headers, command=self.change_info)
-        
 
-        ttk.Label(topFrame, text='Session: ').pack(side='left')
-        dd.pack(side='left')
-        ttk.Label(topFrame, text='Info: ').pack(side='left')
+        # Get starting times for each session
+        for a in self.hdata:
+            session_times.append(self.hdata[a][0][0])    
+        
+        dd = ttk.OptionMenu(topFrame, self.sel, session_times[0], *session_times, command=self.change_sesh)
+        
+        self.sel2 = tk.StringVar(self)
+        self.graphs = ['Graph1', 'Graph2', 'Graph3']
+        dd2 = ttk.OptionMenu(topFrame, self.sel2, self.graphs[0], *self.graphs, command=self.change_info)
+        
+        # Pack elements
+        ttk.Label(topFrame, text='Session: ').pack(side='left', padx=(0,5))
+        dd.pack(side='left', padx=(0,10))
+        ttk.Label(topFrame, text='Info: ').pack(side='left', padx=(10,5))
         dd2.pack(side='left')
 
         topFrame.pack()
 
         # Grid Frame to window
-        self.grid(row=0, column=2)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        #self.grid(row=0, column=0, sticky='nesw')
+        bottomFrame.pack(expand=True, fill='both')
 
-        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(8,8), dpi=self.internal_dpi)
-        self.i_fig.subplots_adjust(bottom=0.07, top=0.975, left=0.09, right=0.975)
-
-        self.prop = 'Power'
-        self.x = [0]
-        self.y = [0]
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(9,8), dpi=self.internal_dpi)
+        self.i_fig.subplots_adjust(bottom=0.07, top=0.975, left=0.07, right=0.975)
+        #self.i_fig.tight_layout()
 
         self.ax = self.i_fig.add_subplot(111)
+        self.ax.autoscale(enable=True)
 
-        self.ax.set_xlabel('Seconds', color='black', fontsize=16)
+        self.setup_white()
+
+        self.change_info('Graph1')
+
+        self.canvas = FigureCanvasTkAgg(self.i_fig, master=bottomFrame)
+        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
+
+        self.pack(expand=True, fill='both')
+
+
+
+    def setup_white(self):
+        self.ax.set_xlabel('Time', color='black', fontsize=16)
         self.ax.set_ylabel('Voltage (V)', color='black', fontsize=16)
         self.ax.grid(color='black')
-
         self.ax.set_xlabel('Seconds', color='white')
         self.ax.set_ylabel('Power', color='white')
         self.ax.set_facecolor('#2f2f2f')
@@ -129,88 +115,87 @@ class Window(Frame):
         self.ax.grid(color='white')
         self.i_fig.set_facecolor('#2f2f2f')
 
-        # Define graph title
-        self.title = self.ax.text(0.5, 0.95, 'Title', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                transform=self.ax.transAxes, ha='center', fontsize=16, color='white')
-
-        self.title.set_text('Power')
-
-        self.x = self.get_session_element(InfoOrder.Voltage)
-        self.y = [*range(len(self.x))]
-        self.ax.xaxis.set_ticks(self.y)
-        self.ax.xaxis.set_ticklabels([x.split('|')[1] for x in self.get_session_element(InfoOrder.CurrentTime)])
-
-        self.ax.set_xlim(0, len(self.x))
-        self.ax.set_ylim(-1, max(self.x)+2)
-
-        self.l1 = self.ax.plot(self.x, self.y, color='red', linewidth=7)
-        self.s1 = self.ax.stackplot(range(0, len(self.x)), self.x, color='red', alpha=0.2)
-
-        self.canvas = FigureCanvasTkAgg(self.i_fig, master=self)
-        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
-
 
     '''
-    
+        Read csv file into memory
+        key = session number, value = array of readings
     '''
-    def get_session_element(self, enum: Enum):
+    def readCsv(self):
+        self.hdata = defaultdict(list)
+        with open(settings.s['filename'], 'r') as f:
+            csvFile = csv.reader(f)
+            #csvDict = csv.DictReader(f)
+
+            # Skip header, dont include session_num column
+            self.headers = next(csvFile, None)[1:]
+
+            # Each line is x chunks of readings
+            for l in csvFile:
+                self.hdata[l[0]].append(l[1:])
+                
+        #print(self.hdata, len(self.hdata))
+
+
+    def change_sesh(self, e):
+        #self.current_sesh = e-1
+        self.ax.cla()
+        self.lined()
+        #self.canvas.draw()
+
+
+    def change_info(self, e):
+        self.ax.cla()
+        self.setup_white()
+        self.lines.clear()
+
+        #print(mcolors.CSS4_COLORS)
+        match e:
+            case 'Graph1':
+                self.fancy_line(self.get_session_el2(self.headers.index('voltage')), 'red')
+                self.fancy_line(self.get_session_el2(self.headers.index('amps')), 'blue')
+                self.fancy_line(self.get_session_el2(self.headers.index('watts')), 'gold')
+                # Inlcude number in legend?
+                self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0]], [f'Volts ', 'Amps', 'Watts'])
+            case 'Graph2':
+                self.fancy_line(self.get_session_el2(self.headers.index('measured_Ah')), 'salmon')
+                self.fancy_line(self.get_session_el2(self.headers.index('rem_Ah')), 'orange')
+                print(self.lines)
+                self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Ah', 'Remaining_Ah'])
+            case 'Graph3':
+                self.fancy_line(self.get_session_el2(self.headers.index('measured_Wh')), 'yellowgreen')
+                self.fancy_line(self.get_session_el2(self.headers.index('rem_Wh')), 'green')
+                print(self.lines)
+                self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Wh', 'Remaining_Wh'])
+                
+        
+        self.i_fig.canvas.draw()
+
+
+    def fancy_line(self, x, c):
+        if len(self.lines) == 0:
+            y = [*range(len(x))]
+            #self.ax.xaxis.set_ticks(y)
+            self.ax.xaxis.set_ticklabels([x.split('|')[1] for x in self.get_session_el2(InfoOrder.CurrentTime.value)])
+        self.lines.append(self.ax.plot(x, color=c, linewidth=2, marker='o'))
+        self.stackplots.append(self.ax.stackplot(range(0, len(x)), x, color=c, alpha=0.2, labels=[]))
+        
+
+    def get_session_el2(self, i: int):
         lst = []
-        if enum == InfoOrder.CurrentTime:
-            for t in self.hdata[str(self.current_sesh)]:
-                lst.append(t[enum.value])
+        if i == InfoOrder.CurrentTime.value:
+            for v in self.hdata[str(self.current_sesh)]:
+                lst.append(v[i])
         else:
             for v in self.hdata[str(self.current_sesh)]:
-                lst.append(float(v[enum.value]))
-            
+                lst.append(float(v[i]))
         return lst
+
 
 
     # Destroys graph element
     def Clear(self):
         self.destroy()
 
-
-    def set_prop(self, batprop):
-        self.ax.cla()
-        self.x = [0]
-        self.y = [0]
-        self.maxY = 0
-        self.minY = 100
-        self.tick = 0
-        
-        self.prop = batprop
-        self.yl = ''
-
-        if self.prop == 'Amperage':
-            tmp = self.amps
-            self.l1, = self.ax.plot(self.x, self.y, color='c')
-            self.yl = 'Amperage (A)'
-        if self.prop == 'Voltage':
-            tmp = self.volts
-            self.l1, = self.ax.plot(self.x, self.y, color='red')
-            self.yl = 'Voltage (V)'
-        if self.prop == 'Discharge Power':
-            tmp = self.disch
-            self.l1, = self.ax.plot(self.x, self.y, color='m')
-            self.yl = 'Discharge Power (W)'
-        if self.prop == 'Charge Power':
-            tmp = self.charg
-            self.l1, = self.ax.plot(self.x, self.y, color='orange')
-            self.yl = 'Charge Power (W)'
-        if self.prop == 'All':
-            pass
-        
-        
-        self.ax.set_ylabel(self.yl, color='white')
-        self.ax.grid(color='white')
-        self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                transform=self.ax.transAxes, ha='center', fontsize=20, color='white')
-        
-
-        self.ax.set_xlim(0, 60)
-        self.ax.set_ylim(0, tmp + 1)
-        self.y = [tmp]
-        self.canvas.draw()
 
 
     def add_toolbar(self) -> None:

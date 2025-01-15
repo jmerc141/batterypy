@@ -39,7 +39,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = None
 
         # Set window size
-        self.master.geometry('600x700')
+        self.master.geometry('600x650')
 
         # Create Treev object depending on linux/win platform because
         # implementations are different
@@ -64,7 +64,7 @@ class App(TKMT.ThemedTKinterFrame):
             print('Incompatible system, exiting')
             sys.exit()
 
-        # Change dir again so history.json write to .exe dir
+        # Change dir again so history.csv writes to .exe dir
         if getattr(sys, 'frozen', False):
             os.chdir(os.path.dirname(sys.executable))
         else:
