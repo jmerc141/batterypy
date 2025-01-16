@@ -1,18 +1,16 @@
-# internal graph
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import matplotlib.colors as mcolors
 from tkinter import Frame, ttk
 from collections import defaultdict
 from enum import Enum
-import sys, os, csv, json, settings
+import sys, csv, settings
 
 '''
+Frame class that shows history data held in history.csv
+
 Referencing plt will cause hanging
-
-
 '''
 
 class Window(Frame):
@@ -35,12 +33,14 @@ class Window(Frame):
         #    print('Error reading csv file', e)
         #    return
 
-        #try:
+        
         self.init_graph(master)
-        #except Exception as e:
-        #    print('Error with hplot', e)
+        self.add_toolbar()
 
 
+    '''
+        Initializes the figure and all UI elements
+    '''
     def init_graph(self, master):
         tl = tk.Toplevel(master)
         Frame.__init__(self, tl)
@@ -48,7 +48,7 @@ class Window(Frame):
         
         self.internal_dpi = 65
 
-        self.configure(bg='#2f2f2f', highlightbackground='blue', highlightthickness=3)
+        self.configure(bg='#2f2f2f')#, highlightbackground='blue', highlightthickness=3)
 
         topFrame = ttk.Frame(self)
         bottomFrame = ttk.Frame(self)
@@ -78,15 +78,14 @@ class Window(Frame):
         # Grid Frame to window
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        #self.grid(row=0, column=0, sticky='nesw')
         bottomFrame.pack(expand=True, fill='both')
 
-        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(9,8), dpi=self.internal_dpi)
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(10,9), dpi=self.internal_dpi)
         self.i_fig.subplots_adjust(bottom=0.07, top=0.975, left=0.07, right=0.975)
         #self.i_fig.tight_layout()
 
         self.ax = self.i_fig.add_subplot(111)
-        self.ax.autoscale(enable=True)
+        #self.ax.autoscale(enable=True)
 
         self.setup_white()
 
@@ -98,7 +97,9 @@ class Window(Frame):
         self.pack(expand=True, fill='both')
 
 
-
+    '''
+        Sets the graph x and y label, gridlines and text to white
+    '''
     def setup_white(self):
         self.ax.set_xlabel('Time', color='black', fontsize=16)
         self.ax.set_ylabel('Voltage (V)', color='black', fontsize=16)
@@ -136,6 +137,9 @@ class Window(Frame):
         #print(self.hdata, len(self.hdata))
 
 
+    '''
+        Runs on session dropdown click
+    '''
     def change_sesh(self, e):
         #self.current_sesh = e-1
         self.ax.cla()
@@ -143,6 +147,9 @@ class Window(Frame):
         #self.canvas.draw()
 
 
+    '''
+        Runs on info dropdown click, changes data displayed in graph
+    '''
     def change_info(self, e):
         self.ax.cla()
         self.setup_white()
@@ -159,27 +166,33 @@ class Window(Frame):
             case 'Graph2':
                 self.fancy_line(self.get_session_el2(self.headers.index('measured_Ah')), 'salmon')
                 self.fancy_line(self.get_session_el2(self.headers.index('rem_Ah')), 'orange')
-                print(self.lines)
                 self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Ah', 'Remaining_Ah'])
             case 'Graph3':
                 self.fancy_line(self.get_session_el2(self.headers.index('measured_Wh')), 'yellowgreen')
                 self.fancy_line(self.get_session_el2(self.headers.index('rem_Wh')), 'green')
-                print(self.lines)
                 self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Wh', 'Remaining_Wh'])
                 
-        
         self.i_fig.canvas.draw()
 
 
+    '''
+        Adds a line and stackplot to the graph
+        x: array of elements to be graphed (should be int or float)
+        c: color of the line3
+    '''
     def fancy_line(self, x, c):
         if len(self.lines) == 0:
-            y = [*range(len(x))]
-            #self.ax.xaxis.set_ticks(y)
+            self.ax.xaxis.set_ticks([*range(len(x))])
+            self.ax.locator_params(axis='x', nbins=10)
             self.ax.xaxis.set_ticklabels([x.split('|')[1] for x in self.get_session_el2(InfoOrder.CurrentTime.value)])
-        self.lines.append(self.ax.plot(x, color=c, linewidth=2, marker='o'))
+        self.lines.append(self.ax.plot(x, color=c, linewidth=2))
         self.stackplots.append(self.ax.stackplot(range(0, len(x)), x, color=c, alpha=0.2, labels=[]))
         
 
+    '''
+        Returns a list of the given reading in history.csv
+        i: index of the reading
+    '''
     def get_session_el2(self, i: int):
         lst = []
         if i == InfoOrder.CurrentTime.value:
@@ -191,13 +204,9 @@ class Window(Frame):
         return lst
 
 
-
-    # Destroys graph element
-    def Clear(self):
-        self.destroy()
-
-
-
+    '''
+        Adds a toolbar on the bottom of the plot window
+    '''
     def add_toolbar(self) -> None:
         # Optional toolbar
         self.toolbar = NavigationToolbar2Tk(self.canvas, self, pack_toolbar=False)
@@ -207,6 +216,9 @@ class Window(Frame):
         self.toolbar.pack(side='bottom', expand=False)
         
 
+'''
+    Small Enum class for indexing headers in history.csv
+'''
 class InfoOrder(Enum):
     CurrentTime = 0
     Health = 1

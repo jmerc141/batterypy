@@ -5,7 +5,7 @@
 
 from matplotlib.widgets import Button, Slider
 import matplotlib.pyplot as plt
-import json
+import csv, json
 
 '''
     Class that decodes history data and plots it
@@ -37,7 +37,10 @@ class Hist_plot:
     def init_history_data():
         try:
             with open('history.json') as hist:
-                Hist_plot.data = json.load(hist)
+                #Hist_plot.data = json.load(hist)
+                csvFile = csv.reader(hist)
+                
+                    
         except IOError as e:
             raise IOError
 

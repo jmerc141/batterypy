@@ -9,7 +9,7 @@ class Treev(ttk.Frame):
 
     def __init__(self, master = None):
         self.master = master
-        self.tree = ttk.Treeview(self.master, columns=('val', 'max'), height=20, padding=5)
+        self.tree = ttk.Treeview(self.master, columns=('val', 'max'), height=10, padding=5)
         try:
             # initiate sProbe static class, decide windows or linux and import
             s_probe.sProbe()
@@ -28,81 +28,88 @@ class Treev(ttk.Frame):
     '''
     def init_windows(self):
         #self.tree.tag_configure(font=['FiraMono Nerd Font Mono', 12, 'normal'])
-        dc = round((s_probe.sProbe.descap / s_probe.sProbe.voltage) / 1000, 3)
-        self.tree.insert('', 'end', 'system', text='System Name', values=(s_probe.sProbe.system_name, ''), open=True)
-        self.tree.insert('', 'end', 'manu', text='Manufacturer', values=(s_probe.sProbe.portable.manufacturer, ''))
-        self.tree.insert('', 'end', 'name', text='Name', values=(s_probe.sProbe.name + ' / ' + s_probe.sProbe.portable.name, ''))
-        self.tree.insert('', 'end', text='Status', values=(s_probe.sProbe.status, ''))
-        self.tree.insert('', 'end', 'chargepercent', text='Charge Percent',
+        dc = round((s_probe.sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] / s_probe.sProbe.voltage) / 1000, 3)
+        
+        self.tree.insert('', 'end', 'power', text='', open=True)
+        #self.tree.insert('', 'end', 'v', text='Voltage', open=True)
+        self.tree.insert('power', 'end', 'voltnow', text='Voltage', values=(str(s_probe.sProbe.voltage / 1000) + ' V', ''))
+        self.tree.insert('power', 'end', 'desvolt', text='Design Voltage',
+                         values=(str(int(s_probe.sProbe.win32bat['DesignVoltage']) / 1000) + ' V', ''))
+        
+        self.tree.insert('power', 'end', 'amps', text='Amps', values=(str(s_probe.sProbe.amps) + ' A', ''))
+        
+        self.tree.insert('power', 'end', 'wattage', text='Watts')
+
+        self.tree.insert('', 'end', 'capacity', text='Capacity', open=True)
+        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(
+            str(s_probe.sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] / 1000) + ' Wh (' + str(dc) + ' Ah)', ''))
+        self.tree.insert('capacity', 'end', 'fullcap', text='Full Charge Capacity',
+                         values=(str(s_probe.sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000) + ' Wh', ''))
+        self.tree.insert('capacity', 'end', 'bathealth', text='Battery Health',
+                         values=(str(round(s_probe.sProbe.get_health(), 2)) + ' %', ''))
+        self.tree.insert('capacity', 'end', 'capleft', text='Remaining Capacity', values=(str(s_probe.sProbe.rem_cap) + ' Wh', ''))
+
+        self.tree.insert('', 'end', 'info', text='Extra Info', open=False)
+
+        self.tree.insert('info', 'end', 'system', text='System Name', values=(s_probe.sProbe.win32bat['SystemName'], ''), open=True)
+        self.tree.insert('info', 'end', 'manu', text='Manufacturer', values=(s_probe.sProbe.portable.manufacturer, ''))
+        self.tree.insert('info', 'end', 'name', text='Name', values=(s_probe.sProbe.name + ' / ' + s_probe.sProbe.portable.name, ''))
+        self.tree.insert('info', 'end', text='Status', values=(s_probe.sProbe.status, ''))
+        self.tree.insert('info', 'end', 'chargepercent', text='Charge Percent',
                          values=(str(s_probe.sProbe.est_chrg) + '%', ''))
 
+        
         if s_probe.sProbe.runtime != 'N/A':
-            self.tree.insert('', 'end', 'timerem', text='Time Remaining',
+            self.tree.insert('info', 'end', 'timerem', text='Time Remaining',
                 values=(str(s_probe.sProbe.hours) + 'h ' + str(s_probe.sProbe.minutes) + 'm ', ''))
 
         if s_probe.sProbe.maxrechargetime is not None:
-            self.tree.insert('', 'end', 'maxchargetime', text='Max Recharge Time',
+            self.tree.insert('info', 'end', 'maxchargetime', text='Max Recharge Time',
                 values=(s_probe.sProbe.maxrechargetime,''))
 
-        self.tree.insert('', 'end', 'manufacturedate', text='Manufacture Date', values=(s_probe.sProbe.mdate, ''))
+        self.tree.insert('info', 'end', 'manufacturedate', text='Manufacture Date', values=(s_probe.sProbe.mdate, ''))
 
-        self.tree.insert('', 'end', 'deviceid', text='Device ID', values=(s_probe.sProbe.device_id, ''))
+        self.tree.insert('info', 'end', 'deviceid', text='Device ID', values=(s_probe.sProbe.device_id, ''))
 
-        self.tree.insert('', 'end', text='Cycle Count', values=(s_probe.sProbe.cycle_count, ''))
-        self.tree.insert('', 'end', text='Temperature', values=(s_probe.sProbe.temp, ''))
-        self.tree.insert('', 'end', 'cap', text='Caption', values=(s_probe.sProbe.caption, ''))
-        self.tree.insert('', 'end', 'desc', text='Description', values=(s_probe.sProbe.desc, ''))
-        
+        self.tree.insert('info', 'end', text='Cycle Count', values=(s_probe.sProbe.cycle_count, ''))
+        self.tree.insert('info', 'end', text='Temperature', values=(s_probe.sProbe.temp, ''))
+        self.tree.insert('info', 'end', 'cap', text='Caption', values=(s_probe.sProbe.caption, ''))
+        self.tree.insert('info', 'end', 'desc', text='Description', values=(s_probe.sProbe.desc, ''))
         
         
         if s_probe.sProbe.ogchem is not None:
-            self.tree.insert('', 'end', 'chem', text='Chemistry', values=(str(s_probe.sProbe.ogchem)+' ('+str(s_probe.sProbe.chem_str)+')', ''))
+            self.tree.insert('info', 'end', 'chem', text='Chemistry', values=(str(s_probe.sProbe.ogchem)+' ('+str(s_probe.sProbe.chem_str)+')', ''))
 
         if s_probe.sProbe.err_desc is not None:
-            self.tree.insert('', 'end', text='Error Description', values=(s_probe.sProbe.err_desc, ''))
+            self.tree.insert('info', 'end', text='Error Description', values=(s_probe.sProbe.err_desc, ''))
 
-        
-
-        self.tree.insert('', 'end', 'power', text='', open=True)
-        self.tree.insert('power', 'end', 'wattage', text='Watt')
 
         # Check "maxrechargetime", ""
         if s_probe.sProbe.charging:
             if s_probe.sProbe.ttf is not None:
                 self.tree.insert('timerem', 'end', 'ttf', text='Time to Full Charge',
                              values=(str(s_probe.sProbe.ttf / 60) + 'h ' + str(s_probe.sProbe.ttf % 60) + 'm', ''))
-        
-        
-        self.tree.insert('power', 'end', 'amps', text='Amperage', values=(str(s_probe.sProbe.amps) + ' A', ''))
 
-        self.tree.insert('', 'end', 'v', text='Voltage', open=True)
-        self.tree.insert('v', 'end', 'voltnow', text='Voltage', values=(str(s_probe.sProbe.voltage / 1000) + ' V', ''))
-        self.tree.insert('v', 'end', 'desvolt', text='Design Voltage',
-                         values=(str(int(s_probe.sProbe.design_voltage) / 1000) + ' V', ''))
-
-        self.tree.insert('', 'end', 'capacity', text='Capacity', open=True)
-        self.tree.insert('capacity', 'end', 'descap', text='Design Capacity', values=(
-            str(s_probe.sProbe.descap / 1000) + ' Wh (' + str(dc) + ' Ah)', ''))
-        self.tree.insert('capacity', 'end', 'fullcap', text='Full Charge Capacity',
-                         values=(str(s_probe.sProbe.full_cap / 1000) + ' Wh', ''))
-        self.tree.insert('capacity', 'end', 'bathealth', text='Battery Health',
-                         values=(str(round(s_probe.sProbe.bathealth, 2)) + ' %', ''))
-        self.tree.insert('capacity', 'end', 'capleft', text='Remaining Capacity', values=(str(s_probe.sProbe.rem_cap) + ' Wh', ''))
 
         # extra info
-        self.tree.insert('', 'end', 'info', text='Extra Info', open=False)
+        
         if s_probe.sProbe.pmc:
             # Set to True
             self.tree.insert('info', 'end', text='Power Mgmt Capabilities', values=(s_probe.sProbe.pmc, ''))
+        
+        if s_probe.sProbe.portable:
+            # The MaxBatteryError property indicates the difference between the highest estimated amount of energy left
+            # in the battery and the current amount reported by the battery.
+            self.tree.insert('info', 'end', text='MaxBatteryError', values=(s_probe.sProbe.portable.maxbatteryerror, ''))
+
+        if s_probe.sProbe.portable.smartbatteryversion:
+            self.tree.insert('info', 'end', text='Smart Battery Version', values=(s_probe.sProbe.portable.smartbatteryversion, ''))
+
         self.tree.insert('info', 'end', 'avail', text='Availability', values=(s_probe.sProbe.avail, ''))
         self.tree.insert('info', 'end', 'batstat', text='Battery Status', values=(str(s_probe.sProbe.bstatus)+' ('+str(s_probe.sProbe.stat_str)+')', ''))
         self.tree.insert('info', 'end', text='Low Alarm', values=(str(s_probe.sProbe.lowalarm) + ' Wh',''))
         self.tree.insert('info', 'end', text='Critical Alarm', values=(str(s_probe.sProbe.critalarm) + ' Wh', ''))
-        self.tree.insert('info', 'end', text='Critical Bias', values=(str(s_probe.sProbe.critbi) + '', ''))
-        # The MaxBatteryError property indicates the difference between the highest estimated amount of energy left
-        # in the battery and the current amount reported by the battery.
-        self.tree.insert('info', 'end', text='MaxBatteryError', values=(s_probe.sProbe.portable.maxbatteryerror, ''))
-        self.tree.insert('info', 'end', text='Smart Battery Version', values=(s_probe.sProbe.portable.smartbatteryversion, ''))
+        self.tree.insert('info', 'end', text='Critical Bias', values=(str(s_probe.sProbe.msbatt['BatteryStaticData']['CriticalBias']) + '', ''))
 
         # initialize max var, and initialize column
         self.maxv = s_probe.sProbe.voltage

@@ -5,7 +5,7 @@ credit to Freepik for battery image:
 add gridlines to single / multi plot
 '''
 
-import sys, os, internal, plot, hist_plot, hplot
+import sys, os, internal, plot, hplot
 import tkinter as tk
 from tkinter import ttk
 import TKinterModernThemes as TKMT
@@ -39,7 +39,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = None
 
         # Set window size
-        self.master.geometry('600x650')
+        self.master.geometry('600x500')
 
         # Create Treev object depending on linux/win platform because
         # implementations are different
@@ -52,12 +52,19 @@ class App(TKMT.ThemedTKinterFrame):
                 self.master.iconphoto(False, i)
         elif sys.platform == 'win32':
             try:
-                import tree, s_probe
-                self.sp = s_probe
+                import tree
                 self.tree = tree.Treev(self.master)
             except TypeError as t:
-                tk.messagebox.showerror('Error', f'Win32Battery not found\nAre you using a desktop?\n{t}')
+                tk.messagebox.showerror('Error', f'Error initializing tree\n{t}')
                 self.master.on_close()
+            try:
+                import s_probe
+                self.sp = s_probe
+                self.sp.sProbe.th.start()
+            except Exception as e:
+                tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{t}')
+                print(e)
+
             if os.path.exists('./res/battery.ico'):
                 self.master.iconbitmap('./res/battery.ico')
         else:
@@ -74,7 +81,7 @@ class App(TKMT.ThemedTKinterFrame):
         mb = tk.Menu(self.master, background='black', fg='white')
         file_menu = tk.Menu(mb, tearoff=False)
         view_menu = tk.Menu(mb, tearoff=False)
-        graph = tk.Menu(view_menu, tearoff=False)
+        #graph = tk.Menu(view_menu, tearoff=False)
         ext = tk.Menu(mb, tearoff=False)
         track_menu = tk.Menu(mb, tearoff=False)
 
@@ -84,13 +91,13 @@ class App(TKMT.ThemedTKinterFrame):
         mb.add_cascade(label='Extra', menu=ext)
 
         # TODO add fonts
-        view_menu.add_checkbutton(label='Graph (Internal)', command=self.create_internal_graph)
-        view_menu.add_cascade(label='Graph (external)', menu=graph)
-        graph.add_command(label='Single', command=self.create_external_single)
-        graph.add_command(label='Multiple', command=self.create_external_graph)
+        view_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
+        #view_menu.add_cascade(label='Graph (external)', menu=graph)
+        view_menu.add_command(label='Live Graph Single', command=self.create_external_single)
+        view_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)
+        view_menu.add_command(label='History Graph', command=self.show_history)
         track_menu.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
-        track_menu.add_command(label='View History', command=self.show_history)
-        track_menu.add_command(label='Clear History', command=self.ask_clear_hist)
+        track_menu.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
         
         if sys.platform == 'win32':
             ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
@@ -124,7 +131,7 @@ class App(TKMT.ThemedTKinterFrame):
         pi.Label('Voltage', row=0, col=0, size=10, pady=(10,0), sticky='w')
         pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
         pi.Progressbar(variable=self.v, row=1, col=0, upper=20, pady=0, colspan=2)
-
+        
         # TODO change upper value
         pi.Label('Current (Amps)', row=2, col=0, size=10, pady=0, sticky='w')
         pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
@@ -138,6 +145,7 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Strech progressbars horizontally
         pi.master.columnconfigure(0, weight=1)
+        
 
         #self.debugPrint()
 
@@ -176,22 +184,7 @@ class App(TKMT.ThemedTKinterFrame):
     def show_history(self):
         history_plot = hplot.Window(master=self.master)
         
-        
-        
-        '''
-        if not self.hist_init:
-            try:
-                hist_plot.Hist_plot.init_history_data()
-                self.hist_init = True
-            except Exception as e:
-                tk.messagebox.showerror('Error', f'No history data found\n{e}')
-            
-            hist_plot.Hist_plot.show_plot()
-            hist_plot.Hist_plot.onClose()
-            
-        else:
-            hist_plot.Hist_plot.show_plot()
-        '''
+
 
     
     '''
