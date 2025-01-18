@@ -1,5 +1,7 @@
 '''
     Make amps negative if discharging?
+
+    A battery's end of life is typically when the FullChargeCapacity property falls below 80% of the DesignCapacity property
 '''
 
 import wmi, time, pythoncom, tracker
@@ -9,14 +11,8 @@ from threading import Thread
     Class for extracting battery data from windows WMI
 '''
 class sProbe(object):
-    # Should keep all possible battery attributes in here
-    voltage = amps = watts = runtime = fullcap = rem_cap = dischargerate = chargerate = charging = 0.0
-    discharging = power_online = active = cycle_count = full_cap = temp = status_change = control = ogchem =\
-          critalarm = lowalarm = descap = mdate = sn = g0 = g1 = g2 = g3 = avail = avail_str = bstatus=\
-              est_chrg = est_runtime = maxrechargetime = exp_bat_life = exp_life = tob = ttf = status = stat_str =\
-                  name = pmc = None
-    
-    rwmi = wmi.WMI(moniker="//./root/wmi")
+    voltage = dischargerate = amps = chargerate = watts = hours = minutes = 0
+
     going = True
     tracking = False
 
@@ -33,10 +29,13 @@ class sProbe(object):
         sProbe.getRootWmi()
         sProbe.get_portable()
         sProbe.get_health()
-        sProbe.get_chem()
+        
+        # win32batt is most likely empty
+        sProbe.designedCapacity = sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] or sProbe.win32bat['DesignCapacity']
 
         # Tracker object
         sProbe.track = tracker.Tracker()
+
         sProbe.tth = Thread(target=sProbe.track_thread)
 
         # Start seperate thread for refreshing probe values
@@ -55,6 +54,10 @@ class sProbe(object):
         else:
             sProbe.tracking = False
             sProbe.tth.join()
+            # Make a new thread since thread can only be started once
+            sProbe.tth = Thread(target=sProbe.track_thread)
+            # Make a new tracker to increment session number
+            sProbe.track = tracker.Tracker()
 
 
     '''
@@ -65,11 +68,11 @@ class sProbe(object):
     @staticmethod
     def track_thread():
         while(sProbe.tracking and sProbe.going):
-            if sProbe.est_chrg() == 100:
+            if sProbe.win32bat['EstimatedChargeRemaining'] == 100:
                 break
             sProbe.track.track_man()
             time.sleep(1)
-        #sProbe.track.end_tracking()
+        
 
     
     '''
@@ -90,10 +93,45 @@ class sProbe(object):
             pythoncom.CoInitialize()
             sProbe.getWin32Bat()
             sProbe.getRootWmi()
+
             
-            # If battery is < 95% charged
-            #if sProbe.rem_cap < 95:
-            #sProbe.track.track_norm()
+            if not sProbe.msbatt['BatteryStatus']['Charging']:
+                # Laptop is charging
+                if sProbe.msbatt['BatteryStatus']['DischargeRate'] >= 0:
+                    sProbe.dischargerate = sProbe.msbatt['BatteryStatus']['DischargeRate'] / 1000
+                    sProbe.amps = round(sProbe.dischargerate / sProbe.voltage, 3)
+                    sProbe.chargerate = 0
+                else:
+                    sProbe.dischargerate = 0
+                    sProbe.amps = 0
+                # May not exist
+                ttf = sProbe.win32bat['TimeToFullCharge']
+                if ttf:
+                    sProbe.hours = int(ttf // 3600)
+                    sProbe.minutes = int(ttf % 60)
+            else:
+                # Laptop is discharging
+                # Might be negative
+                if sProbe.msbatt['BatteryStatus']['ChargeRate'] >= 0:
+                    sProbe.chargerate = sProbe.msbatt['BatteryStatus']['ChargeRate'] / 1000
+                    sProbe.amps = round(sProbe.chargerate / sProbe.voltage, 3)
+                else:
+                    sProbe.chargerate = 0
+                    sProbe.amps = 0
+                # Possible to have neither estimated run times
+                rwmi_est_rt = sProbe.msbatt['BatteryRuntime']['EstimatedRuntime']         # In seconds
+                win32_est_rt = sProbe.win32bat['EstimatedRunTime']                        # In minutes
+                # Reading could be large number, skip if longer than 24 hours
+                if rwmi_est_rt and rwmi_est_rt < 34560 and rwmi_est_rt > 0:
+                    sProbe.hours = int(rwmi_est_rt // 3600)
+                    sProbe.minutes = int(rwmi_est_rt % 60)
+                elif win32_est_rt and win32_est_rt < 1440 and win32_est_rt > 0:
+                    sProbe.hours = int(win32_est_rt // 60)
+                    sProbe.minutes = int(win32_est_rt % 60)
+
+            
+            #print(sProbe.chargerate or sProbe.dischargerate)
+            sProbe.watts = round((sProbe.chargerate or sProbe.dischargerate), 3)
             
             # Set speed of sProbe data refresh
             time.sleep(1)
@@ -128,88 +166,26 @@ class sProbe(object):
                 tmp[prop] = x.wmi_property(prop).value
             sProbe.msbatt[keyname] = tmp
 
+        sProbe.voltage = sProbe.msbatt['BatteryStatus']['Voltage'] / 1000
+
         
         
-        #sProbe.charging = stat.charging
         #sProbe.critical = stat.critical
-        #sProbe.discharging = stat.discharging
-        #sProbe.rem_cap = stat.remainingcapacity
         #sProbe.power_online = stat.poweronline
         #sProbe.active = stat.active
-        #sProbe.runtime = sProbe.tryinstance('BatteryRunTime')
         #sProbe.cycle_count = sProbe.tryinstance('BatteryCycleCount')
-        #sProbe.full_cap = sProbe.tryinstance('BatteryFullChargedCapacity')
+
         #sProbe.temp = sProbe.tryinstance('BatteryTempurature')
         #sProbe.status_change = sProbe.tryinstance('BatteryStatusChange')
         #sProbe.control = sProbe.tryinstance('BatteryControl')
 
-        # Following section is for readings that need extra processing (voltage, amps, watts, time_rem)
-
-        # Assume these always exist
-        sProbe.voltage = sProbe.msbatt['BatteryStatus']['Voltage'] / 1000
-        if not sProbe.msbatt['BatteryStatus']['Charging']:
-            if sProbe.msbatt['BatteryStatus']['DischargeRate'] >= 0:
-                sProbe.dischargerate = sProbe.msbatt['BatteryStatus']['DischargeRate'] / 1000
-                sProbe.amps = round(sProbe.dischargerate / sProbe.voltage, 3)
-                sProbe.chargerate = 0
-            else:
-                sProbe.dischargerate = 0
-                sProbe.amps = 0
-        else:
-            # Might be negative
-            if sProbe.msbatt['BatteryStatus']['ChargeRate'] >= 0:
-                sProbe.chargerate = sProbe.msbatt['BatteryStatus']['ChargeRate'] / 1000
-                sProbe.amps = round(sProbe.chargerate / sProbe.voltage, 3)
-            else:
-                sProbe.chargerate = 0
-                sProbe.amps = 0
         
-        sProbe.watts = (sProbe.chargerate or sProbe.dischargerate) / 1000
-
-        rt = sProbe.msbatt['BatteryRuntime']['EstimatedRuntime']
-        if rt <= 0:
-            sProbe.hours = 0
-            sProbe.minutes = 0
-        else:
-            sProbe.hours = int(rt / 3600)
-            sProbe.minutes = int(rt % 60)
-
-        print(sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'])
-        sProbe.full_cap = sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity']
-            
 
 
 
 
     '''
-    @staticmethod
-    def getStaticData():
-        sd = wmi.WMI(moniker="//./root/wmi").instances('BatteryStaticData')[0]
-        sProbe.capab = sd.capabilities
-        sProbe.ogchem = sd.chemistry
-        sProbe.critbi = sd.criticalbias
-        sProbe.critalarm = sd.defaultalert1 / 1000    #mwh
-        sProbe.lowalarm = sd.defaultalert2 / 1000
-        sProbe.descap = sd.designedcapacity
-        sProbe.mdate = sd.manufacturedate
-        sProbe.sn = sd.serialnumber
-        sProbe.g0 = float(sd.granularity0) / 100000000000
-        sProbe.g1 = float(sd.granularity1) / 10000000000000
-        sProbe.g2 = sd.granularity2
-        sProbe.g3 = sd.granularity3
-    '''
 
-    '''
-        'Availability': 2, 'BatteryRechargeTime': None, 'BatteryStatus': 2, 'Caption': 'Internal Battery',
-          'Chemistry': 2, 'ConfigManagerErrorCode': None, 'ConfigManagerUserConfig': None, 'CreationClassName': 'Win32_Battery',
-            'Description': 'Internal Battery', 'DesignCapacity': None, 'DesignVoltage': '12183',
-              'DeviceID': '27759 2020/06/22Hewlett-PackardPrimary', 'ErrorCleared': None, 
-              'ErrorDescription': None, 'EstimatedChargeRemaining': 96, 'EstimatedRunTime': 71582788,
-                'ExpectedBatteryLife': None, 'ExpectedLife': None, 'FullChargeCapacity': None,
-                  'InstallDate': None, 'LastErrorCode': None, 'MaxRechargeTime': None, 'Name': 
-'Primary', 'PNPDeviceID': None, 'PowerManagementCapabilities': (1,), 'PowerManagementSupported': False,
- 'SmartBatteryVersion': None, 'Status': 'OK', 'StatusInfo': None, 'SystemCreationClassName': 'Win32_ComputerSystem',
-   'SystemName': 'ISMHG6LT0282', 'TimeOnBattery': None, 'TimeToFullCharge': None
     '''
     @staticmethod
     def getWin32Bat():
@@ -237,7 +213,7 @@ class sProbe(object):
         w = wmi.WMI().instances('win32_battery')[0]
         for i in w.properties.keys():
             sProbe.win32bat[i] = w.wmi_property(i).value
-        
+        '''
         sProbe.avail = w.availability
         sProbe.avail_str = sProbe.getAvail()
         sProbe.bstatus = w.batterystatus
@@ -260,7 +236,7 @@ class sProbe(object):
         sProbe.stat_str = sProbe.getStatus()
         sProbe.system_name = w.systemname
         sProbe.err_desc = w.errordescription
-        
+        '''
     
 
     @staticmethod
@@ -276,13 +252,15 @@ class sProbe(object):
         #    bathealth = sProbe.full_cap / sProbe.descap2
         return bathealth
 
-    
+    '''
     @staticmethod
     def get_chem():
-        if sProbe.ogchem is not None:
-            sProbe.chem_str = sProbe.getchemstr(sProbe.ogchem)
+        ogchem = sProbe.msbatt['BatteryStaticData']['Chemistry']
+        if ogchem is not None:
+            sProbe.chem_str = sProbe.getchemstr(ogchem)
         elif sProbe.chem2 is not None:
-            sProbe.chem_str = sProbe.getchemstr(sProbe.chem2)
+            sProbe.chem_str = sProbe.getchemstr(ogchem)
+    '''
 
     # Some instances might not exist
     @staticmethod
@@ -316,7 +294,7 @@ class sProbe(object):
 
     @staticmethod
     def getStatus() -> str:
-        statcode = sProbe.status
+        statcode = sProbe.win32bat['BatteryStatus']
         if statcode == 1:
             statcode = 'Other'
         elif statcode == 2:
@@ -368,7 +346,7 @@ class sProbe(object):
     @staticmethod
     def getAvail() -> str:
         # only call from refresh
-        avail = sProbe.avail
+        avail = sProbe.win32bat['Availability']
         if avail == 1:
             avail = 'Other'
         elif avail == 2:

@@ -39,7 +39,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = None
 
         # Set window size
-        self.master.geometry('600x500')
+        self.master.geometry('520x500')
 
         # Create Treev object depending on linux/win platform because
         # implementations are different
@@ -52,18 +52,19 @@ class App(TKMT.ThemedTKinterFrame):
                 self.master.iconphoto(False, i)
         elif sys.platform == 'win32':
             try:
+                import s_probe
+                self.sp = s_probe.sProbe()
+                self.sp.th.start()
+            except Exception as e:
+                tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{t}')
+                print(e)
+            try:
                 import tree
                 self.tree = tree.Treev(self.master)
             except TypeError as t:
                 tk.messagebox.showerror('Error', f'Error initializing tree\n{t}')
                 self.master.on_close()
-            try:
-                import s_probe
-                self.sp = s_probe
-                self.sp.sProbe.th.start()
-            except Exception as e:
-                tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{t}')
-                print(e)
+            
 
             if os.path.exists('./res/battery.ico'):
                 self.master.iconbitmap('./res/battery.ico')
@@ -116,40 +117,49 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Vertical scrollbar
         scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.tree.yview)
-        scrolly.grid(row=0, column=0, sticky='nse', padx=(10,0), pady=10)
+        scrolly.grid(row=0, column=0, sticky='nse', padx=(10,0), pady=10, rowspan=1)
         self.tree.tree.configure(yscroll=scrolly.set)
         
-        self.tree.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10, columnspan=1)
+        self.tree.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10, columnspan=1, rowspan=2)
 
         # TODO implement linux
         self.v = tk.DoubleVar(value=s_probe.sProbe.voltage)
         self.w = tk.DoubleVar(value=s_probe.sProbe.watts)
         self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
 
-        pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=5)
+        pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=(10,5), sticky='sew')
 
-        pi.Label('Voltage', row=0, col=0, size=10, pady=(10,0), sticky='w')
-        pi.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
-        pi.Progressbar(variable=self.v, row=1, col=0, upper=20, pady=0, colspan=2)
+        v = pi.addFrame('volt', row=0, col=0, sticky='ew', padx=0, pady=0)
+        a = pi.addFrame('amps', row=1, col=0, sticky='ew', padx=0, pady=0)
+        w = pi.addFrame('watts', row=2, col=0, sticky='ew', padx=0, pady=0)
+
+        v.Label('Voltage', row=0, col=0, size=10, pady=(0,0), sticky='sw')
+        v.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
+        v.Progressbar(variable=self.v, row=1, col=0, upper=20, pady=0, colspan=2, sticky='nsew')
         
         # TODO change upper value
-        pi.Label('Current (Amps)', row=2, col=0, size=10, pady=0, sticky='w')
-        pi.Label('', row=2, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
-        pi.Progressbar(variable=self.c, upper=5, row=3, col=0, pady=0, colspan=2)
+        a.Label('Current (Amps)', row=0, col=0, size=10, pady=0, sticky='sw')
+        a.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
+        a.Progressbar(variable=self.c, upper=6, row=1, col=0, pady=0, colspan=2, sticky='nsew')
         
-
         # TODO change upper value
-        pi.Label('Wattage', row=4, col=0, size=10, pady=(10,0), sticky='w')
-        pi.Label('', row=4, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.w})
-        pi.Progressbar(variable=self.w, row=5, col=0, pady=0, colspan=2)
+        w.Label('Wattage', row=0, col=0, size=10, pady=(0,0), sticky='sw')
+        w.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.w})
+        w.Progressbar(variable=self.w, row=1, col=0, pady=(0,10), colspan=2, sticky='nswe')
 
         # Strech progressbars horizontally
-        pi.master.columnconfigure(0, weight=1)
+        v.master.columnconfigure(0, weight=1)
+        a.master.columnconfigure(0, weight=1)
+        w.master.columnconfigure(0, weight=1)
+        #pi.master.columnconfigure(0, weight=1)
+        #pi.master.rowconfigure(1, weight=1)
+        #pi.master.rowconfigure(3, weight=1)
+        #pi.master.rowconfigure(5, weight=1)
         
 
         #self.debugPrint()
-
         self.retree()
+        
 
 
     '''
@@ -184,8 +194,6 @@ class App(TKMT.ThemedTKinterFrame):
     def show_history(self):
         history_plot = hplot.Window(master=self.master)
         
-
-
     
     '''
     
@@ -207,9 +215,9 @@ class App(TKMT.ThemedTKinterFrame):
     '''
     def retree(self):
         # overwrites values in the treeview, use only dynamic values
-        self.c.set(self.sp.sProbe.amps)
-        self.v.set(self.sp.sProbe.voltage)
-        self.w.set(self.sp.sProbe.watts)
+        self.c.set(self.sp.amps)
+        self.v.set(self.sp.voltage)
+        self.w.set(self.sp.watts)
         
         self.tree.re_tree()
         self.master.after(1000, self.retree)

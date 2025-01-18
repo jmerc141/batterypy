@@ -8,31 +8,29 @@ from enum import Enum
 import sys, csv, settings
 
 '''
-Frame class that shows history data held in history.csv
+Eventually collect probes_full_Wh and do linear regression to see how quickly battery degrades over time
 
 Referencing plt will cause hanging
 '''
 
 class Window(Frame):
     def __init__(self, master = None):
-        if sys.platform == 'win32':
-            import s_probe
-            self.sp = s_probe
-        elif sys.platform == 'linux':
-            import s_probe_l
-            self.sp = s_probe_l
 
-        self.current_sesh = 0
+        # Sessions start at 1 not 0
+        self.selected_sesh = 1
         self.lines = []
         self.stackplots = []
         self.color = ''
 
-        #try:
-        self.readCsv()
-        #except FileNotFoundError as e:
-        #    print('Error reading csv file', e)
-        #    return
+        try:
+            if self.readCsv() == 0:
+                tk.messagebox.showerror('Error', f'No data in csv file\nEnable tracking!')
+                return
+        except FileNotFoundError as e:
+            tk.messagebox.showerror('Error', f'Cannot find csv file\n{e}')
+            return
 
+        self.avg_c_pph = self.avg_d_pph = 0
         
         self.init_graph(master)
         self.add_toolbar()
@@ -53,18 +51,30 @@ class Window(Frame):
         topFrame = ttk.Frame(self)
         bottomFrame = ttk.Frame(self)
 
-        session_times = []
+        self.session_times = []
+        chrg_sesh = []
+        dishc_sesh = []
 
         self.sel = tk.StringVar(self)
 
         # Get starting times for each session
         for a in self.hdata:
-            session_times.append(self.hdata[a][0][0])    
+            self.session_times.append(self.hdata[a][0][0].replace('|', ' - '))
+
+            # Create lists for charging percent and discharging percent
+            for b in self.hdata[a]:
+                if b[12] == 'True':
+                    chrg_sesh.append(int(b[11]))
+                elif b[12] == 'False':
+                    dishc_sesh.append(int(b[11]))
         
-        dd = ttk.OptionMenu(topFrame, self.sel, session_times[0], *session_times, command=self.change_sesh)
+        self.avg_c_pph = round(sum(chrg_sesh) / len(chrg_sesh) if len(chrg_sesh) > 0 else 1, 2)
+        self.avg_d_pph = round(sum(dishc_sesh) / len(dishc_sesh) if len(dishc_sesh) > 0 else 1, 2)
+        
+        dd = ttk.OptionMenu(topFrame, self.sel, self.session_times[0], *self.session_times, command=self.change_sesh)
         
         self.sel2 = tk.StringVar(self)
-        self.graphs = ['Graph1', 'Graph2', 'Graph3']
+        self.graphs = ['Graph1', 'Graph2', 'Graph3', 'Graph4']
         dd2 = ttk.OptionMenu(topFrame, self.sel2, self.graphs[0], *self.graphs, command=self.change_info)
         
         # Pack elements
@@ -134,17 +144,23 @@ class Window(Frame):
             for l in csvFile:
                 self.hdata[l[0]].append(l[1:])
                 
-        #print(self.hdata, len(self.hdata))
+        return len(self.hdata)
+
 
 
     '''
         Runs on session dropdown click
     '''
     def change_sesh(self, e):
-        #self.current_sesh = e-1
+        self.selected_sesh = self.session_times.index(e)+1
         self.ax.cla()
-        self.lined()
-        #self.canvas.draw()
+        self.setup_white()
+        self.lines.clear()
+
+        self.setup_g1()
+        
+
+        self.i_fig.canvas.draw()
 
 
     '''
@@ -156,23 +172,38 @@ class Window(Frame):
         self.lines.clear()
 
         #print(mcolors.CSS4_COLORS)
-        match e:
-            case 'Graph1':
-                self.fancy_line(self.get_session_el2(self.headers.index('voltage')), 'red')
-                self.fancy_line(self.get_session_el2(self.headers.index('amps')), 'blue')
-                self.fancy_line(self.get_session_el2(self.headers.index('watts')), 'gold')
-                # Inlcude number in legend?
-                self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0]], [f'Volts ', 'Amps', 'Watts'])
-            case 'Graph2':
-                self.fancy_line(self.get_session_el2(self.headers.index('measured_Ah')), 'salmon')
-                self.fancy_line(self.get_session_el2(self.headers.index('rem_Ah')), 'orange')
-                self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Ah', 'Remaining_Ah'])
-            case 'Graph3':
-                self.fancy_line(self.get_session_el2(self.headers.index('measured_Wh')), 'yellowgreen')
-                self.fancy_line(self.get_session_el2(self.headers.index('rem_Wh')), 'green')
-                self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Wh', 'Remaining_Wh'])
+        if e == 'Graph1':
+            self.setup_g1()
+        elif e == 'Graph2':
+            self.fancy_line(self.get_session_el2(self.headers.index('measured_Ah')), 'salmon')
+            self.fancy_line(self.get_session_el2(self.headers.index('rem_Ah')), 'orange')
+            self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Ah', 'Remaining_Ah'])
+        elif e == 'Graph3':
+            self.fancy_line(self.get_session_el2(self.headers.index('measured_Wh')), 'yellowgreen')
+            self.fancy_line(self.get_session_el2(self.headers.index('rem_Wh')), 'green')
+            self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Wh', 'Remaining_Wh'])
+        elif e == 'Graph4':
+            avg = ''
+            print(self.hdata[str(self.selected_sesh)][0][12])
+            if self.hdata[str(self.selected_sesh)][0][12] == 'True':
+                avg = self.avg_c_pph
+            elif self.hdata[str(self.selected_sesh)][0][12] == 'False':
+                avg = self.avg_d_pph
+            
+            self.fancy_line(self.get_session_el2(self.headers.index('chrg_percent')), 'lightblue')
+            self.ax.legend([self.lines[0][0]], [f'Avg %/h {avg}'])
+        
                 
         self.i_fig.canvas.draw()
+
+
+    def setup_g1(self):
+        self.fancy_line(self.get_session_el2(self.headers.index('voltage')), 'red')
+        self.fancy_line(self.get_session_el2(self.headers.index('amps')), 'blue')
+        self.fancy_line(self.get_session_el2(self.headers.index('watts')), 'gold')
+        # Inlcude number in legend?
+        self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0]], [f'Volts ', 'Amps', 'Watts'])
+
 
 
     '''
@@ -196,11 +227,12 @@ class Window(Frame):
     def get_session_el2(self, i: int):
         lst = []
         if i == InfoOrder.CurrentTime.value:
-            for v in self.hdata[str(self.current_sesh)]:
+            for v in self.hdata[str(self.selected_sesh)]:
                 lst.append(v[i])
         else:
-            for v in self.hdata[str(self.current_sesh)]:
+            for v in self.hdata[str(self.selected_sesh)]:
                 lst.append(float(v[i]))
+        
         return lst
 
 

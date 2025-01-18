@@ -23,7 +23,8 @@ class Tracker(object):
             self.probe = s_probe.sProbe
 
         self.headers = ['session_num','curtime','health_percent','probes_full_Wh','measured_Ah','measured_Wh',
-                   'rem_Ah','rem_Wh','cap_diff','voltage','amps','watts','chrg_percent']
+                   'rem_Ah','rem_Wh','cap_diff','voltage','amps','watts','chrg_percent','charging']
+        
         self.num_sessions = 0
         
         # Write headers to new file
@@ -37,7 +38,7 @@ class Tracker(object):
         
         #self.sessions.append([])
 
-        # Dict for writing info to history file
+        # List for writing info to history file
         self.history_data = []
         
         self.measured_Ah = 0
@@ -47,27 +48,14 @@ class Tracker(object):
         self.readings = 0
         
         # Percentage of battery when tracking begins
-        self.starting_percent = self.probe.est_chrg
+        self.starting_percent = s_probe.sProbe.win32bat['EstimatedChargeRemaining']
         
         # mWh reading when tracking begins
-        self.starting_cap = self.probe.rem_cap
+        self.starting_cap = s_probe.sProbe.msbatt['BatteryStatus']['RemainingCapacity']
 
-        self.start_state = s_probe.sProbe.charging
+        self.start_state = s_probe.sProbe.msbatt['BatteryStatus']['Charging']
 
         self.tmp_data = []
-    
-
-    def readJson(self):
-        if os.path.exists(self.filename):
-            with open(self.filename, 'r') as r:
-                self.sessions = json.load(r)
-                self.num_sessions = len(self.sessions)
-        else:
-            # List of charging sessions, holds history_data
-            self.sessions = []
-
-            # Total number of sessions
-            self.num_sessions = 0
 
 
     '''
@@ -111,7 +99,7 @@ class Tracker(object):
     '''
     def track_man(self):
         # if unplugged or plugged in, create a new session
-        if self.start_state != self.probe.charging:
+        if self.start_state != self.probe.msbatt['BatteryStatus']['Charging']:
             self.num_sessions += 1
             self.start_state = self.probe.chargerate
         self.readings += 1
@@ -126,67 +114,23 @@ class Tracker(object):
         Seperate function to populate the history_data dict, order matters with csv
     '''
     def get_readings(self):
-        '''
-        self.history_data['session_num'] = self.num_sessions
+        full_cap = self.probe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000
+        est_chrg = self.probe.win32bat['EstimatedChargeRemaining']
+        rem_cap = self.probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000
 
-        self.history_data['curtime'] = datetime.today().strftime('%Y-%m-%d|%H:%M:%S')
-        
-        # This probably wont change in a single session
-        self.history_data['health_percent'] = round(self.probe.bathealth, 3)
-        
-        # Last measured full charged battery capacity
-        self.history_data['probes_full_Wh'] = self.probe.full_cap / 1000
-        
-        # Get mAh every second
-        self.measured_Ah += self.probe.amps * (1/3600)
-        self.history_data['measured_Ah'] = self.measured_Ah
-
-        # Manually measure mWh used or charged
-        self.measured_Wh += self.probe.watts * (1/3600)
-        self.history_data['measured_Wh'] = self.measured_Wh
-
-        # Remaining amp hour given by the system
-        self.history_data['rem_Ah'] = round((self.probe.rem_cap / self.probe.voltage) / 1000, 3)
-
-        # Remaining watt hour given by the system
-        self.history_data['rem_Wh'] = self.probe.rem_cap / 1000
-
-        # The difference between the remaining cap of the system and the starting 
-        # cap when tracking started in Wh
-        # Essentially how many Wh were spent / gained
-        if self.probe.charging:
-            self.history_data['cap_diff'] = (self.probe.rem_cap - self.starting_cap) / 1000
+        # FIX
+        if self.probe.msbatt['BatteryStatus']['Charging']:
+            cap_diff = (rem_cap - self.starting_cap)
         else:
-            self.history_data['cap_diff'] = (self.starting_cap - (-self.probe.rem_cap)) / 1000
-
-        self.history_data['voltage'] = self.probe.voltage
-
-        self.history_data['amps'] = self.probe.amps
-
-        self.history_data['watts'] = self.probe.watts
-
-        self.history_data['chrg_percent'] = self.probe.est_chrg
-        '''
+            cap_diff = (self.starting_cap - (-rem_cap))
 
         self.measured_Ah += self.probe.amps * (1/3600)
         self.measured_Wh += self.probe.watts * (1/3600)
-
-        # The difference between the remaining cap of the system and the starting 
-        # cap when tracking started in Wh
-        # Essentially how many Wh were spent / gained
-        if self.probe.charging:
-            self.cap_diff = (self.probe.rem_cap - self.starting_cap) / 1000
-        else:
-            self.cap_diff = (self.starting_cap - (-self.probe.rem_cap)) / 1000
         
-        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), round(self.probe.bathealth, 3),
-                                  self.probe.full_cap / 1000, self.measured_Ah, self.measured_Wh, round((self.probe.rem_cap / self.probe.voltage) / 1000, 3),
-                                  self.probe.rem_cap / 1000, self.cap_diff, self.probe.voltage, self.probe.amps, self.probe.watts, self.probe.est_chrg])
+        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), round(self.probe.get_health(), 3),
+                                  full_cap, self.measured_Ah, self.measured_Wh, round((rem_cap / self.probe.voltage), 3),
+                                  rem_cap, cap_diff, self.probe.voltage, self.probe.amps, self.probe.watts, est_chrg, self.probe.msbatt['BatteryStatus']['Charging']])
         
-        #self.tmp_data.append(self.history_data)
-
-        # Reset dict
-        #self.history_data = []
 
 
     '''
