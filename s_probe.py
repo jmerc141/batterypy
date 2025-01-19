@@ -12,7 +12,7 @@ from threading import Thread
 '''
 class sProbe(object):
     voltage = dischargerate = amps = chargerate = watts = hours = minutes = 0
-
+    charging = ''
     going = True
     tracking = False
 
@@ -32,7 +32,7 @@ class sProbe(object):
         
         # win32batt is most likely empty
         sProbe.designedCapacity = sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] or sProbe.win32bat['DesignCapacity']
-
+        sProbe.charging = sProbe.msbatt['BatteryStatus']['Charging']
         # Tracker object
         sProbe.track = tracker.Tracker()
 
@@ -93,6 +93,8 @@ class sProbe(object):
             pythoncom.CoInitialize()
             sProbe.getWin32Bat()
             sProbe.getRootWmi()
+
+            sProbe.charging = sProbe.msbatt['BatteryStatus']['Charging']
 
             
             if not sProbe.msbatt['BatteryStatus']['Charging']:

@@ -15,9 +15,7 @@ Referencing plt will cause hanging
 
 class Window(Frame):
     def __init__(self, master = None):
-
-        # Sessions start at 1 not 0
-        self.selected_sesh = 1
+        self.selected_sesh = 0
         self.lines = []
         self.stackplots = []
         self.color = ''
@@ -97,12 +95,12 @@ class Window(Frame):
         self.ax = self.i_fig.add_subplot(111)
         #self.ax.autoscale(enable=True)
 
+        self.canvas = FigureCanvasTkAgg(self.i_fig, master=bottomFrame)
+        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
+
         self.setup_white()
 
         self.change_info('Graph1')
-
-        self.canvas = FigureCanvasTkAgg(self.i_fig, master=bottomFrame)
-        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
 
         self.pack(expand=True, fill='both')
 
@@ -143,7 +141,7 @@ class Window(Frame):
             # Each line is x chunks of readings
             for l in csvFile:
                 self.hdata[l[0]].append(l[1:])
-                
+        #print(self.hdata)
         return len(self.hdata)
 
 
@@ -212,6 +210,7 @@ class Window(Frame):
         c: color of the line3
     '''
     def fancy_line(self, x, c):
+        #print(x)
         if len(self.lines) == 0:
             self.ax.xaxis.set_ticks([*range(len(x))])
             self.ax.locator_params(axis='x', nbins=10)
@@ -226,6 +225,7 @@ class Window(Frame):
     '''
     def get_session_el2(self, i: int):
         lst = []
+        print(self.hdata)
         if i == InfoOrder.CurrentTime.value:
             for v in self.hdata[str(self.selected_sesh)]:
                 lst.append(v[i])

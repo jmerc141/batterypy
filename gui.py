@@ -20,10 +20,6 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Toggle internal plot display bool
         self.internal = False
-        # Toggle Treeview entries
-        self.portable_on = False
-        self.win32bat_on = False
-        self.rootwmi_on = False
 
         self.hist_init = False
 
@@ -39,7 +35,8 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = None
 
         # Set window size
-        self.master.geometry('520x500')
+        self.master.geometry('450x500')
+        self.master.resizable(False, False)
 
         # Create Treev object depending on linux/win platform because
         # implementations are different
@@ -56,11 +53,11 @@ class App(TKMT.ThemedTKinterFrame):
                 self.sp = s_probe.sProbe()
                 self.sp.th.start()
             except Exception as e:
-                tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{t}')
-                print(e)
+                tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
             try:
-                import tree
-                self.tree = tree.Treev(self.master)
+                import treev
+                self.tree = treev
+                pass
             except TypeError as t:
                 tk.messagebox.showerror('Error', f'Error initializing tree\n{t}')
                 self.master.on_close()
@@ -100,35 +97,51 @@ class App(TKMT.ThemedTKinterFrame):
         track_menu.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
         track_menu.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
         
-        if sys.platform == 'win32':
-            ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
-            ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
-            ext.add_command(label='Root\\Wmi', command=self.tree.get_rootwmi)
+        #if sys.platform == 'win32':
+        #    ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
+        #    ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
+        #    ext.add_command(label='Root\\Wmi', command=self.tree.get_rootwmi)
 
         file_menu.add_command(label='Exit', command=self.on_close)
         
         self.master.config(menu=mb)
 
-        self.tree.tree.bind('<<TreeviewSelect>>', self.item_selected)
+        #self.tree.tree.bind('<<TreeviewSelect>>', self.item_selected)
 
         # Horizontal scrollbar
         #scrollx = ttk.Scrollbar(self.master, orient=tk.HORIZONTAL, command=self.tree.tree.xview)
         #scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
 
         # Vertical scrollbar
-        scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.tree.yview)
-        scrolly.grid(row=0, column=0, sticky='nse', padx=(10,0), pady=10, rowspan=1)
-        self.tree.tree.configure(yscroll=scrolly.set)
+        #scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.tree.yview)
+        #scrolly.grid(row=0, column=0, sticky='nse', padx=(10,0), pady=10, rowspan=1)
+        #self.tree.tree.configure(yscroll=scrolly.set)
         
-        self.tree.tree.grid(row=0, column=0, sticky='nsew', padx=10, pady=10, columnspan=1, rowspan=2)
+        # TODO Fix tree not expanding to top of powerinfo frame
+        # Resize the window vertically and there is a space between the bottom
+        # of TreeView and top of PowerInfo Frame
+        
 
+        self.tv = self.Treeview(['Property', 'Value', 'Max'], [10, 10, 5], 14, self.tree.setup_tree(self.sp),
+                                'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(10,0))
+        
+        
+        
+        pi = self.addLabelFrame('Power Info', padx=10, pady=(0,5), sticky='sew', row=1, col=0, 
+                                 widgetkwargs={'height': 120}, )
+        
+        
+        pi.master.grid_propagate(False)
+        
+        self.master.rowconfigure(0, weight=2)  # Top frame expands
+        self.master.rowconfigure(1, weight=0)  # Bottom frame stays fixed
+        
+        
         # TODO implement linux
         self.v = tk.DoubleVar(value=s_probe.sProbe.voltage)
         self.w = tk.DoubleVar(value=s_probe.sProbe.watts)
         self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
-
-        pi = self.addLabelFrame('Power Info', row=1, col=0, padx=10, pady=(10,5), sticky='sew')
-
+        
         v = pi.addFrame('volt', row=0, col=0, sticky='ew', padx=0, pady=0)
         a = pi.addFrame('amps', row=1, col=0, sticky='ew', padx=0, pady=0)
         w = pi.addFrame('watts', row=2, col=0, sticky='ew', padx=0, pady=0)
@@ -151,14 +164,23 @@ class App(TKMT.ThemedTKinterFrame):
         v.master.columnconfigure(0, weight=1)
         a.master.columnconfigure(0, weight=1)
         w.master.columnconfigure(0, weight=1)
-        #pi.master.columnconfigure(0, weight=1)
-        #pi.master.rowconfigure(1, weight=1)
-        #pi.master.rowconfigure(3, weight=1)
-        #pi.master.rowconfigure(5, weight=1)
         
-
         #self.debugPrint()
-        self.retree()
+        self.updateUI()
+
+
+    '''
+        Set values in the treeview, runs every 1 second
+    '''
+    def updateUI(self):
+        # overwrites values in the treeview, use only dynamic values
+        self.v.set(f'{self.sp.voltage:.3f}')
+        self.c.set(f'{self.sp.amps:.3f}')
+        self.w.set(f'{self.sp.watts:.3f}')
+        self.tree.update(self.tv, self.sp)
+        #print(self.master.winfo_height() // 33)
+        #self.tv.config(height=self.master.winfo_height() // 33)
+        self.master.after(1000, self.updateUI)
         
 
 
@@ -209,18 +231,6 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = plot.Plot(1)
         self.pl.on_close()
         self.pl = None
-            
-    '''
-        Set values in the treeview, runs every 1 second
-    '''
-    def retree(self):
-        # overwrites values in the treeview, use only dynamic values
-        self.c.set(self.sp.amps)
-        self.v.set(self.sp.voltage)
-        self.w.set(self.sp.watts)
-        
-        self.tree.re_tree()
-        self.master.after(1000, self.retree)
 
 
     '''
@@ -246,11 +256,12 @@ class App(TKMT.ThemedTKinterFrame):
         Runs when main window is closed
     '''
     def on_close(self):
-        try:
-            self.tree.on_close()
-        except Exception as e:
-            print('bad')
+        #try:
+        #    self.tree.on_close()
+        #except Exception as e:
+        #    print('bad')
         plot.plt.close()
+        self.sp.on_close()
         self.master.update()
         self.master.destroy()
 
