@@ -88,13 +88,15 @@ class App(TKMT.ThemedTKinterFrame):
         mb.add_cascade(label='Tracking', menu=track_menu)
         mb.add_cascade(label='Extra', menu=ext)
 
+        self.track_en = tk.BooleanVar()
+
         # TODO add fonts
         view_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
         #view_menu.add_cascade(label='Graph (external)', menu=graph)
         view_menu.add_command(label='Live Graph Single', command=self.create_external_single)
         view_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)
         view_menu.add_command(label='History Graph', command=self.show_history)
-        track_menu.add_checkbutton(label='Enable Tracking', command=s_probe.sProbe.activate_tracking)
+        track_menu.add_checkbutton(label='Enable Tracking', command=self.start_track, variable=self.track_en)
         track_menu.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
         
         #if sys.platform == 'win32':
@@ -183,6 +185,13 @@ class App(TKMT.ThemedTKinterFrame):
         self.master.after(1000, self.updateUI)
         
 
+    def start_track(self):
+        if self.sp.win32bat['EstimatedChargeRemaining'] == 100:
+            tk.messagebox.showerror('Error', f'Not tracking when battery is 100%')
+            self.track_en.set(False)
+        else:
+            self.sp.activate_tracking()
+            
 
     '''
         Creates / destroys internal graph, changes window size

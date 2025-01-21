@@ -99,6 +99,7 @@ class Tracker(object):
     '''
     def track_man(self):
         # if unplugged or plugged in, create a new session
+        print(self.start_state)
         if self.start_state != self.probe.msbatt['BatteryStatus']['Charging']:
             self.num_sessions += 1
             self.start_state = self.probe.chargerate
@@ -118,11 +119,11 @@ class Tracker(object):
         est_chrg = self.probe.win32bat['EstimatedChargeRemaining']
         rem_cap = self.probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000
 
-        # FIX
+        # How much Wh was gained / lost
         if self.probe.msbatt['BatteryStatus']['Charging']:
             cap_diff = (rem_cap - self.starting_cap)
         else:
-            cap_diff = (self.starting_cap - (-rem_cap))
+            cap_diff = (self.starting_cap - rem_cap)
 
         self.measured_Ah += self.probe.amps * (1/3600)
         self.measured_Wh += self.probe.watts * (1/3600)

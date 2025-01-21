@@ -52,12 +52,7 @@ class sProbe(object):
             sProbe.tracking = True
             sProbe.tth.start()
         else:
-            sProbe.tracking = False
-            sProbe.tth.join()
-            # Make a new thread since thread can only be started once
-            sProbe.tth = Thread(target=sProbe.track_thread)
-            # Make a new tracker to increment session number
-            sProbe.track = tracker.Tracker()
+            sProbe.stop_tracking()
 
 
     '''
@@ -68,12 +63,19 @@ class sProbe(object):
     @staticmethod
     def track_thread():
         while(sProbe.tracking and sProbe.going):
-            if sProbe.win32bat['EstimatedChargeRemaining'] == 100:
-                break
             sProbe.track.track_man()
             time.sleep(1)
         
+        
 
+    @staticmethod
+    def stop_tracking():
+        sProbe.tracking = False
+        sProbe.tth.join()
+        # Make a new thread since thread can only be started once
+        sProbe.tth = Thread(target=sProbe.track_thread)
+        # Make a new tracker to increment session number
+        sProbe.track = tracker.Tracker()
     
     '''
         Deletes history file

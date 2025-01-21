@@ -52,10 +52,12 @@ def update(tv, probe):
     global maxv
     global maxamps
 
-    if probe.charging:
+    if probe.msbatt['BatteryStatus']['Charging']:
         charge_string = 'Charging Power 🔌'
-    else:
+    elif probe.msbatt['BatteryStatus']['Discharging']:
         charge_string = 'Discharge Power ⚡'
+    else:
+        charge_string = 'Niether?'
 
     if probe.msbatt['BatteryStatus']['Charging']:
         if probe.chargerate > maxw:
@@ -71,6 +73,11 @@ def update(tv, probe):
         maxamps = probe.amps
 
     # Thanks ChatGPT
+
+    # Update charging string in tree
+    tv.item(1, text=f'{charge_string}')    
+
+    # Update values in tree
     tv.item(3, values=(f'{probe.voltage:.3f} V', maxv))
     tv.item(4, values=(f'{probe.amps:.3f} A', maxamps))
     tv.item(5, values=(f'{probe.watts:.3f} W', maxw))
