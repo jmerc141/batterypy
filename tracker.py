@@ -4,9 +4,7 @@
  - Test with charging
  - Reset tracking when plugged in / out
  - 1 write every 10s = 1MB per hour
- - Rewrite json.dumps to handle multiple sessions
  - get % per hour
- - add charging / discharging status
 '''
 
 import sys, os, json, csv, settings

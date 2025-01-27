@@ -3,6 +3,8 @@ credit to Freepik for battery image:
     <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
 
 add gridlines to single / multi plot
+
+powercfg /batteryreport /output "C:\battery-report.html"
 '''
 
 import sys, os, internal, plot, hplot
@@ -36,7 +38,7 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Set window size
         self.master.geometry('450x500')
-        self.master.resizable(False, False)
+        #self.master.resizable(False, False)
 
         # Create Treev object depending on linux/win platform because
         # implementations are different
@@ -56,7 +58,7 @@ class App(TKMT.ThemedTKinterFrame):
                 tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
             try:
                 import treev
-                self.tree = treev
+                self.tree = treev.Treev
                 pass
             except TypeError as t:
                 tk.messagebox.showerror('Error', f'Error initializing tree\n{t}')
@@ -124,10 +126,11 @@ class App(TKMT.ThemedTKinterFrame):
         # of TreeView and top of PowerInfo Frame
         
 
-        self.tv = self.Treeview(['Property', 'Value', 'Max'], [10, 10, 5], 14, self.tree.setup_tree(self.sp),
-                                'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(10,0))
+        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 14, self.tree.setup_tree(self.sp),
+                                'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(5,0), padx=5)
         
-        
+        s = ttk.Style()
+        s.configure('Treeview', indent=10)
         
         pi = self.addLabelFrame('Power Info', padx=10, pady=(0,5), sticky='sew', row=1, col=0, 
                                  widgetkwargs={'height': 120}, )
