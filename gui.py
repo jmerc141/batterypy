@@ -93,7 +93,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.track_en = tk.BooleanVar()
 
         # TODO add fonts
-        view_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
+        #view_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
         #view_menu.add_cascade(label='Graph (external)', menu=graph)
         view_menu.add_command(label='Live Graph Single', command=self.create_external_single)
         view_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)

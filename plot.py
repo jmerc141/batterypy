@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from threading import Thread
-import sys, json
+import sys
 
 '''
     Wrapper class for external plots
@@ -25,7 +25,7 @@ class Plot:
         self.ampy  = []
         self.watty = []
 
-        self.dpi = 85
+        self.dpi = 65
 
         # Create a seperate thread that runs the animation function
         if t == 0:
@@ -61,7 +61,7 @@ class Plot:
         Sets up figure, lines, axes for multi-plot window
     '''
     def setup_2(self):
-        self.fig = plt.figure(figsize=(8,6), dpi=80)
+        self.fig = plt.figure(figsize=(8,6), dpi=65)
         # horizontal graphs
         #self.ax1 = self.fig.add_subplot(3,1,1)
         #self.ax2 = self.fig.add_subplot(3,1,2)
@@ -88,16 +88,37 @@ class Plot:
         self.ax1.set_title('Voltage', color='white', fontsize=12)
         self.ax2.set_title('Amps', color='white', fontsize=12)
         self.ax3.set_title('Watts', color='white', fontsize=12)
+        
         self.fig.set_facecolor('#2f2f2f')
         self.ax1.set_facecolor('#2f2f2f')
         self.ax2.set_facecolor('#2f2f2f')
         self.ax3.set_facecolor('#2f2f2f')
+        
         self.ax1.tick_params(axis='x', colors='white', labelsize=10)
         self.ax1.tick_params(axis='y', colors='white', labelsize=10)
         self.ax2.tick_params(axis='x', colors='white', labelsize=10)
         self.ax2.tick_params(axis='y', colors='white', labelsize=10)
         self.ax3.tick_params(axis='x', colors='white', labelsize=10)
         self.ax3.tick_params(axis='y', colors='white', labelsize=10)
+        
+        self.ax1.spines['bottom'].set_color('white')
+        self.ax1.spines['top'].set_color('white')
+        self.ax1.spines['right'].set_color('white')
+        self.ax1.spines['left'].set_color('white')
+        
+        self.ax1.grid(color='white')
+
+        self.ax2.spines['bottom'].set_color('white')
+        self.ax2.spines['top'].set_color('white')
+        self.ax2.spines['right'].set_color('white')
+        self.ax2.spines['left'].set_color('white')
+        self.ax2.grid(color='white')
+
+        self.ax3.spines['bottom'].set_color('white')
+        self.ax3.spines['top'].set_color('white')
+        self.ax3.spines['right'].set_color('white')
+        self.ax3.spines['left'].set_color('white')
+        self.ax3.grid(color='white')
 
         self.fig.subplots_adjust(bottom=.13, left=.07, hspace=.36, wspace=0.3)
 

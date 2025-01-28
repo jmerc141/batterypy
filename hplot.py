@@ -6,7 +6,9 @@ import numpy as np
 from tkinter import Frame, ttk
 from collections import defaultdict
 from enum import Enum
-import csv, settings
+from bs4 import BeautifulSoup
+from datetime import datetime
+import csv, settings, subprocess
 
 '''
 Eventually collect probes_full_Wh and do linear regression to see how quickly battery degrades over time
@@ -20,6 +22,7 @@ class Window(Frame):
         self.lines = []
         self.stackplots = []
         self.color = ''
+        self.font_size = 14
 
         try:
             if self.readCsv() == 0:
@@ -62,7 +65,7 @@ class Window(Frame):
         dd = ttk.OptionMenu(topFrame, self.sel, self.session_times[0], *self.session_times, command=self.change_sesh)
         
         self.sel2 = tk.StringVar(self)
-        self.graphs = ['Power', 'Capacity', 'Extra', 'Charge Percent']
+        self.graphs = ['Power', 'Capacity', 'Extra', 'Charge Percent', 'Degredation']
         dd2 = ttk.OptionMenu(topFrame, self.sel2, self.graphs[0], *self.graphs, command=self.change_info)
         
         # Pack elements
@@ -79,7 +82,7 @@ class Window(Frame):
         self.rowconfigure(0, weight=1)
         bottomFrame.pack(expand=True, fill='both')
 
-        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(10,9), dpi=self.internal_dpi)
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(8,6), dpi=self.internal_dpi)
         self.i_fig.subplots_adjust(bottom=0.07, top=0.975, left=0.07, right=0.975)
         #self.i_fig.tight_layout()
 
@@ -109,7 +112,7 @@ class Window(Frame):
         self.ax.set_xlabel('Time', color='black', fontsize=16)
         self.ax.set_ylabel('Voltage (V)', color='black', fontsize=16)
         self.ax.grid(color='black')
-        self.ax.set_xlabel('Seconds', color='white')
+        self.ax.set_xlabel('Time', color='white')
         self.ax.set_ylabel('Power', color='white')
         self.ax.set_facecolor('#2f2f2f')
         self.ax.spines['bottom'].set_color('white')
@@ -171,7 +174,7 @@ class Window(Frame):
                 self.fancy_line(self.get_session_el2(self.headers.index('amps')), 'blue')
                 self.fancy_line(self.get_session_el2(self.headers.index('watts')), 'gold')
                 # Inlcude number in legend?
-                self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0]], [f'Volts ', 'Amps', 'Watts'], fontsize=18)
+                self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0]], [f'Volts ', 'Amps', 'Watts'], fontsize=self.font_size)
             elif e == self.graphs[1]:
                 self.fancy_line(self.get_session_el2(self.headers.index('measured_Ah')), 'salmon')
                 self.fancy_line(self.get_session_el2(self.headers.index('rem_Ah')), 'orange')
@@ -186,7 +189,7 @@ class Window(Frame):
                     - float(self.hdata[str(self.selected_sesh)][0][InfoOrder.Remain_Ah.value])) / (len(self.hdata[str(self.selected_sesh)]) / 60)
 
                 self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0], self.lines[3][0]], 
-                               ['Measured_Ah', f'Remaining_Ah {avgah_min:.2f}/m', 'Measured_Wh', f'Remaining_Wh {avgwh_min:.2f}/m'], fontsize=18)
+                               ['Measured_Ah', f'Remaining_Ah {avgah_min:.2f}/m', 'Measured_Wh', f'Remaining_Wh {avgwh_min:.2f}/m'], fontsize=self.font_size)
             elif e == self.graphs[2]:
                 
                 self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Wh', 'Remaining_Wh'])
@@ -207,7 +210,35 @@ class Window(Frame):
                 line = self.get_session_el2(self.headers.index('chrg_percent'))
                 self.fancy_line(line, 'lightblue')
                 self.add_lin_reg(line)
-                self.ax.legend([self.lines[0][0]], [f'%/m {avgm}\n%/h {avgh}'], fontsize=18)
+                self.ax.legend([self.lines[0][0]], [f'%/m {avgm}\n%/h {avgh}'], fontsize=self.font_size)
+            elif e == self.graphs[4]:
+                times = []
+                vals = []
+                #subprocess.run(['powercfg', '/batteryreport'])
+                with open('battery-report.html', 'r') as f:
+                    soup = BeautifulSoup(f, 'html.parser')
+
+                for r in soup.find_all('table')[5].find_all('tr')[1:]:
+                    d = r.find_all('td')
+                    if len(d) == 3:
+                        times.append(d[0].get_text(strip=True)[0:10])
+                        vals.append(int(d[1].get_text(strip=True).replace(',', '').replace(' mWh', '')))
+                
+                d1 = datetime.strptime(times[0], '%Y-%m-%d')
+                d2 = datetime.strptime(times[-1], '%Y-%m-%d')
+                
+                time_delta = d2-d1
+                wh_delta = (vals[0]-vals[-1]) / 1000
+
+                wh_per_month = round((wh_delta / time_delta.days)*30, 2)
+
+                self.ax.xaxis.set_ticks(np.arange(len(vals)))
+                self.ax.locator_params(axis='x', nbins=11)
+                self.ax.xaxis.set_ticklabels(times)
+                self.lines.append(self.ax.plot(vals, color='lime', linewidth=1))
+                self.stackplots.append(self.ax.stackplot(range(0, len(vals)), vals, color='forestgreen', alpha=0.2, labels=[]))
+                self.add_lin_reg(vals)
+                self.ax.legend([self.lines[0][0]], [f'{wh_delta}Wh lost total\n{wh_per_month} per month'], fontsize=self.font_size)
 
 
             self.ogx = self.ax.get_xlim()
@@ -223,11 +254,6 @@ class Window(Frame):
         m, b = np.polyfit(x, xdata, 1)
         y = m*x+b
         self.lines.append(self.ax.plot(x, y, 'dodgerblue', linestyle='dashed'))
-
-
-
-
-        
 
 
 
