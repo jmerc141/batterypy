@@ -97,7 +97,7 @@ class Tracker(object):
     '''
     def track_man(self):
         # if unplugged or plugged in, create a new session
-        print(self.start_state)
+        #print(self.start_state)
         if self.start_state != self.probe.msbatt['BatteryStatus']['Charging']:
             self.num_sessions += 1
             self.start_state = self.probe.chargerate
@@ -126,7 +126,7 @@ class Tracker(object):
         self.measured_Ah += self.probe.amps * (1/3600)
         self.measured_Wh += self.probe.watts * (1/3600)
         
-        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), round(self.probe.get_health(), 3),
+        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), self.probe.get_health(),
                                   full_cap, self.measured_Ah, self.measured_Wh, round((rem_cap / self.probe.voltage), 3),
                                   rem_cap, cap_diff, self.probe.voltage, self.probe.amps, self.probe.watts, est_chrg, self.probe.msbatt['BatteryStatus']['Charging']])
         

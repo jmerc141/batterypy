@@ -56,6 +56,7 @@ class App(TKMT.ThemedTKinterFrame):
                 self.sp.th.start()
             except Exception as e:
                 tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
+
             try:
                 import treev
                 self.tree = treev.Treev

@@ -15,9 +15,9 @@ class Treev:
             {'prop': 'Manufacturer', 'val': probe.msbatt['BatteryStaticData']['ManufactureName'], 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Unique ID', 'val': probe.msbatt['BatteryStaticData']['UniqueID'], 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Chemistry', 'val': probe.getchemstr(), 'max': '', 'open': False, 'subdata': []},
-            {'prop': 'Health (Degraded)', 'val': probe.get_health(), 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Cycle Count', 'val': probe.msbatt['BatteryCycleCount']['CycleCount'], 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Status', 'val': probe.win32bat['Status'], 'max': '', 'open': False, 'subdata': []},
+            {'prop': 'Est. Charge', 'val': probe.win32bat['EstimatedChargeRemaining'], 'max': '', 'open': False, 'subdata': []},
             # Power info
             {'prop': charge_string, "val": "", 'max': '', "open": True, "subdata": [
                 {"prop": 'Design Voltage', 'val': int(probe.win32bat['DesignVoltage']) / 1000, 'max': ''},
@@ -30,6 +30,7 @@ class Treev:
                 {'prop': 'Design Wh', 'val': f'{probe.msbatt['BatteryStaticData']['DesignedCapacity'] / 1000} Wh', 'max': ''},
                 {'prop': 'Full Charged Wh', 'val': f'{probe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000} Wh', 'max': ''},
                 {'prop': 'Remaining Wh', 'val': f'{probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000} Wh', 'max': ''},
+                {'prop': 'Health (Degraded)', 'val': f'{probe.get_health()}%', 'max': '', 'open': False, 'subdata': []},
                 {'prop': 'Est. Time', 'val': f'{probe.hours}h {probe.minutes}m', 'max': ''},
             ]},   
         ]
@@ -61,14 +62,20 @@ class Treev:
 
         # Thanks ChatGPT
         # Update charging string in tree, using index in tree
+        tv.item(7, text=f'{probe.win32bat['EstimatedChargeRemaining']}')
+
         tv.item(8, text=f'{charge_string}')
 
         # Update values in tree
+        # Volts
         tv.item(10, values=(f'{probe.voltage:.3f} V', Treev.maxv))
+        # Amps
         tv.item(11, values=(f'{probe.amps:.3f} A', Treev.maxa))
+        # Watts
         tv.item(12, values=(f'{probe.watts:.3f} W', Treev.maxw))
-        
+        # Rem cap
         tv.item(16, values=(f'{probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000} Wh', ''))
-        tv.item(17, values=(f'{probe.hours}h {probe.minutes}m', ''))
+        # Time
+        tv.item(18, values=(f'{probe.hours}h {probe.minutes}m', ''))
         
 

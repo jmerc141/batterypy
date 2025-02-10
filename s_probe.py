@@ -197,7 +197,7 @@ class sProbe(object):
     def get_health():
         if sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] is not None:
             bathealth = (sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / sProbe.msbatt['BatteryStaticData']['DesignedCapacity']) * 100
-        return f'{bathealth:.2f}%'
+        return f'{bathealth:.2f}'
 
 
     # Some instances might not exist
