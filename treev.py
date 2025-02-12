@@ -30,7 +30,7 @@ class Treev:
                 {'prop': 'Design Wh', 'val': f'{probe.msbatt['BatteryStaticData']['DesignedCapacity'] / 1000} Wh', 'max': ''},
                 {'prop': 'Full Charged Wh', 'val': f'{probe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000} Wh', 'max': ''},
                 {'prop': 'Remaining Wh', 'val': f'{probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000} Wh', 'max': ''},
-                {'prop': 'Health (Degraded)', 'val': f'{probe.get_health()}%', 'max': '', 'open': False, 'subdata': []},
+                {'prop': 'Health', 'val': f'{probe.get_health()}%', 'max': '', 'open': False, 'subdata': []},
                 {'prop': 'Est. Time', 'val': f'{probe.hours}h {probe.minutes}m', 'max': ''},
             ]},   
         ]
@@ -62,7 +62,7 @@ class Treev:
 
         # Thanks ChatGPT
         # Update charging string in tree, using index in tree
-        tv.item(7, text=f'{probe.win32bat['EstimatedChargeRemaining']}')
+        tv.item(7, values=(f'{probe.win32bat['EstimatedChargeRemaining']}%', ''))
 
         tv.item(8, text=f'{charge_string}')
 
