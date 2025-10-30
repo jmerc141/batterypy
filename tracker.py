@@ -105,6 +105,7 @@ class Tracker(object):
         self.get_readings()
         if self.readings == 10:
             #self.write_history()
+            # 1KB per 10s
             self.write_csv()
             self.readings = 0
         

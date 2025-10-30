@@ -22,12 +22,12 @@ class sProbe(object):
     @staticmethod
     def __init__() -> None:
         try:
-            sProbe.initWin32Bat()
+            sProbe.getWin32Bat()
         except TypeError as e:
             raise TypeError('Win32Battery is null', e)
         #sProbe.getStaticData()
         sProbe.getRootWmi()
-        sProbe.get_portable()
+        sProbe.portable = sProbe.get_portable()
         sProbe.get_health()
         
         # win32batt is most likely empty
@@ -67,7 +67,9 @@ class sProbe(object):
             time.sleep(1)
         
         
-
+    '''
+        Stops the tracking thread and creates a new one
+    '''
     @staticmethod
     def stop_tracking():
         sProbe.tracking = False
@@ -95,6 +97,7 @@ class sProbe(object):
             pythoncom.CoInitialize()
             sProbe.getWin32Bat()
             sProbe.getRootWmi()
+            sProbe.getAvail()
 
             sProbe.charging = sProbe.msbatt['BatteryStatus']['Charging']
 
@@ -137,22 +140,15 @@ class sProbe(object):
             
             # Set speed of sProbe data refresh
             time.sleep(1)
-            
-
-    '''
-
-    '''
-    @staticmethod
-    def get_portable():
-        if wmi.WMI().instances('win32_portablebattery'):
-            sProbe.portable = wmi.WMI().instances('win32_portablebattery')[0]
-            return wmi.WMI().instances('win32_portablebattery')[0]
-        else:
-            sProbe.portable = None
         
 
     '''
-    
+        Enumerates all classes in //root/wmi/MSBatteryClass and puts values in msbatt dict.
+        //root/wmi/ has individual classes like "BatteryCycleCount" and "BatteryStsatus etc.
+        but MSBatteryClass has all instances with populated values.
+        Has the same properties as win32_Portable_Battery but values can be different
+        Unique values to this class:
+            CapacityMultiplier ExpectedLife Location  ManufactureDate  Manufacturer  MaxBatteryError
     '''
     @staticmethod
     def getRootWmi():
@@ -170,29 +166,32 @@ class sProbe(object):
         sProbe.voltage = sProbe.msbatt['BatteryStatus']['Voltage'] / 1000
 
 
+    '''
+        //root/cimv2/win32_PortableBattery, has the same values as win32_Battery
+        Unique values:
+            BatteryRechargeTime ExpectedBatteryLife
+    '''
+    @staticmethod
+    def get_portable():
+        if wmi.WMI().instances('win32_portablebattery'):
+            return wmi.WMI().instances('win32_portablebattery')[0]
+        else:
+            return None
+
 
     '''
-
+        Creates a dict with all properties from //root/cimv2/win32_battery
     '''
     @staticmethod
     def getWin32Bat():
         w = wmi.WMI().instances('win32_battery')[0]
         for i in w.properties.keys():
             sProbe.win32bat[i] = w.wmi_property(i).value
-        
-
-    @staticmethod
-    def initWin32Bat():
-        w = wmi.WMI().instances('win32_battery')[0]
-        for i in w.properties.keys():
-            sProbe.win32bat[i] = w.wmi_property(i).value
-    
-
-    @staticmethod
-    def getw32bat_inst():
-            return wmi.WMI().instances('win32_battery')[0]
 
 
+    '''
+        Returns % of battery health degradation
+    '''
     @staticmethod
     def get_health():
         if sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] is not None:
@@ -200,7 +199,9 @@ class sProbe(object):
         return f'{bathealth:.2f}'
 
 
-    # Some instances might not exist
+    '''
+        Returns the value of a given property, otherwise 'N/A' string
+    '''
     @staticmethod
     def tryinstance(prop):
         # for root/wmi instances
@@ -230,6 +231,9 @@ class sProbe(object):
             return 'N/A'
 
 
+    '''
+        Not used, possible not accurate, but keeping for status codes
+    '''
     @staticmethod
     def getStatus() -> str:
         statcode = sProbe.win32bat['BatteryStatus']
@@ -257,10 +261,15 @@ class sProbe(object):
             statcode = 'Partially Charged'
         return statcode
     
+
+    '''
+        Returns chemistry string from either /cimv2/win32_battery or /wmi/MSBatteryClass
+    '''
     @staticmethod
     def getchemstr() -> str:
         ch = sProbe.msbatt['BatteryStaticData']['Chemistry']
-        # only call from refresh
+        if ch > 8 or ch < 0:
+            ch = sProbe.win32bat['Chemistry']
         if ch == 1:
             chem = 'Other'
         elif ch == 2:
@@ -282,10 +291,13 @@ class sProbe(object):
         return chem
     
 
+    '''
+        Returns availability string, not used either
+    '''
     @staticmethod
     def getAvail() -> str:
         # only call from refresh
-        avail = sProbe.win32bat['Availability']
+        avail = sProbe.win32bat['Availability'] or sProbe.portable['Availability']
         if avail == 1:
             avail = 'Other'
         elif avail == 2:
@@ -329,10 +341,13 @@ class sProbe(object):
         elif avail == 21:
             avail = 'Quiesced'
         else:
-            avail = 'Unknown'
+            avail = 'N/A'
         return avail
     
 
+    '''
+        Stops while loop in refresh
+    '''
     @staticmethod
     def on_close():
         sProbe.going = False
