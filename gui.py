@@ -79,39 +79,37 @@ class App(TKMT.ThemedTKinterFrame):
             os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
         # Menubar
-        menu_frame = tk.Frame(self.master, name='menubar', background='#313131', height=2)
-        
-        file_menu = tk.Menubutton(menu_frame, text='File', background='#313131')
-        view_menu = tk.Menubutton(menu_frame, text='View', background='#313131')
-        #ext = tk.Menubutton(menu_frame, text='Extra', background='#313131')
-        track_menu = tk.Menubutton(menu_frame, text='Tracker', background='#313131')
+        mb = tk.Menu(self.master, background='black', fg='white')
+        file_menu = tk.Menu(mb, tearoff=False)
+        view_menu = tk.Menu(mb, tearoff=False)
+        #graph = tk.Menu(view_menu, tearoff=False)
+        ext = tk.Menu(mb, tearoff=False)
+        track_menu = tk.Menu(mb, tearoff=False)
 
-        fm_sub = tk.Menu(file_menu, tearoff=0)
-        vm_sub = tk.Menu(view_menu, tearoff=0)
-        #ext_sub = tk.Menu(ext, tearoff=0)
-        track_sub = tk.Menu(track_menu, tearoff=0)
+        mb.add_cascade(label='File', menu=file_menu)
+        mb.add_cascade(label='Graph', menu=view_menu)
+        mb.add_cascade(label='Tracking', menu=track_menu)
+        mb.add_cascade(label='Extra', menu=ext)
 
         self.track_en = tk.BooleanVar()
 
         # TODO add fonts
-        vm_sub.add_command(label='Live Graph Single', command=self.create_external_single)
-        vm_sub.add_command(label='Live Graph Multiple', command=self.create_external_graph)
-        vm_sub.add_command(label='History Graph', command=self.show_history)
-        track_sub.add_checkbutton(label='Enable Tracking', command=self.start_track, variable=self.track_en)
-        track_sub.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
+        #view_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
+        #view_menu.add_cascade(label='Graph (external)', menu=graph)
+        view_menu.add_command(label='Live Graph Single', command=self.create_external_single)
+        view_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)
+        view_menu.add_command(label='History Graph', command=self.show_history)
+        track_menu.add_checkbutton(label='Enable Tracking', command=self.start_track, variable=self.track_en)
+        track_menu.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
         
-        fm_sub.add_command(label='Exit', command=self.on_close)
-        
-        file_menu.config(menu=fm_sub)
-        view_menu.config(menu=vm_sub)
-        track_menu.config(menu=track_sub)
-        
-        file_menu.pack(side='left', fill='x')
-        view_menu.pack(side='left', fill='x')
-        track_menu.pack(side='left', fill='x')
+        #if sys.platform == 'win32':
+        #    ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
+        #    ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
+        #    ext.add_command(label='Root\\Wmi', command=self.tree.get_rootwmi)
 
-        menu_frame.grid(column=0, row=0, sticky='new', padx=0, pady=0)
-        menu_frame.master.rowconfigure(0, minsize=32)
+        file_menu.add_command(label='Exit', command=self.on_close)
+        
+        self.master.config(menu=mb)
 
         #self.tree.tree.bind('<<TreeviewSelect>>', self.item_selected)
 
@@ -130,19 +128,20 @@ class App(TKMT.ThemedTKinterFrame):
         
 
         self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 14, self.tree.setup_tree(self.sp),
-                                'subdata', ['prop', 'val', 'max'], row=1, col=0, pady=(5,0), padx=5)
+                                'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(5,0), padx=5)
         
         s = ttk.Style()
         s.configure('Treeview', indent=10)
         
-        pi = self.addLabelFrame('Power Info', padx=5, pady=(0,5), sticky='sew', row=2, col=0, 
+        pi = self.addLabelFrame('Power Info', padx=10, pady=(0,5), sticky='sew', row=1, col=0, 
                                  widgetkwargs={'height': 120}, )
         
         
         pi.master.grid_propagate(False)
+        pi.master.rowconfigure(0, minsize=32)
         
-        self.master.rowconfigure(1, weight=2)  # Top frame expands
-        self.master.rowconfigure(2, weight=0)  # Bottom frame stays fixed
+        self.master.rowconfigure(0, weight=2)  # Top frame expands
+        self.master.rowconfigure(1, weight=0)  # Bottom frame stays fixed
         
         
         # TODO implement linux
