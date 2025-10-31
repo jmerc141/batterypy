@@ -2,6 +2,8 @@
     Make amps negative if discharging?
 
     A battery's end of life is typically when the FullChargeCapacity property falls below 80% of the DesignCapacity property
+
+    TODO: change __init__ to activate and change treev setup_tree to no arguments and static calls to s_probe
 '''
 
 import wmi, time, pythoncom, tracker

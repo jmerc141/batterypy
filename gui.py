@@ -80,34 +80,25 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Menubar
         mb = tk.Menu(self.master, background='black', fg='white')
-        file_menu = tk.Menu(mb, tearoff=False)
-        view_menu = tk.Menu(mb, tearoff=False)
-        #graph = tk.Menu(view_menu, tearoff=False)
-        ext = tk.Menu(mb, tearoff=False)
+        file_menu = tk.Menu(mb, tearoff=False, background='orange', bg='red')
+        graph_menu = tk.Menu(mb, tearoff=False)
         track_menu = tk.Menu(mb, tearoff=False)
 
         mb.add_cascade(label='File', menu=file_menu)
-        mb.add_cascade(label='Graph', menu=view_menu)
+        mb.add_cascade(label='Graph', menu=graph_menu)
         mb.add_cascade(label='Tracking', menu=track_menu)
-        mb.add_cascade(label='Extra', menu=ext)
 
         self.track_en = tk.BooleanVar()
 
-        # TODO add fonts
-        #view_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
+        file_menu.add_command(label='Exit', command=self.on_close)
+
+        graph_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
         #view_menu.add_cascade(label='Graph (external)', menu=graph)
-        view_menu.add_command(label='Live Graph Single', command=self.create_external_single)
-        view_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)
-        view_menu.add_command(label='History Graph', command=self.show_history)
+        graph_menu.add_command(label='Live Graph Single', command=self.create_external_single)
+        graph_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)
+        graph_menu.add_command(label='History Graph', command=self.show_history)
         track_menu.add_checkbutton(label='Enable Tracking', command=self.start_track, variable=self.track_en)
         track_menu.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
-        
-        #if sys.platform == 'win32':
-        #    ext.add_command(label='Win32_Battery', command=self.tree.get_win32batt)
-        #    ext.add_command(label='Win32_PortableBattery', command=self.tree.get_portable)
-        #    ext.add_command(label='Root\\Wmi', command=self.tree.get_rootwmi)
-
-        file_menu.add_command(label='Exit', command=self.on_close)
         
         self.master.config(menu=mb)
 
@@ -186,7 +177,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.w.set(f'{self.sp.watts:.3f}')
         self.tree.update(self.tv, self.sp)
         #print(self.master.winfo_height() // 33)
-        #self.tv.config(height=self.master.winfo_height() // 33)
+        self.tv.config(height=self.master.winfo_height() // 33)
         self.master.after(1000, self.updateUI)
         
 
