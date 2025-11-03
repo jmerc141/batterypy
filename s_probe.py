@@ -1,8 +1,6 @@
 '''
     Make amps negative if discharging?
 
-    A battery's end of life is typically when the FullChargeCapacity property falls below 80% of the DesignCapacity property
-
     TODO: change __init__ to activate and change treev setup_tree to no arguments and static calls to s_probe
 '''
 
@@ -131,7 +129,7 @@ class sProbe(object):
                 rwmi_est_rt = sProbe.msbatt['BatteryRuntime']['EstimatedRuntime']         # In seconds
                 win32_est_rt = sProbe.win32bat['EstimatedRunTime']                        # In minutes
                 # Reading could be large number, skip if longer than 24 hours
-                if rwmi_est_rt and rwmi_est_rt < 34560 and rwmi_est_rt > 0:
+                if rwmi_est_rt < 34560 and rwmi_est_rt > 0:
                     sProbe.hours = int(rwmi_est_rt // 3600)
                     sProbe.minutes = int(rwmi_est_rt % 60)
                 elif win32_est_rt and win32_est_rt < 1440 and win32_est_rt > 0:
@@ -198,7 +196,7 @@ class sProbe(object):
     def get_health():
         if sProbe.msbatt['BatteryStaticData']['DesignedCapacity'] is not None:
             bathealth = (sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / sProbe.msbatt['BatteryStaticData']['DesignedCapacity']) * 100
-        return f'{bathealth:.2f}'
+        return bathealth
 
 
     '''

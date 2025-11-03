@@ -30,7 +30,7 @@ class Treev:
                 {'prop': 'Design Wh', 'val': f'{probe.msbatt['BatteryStaticData']['DesignedCapacity'] / 1000} Wh', 'max': ''},
                 {'prop': 'Full Charged Wh', 'val': f'{probe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000} Wh', 'max': ''},
                 {'prop': 'Remaining Wh', 'val': f'{probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000} Wh', 'max': ''},
-                {'prop': 'Health', 'val': f'{probe.get_health()}%', 'max': '', 'open': False, 'subdata': []},
+                {'prop': 'Health', 'val': f'{probe.get_health():.2f}% {'' if probe.get_health() > 80 else '⚠'}', 'max': '', 'open': False, 'subdata': []},
                 {'prop': 'Est. Time', 'val': f'{probe.hours}h {probe.minutes}m', 'max': ''},
             ]},   
         ]
@@ -45,7 +45,7 @@ class Treev:
         elif probe.msbatt['BatteryStatus']['Discharging']:
             charge_string = 'Discharge Power ⚡'
         else:
-            charge_string = '???'
+            charge_string = 'Charging / Discharging?'
 
         if probe.msbatt['BatteryStatus']['Charging']:
             if probe.chargerate > Treev.maxw:

@@ -11,6 +11,7 @@ import sys, os, internal, plot, hplot
 import tkinter as tk
 from tkinter import ttk
 import TKinterModernThemes as TKMT
+from idlelib.tooltip import Hovertip
 
 sys.path.append(".")
 
@@ -102,8 +103,6 @@ class App(TKMT.ThemedTKinterFrame):
         
         self.master.config(menu=mb)
 
-        #self.tree.tree.bind('<<TreeviewSelect>>', self.item_selected)
-
         # Horizontal scrollbar
         #scrollx = ttk.Scrollbar(self.master, orient=tk.HORIZONTAL, command=self.tree.tree.xview)
         #scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
@@ -117,9 +116,12 @@ class App(TKMT.ThemedTKinterFrame):
         # Resize the window vertically and there is a space between the bottom
         # of TreeView and top of PowerInfo Frame
         
-
         self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 14, self.tree.setup_tree(self.sp),
                                 'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(5,0), padx=5)
+        
+        #self.tv.bind('<<TreeviewSelect>>', self.item_selected)
+        if s_probe.sProbe.get_health() < 80:
+            ht = Hovertip(self.tv, 'A battery\'s end of life is typically when the FullChargeCapacity property\nfalls below 80% of the DesignCapacity property')
         
         s = ttk.Style()
         s.configure('Treeview', indent=10)
@@ -243,7 +245,7 @@ class App(TKMT.ThemedTKinterFrame):
         event: item clicked
     '''
     def item_selected(self, event):
-        self.item = self.tree.tree.item(self.tree.tree.selection()[0])['text']
+        self.item = self.tv.item(self.tv.selection()[0])['text']
         # If graph is instantiated
         if self.i_pl is not None:
             # Everything that can be graphed
