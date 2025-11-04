@@ -7,34 +7,22 @@
  - get % per hour
 '''
 
-import sys, os, json, csv, settings
+import os, json, csv, settings, s_probe
 from datetime import datetime
+
 
 class Tracker(object):
     def __init__(self):
-
-        if sys.platform == 'linux':
-            import s_probe_l
-            self.probe = s_probe_l.sProbe
-        elif sys.platform == 'win32':
-            import s_probe
-            self.probe = s_probe.sProbe
-
         self.headers = ['session_num','curtime','health_percent','probes_full_Wh','measured_Ah','measured_Wh',
                    'rem_Ah','rem_Wh','cap_diff','voltage','amps','watts','chrg_percent','charging']
         
         self.num_sessions = 0
         
-        # Write headers to new file
         if os.path.exists(settings.s['filename']):
             self.num_sessions = self.readCsv()
             self.num_sessions += 1
         else:
-            with open(settings.s['filename'], newline='', mode='w') as f:
-                writer = csv.writer(f)
-                writer.writerow(self.headers)
-        
-        #self.sessions.append([])
+            self.write_header()
 
         # List for writing info to history file
         self.history_data = []
@@ -46,12 +34,12 @@ class Tracker(object):
         self.readings = 0
         
         # Percentage of battery when tracking begins
-        self.starting_percent = s_probe.sProbe.win32bat['EstimatedChargeRemaining']
+        self.starting_percent = s_probe.sProbe.chargeRemaining
         
         # mWh reading when tracking begins
-        self.starting_cap = s_probe.sProbe.msbatt['BatteryStatus']['RemainingCapacity']
+        self.starting_cap = s_probe.sProbe.capRemaining
 
-        self.start_state = s_probe.sProbe.msbatt['BatteryStatus']['Charging']
+        self.start_state = s_probe.sProbe.charging
 
         self.tmp_data = []
 
@@ -74,13 +62,14 @@ class Tracker(object):
             return 0
     
 
-    '''
-        Method to track current mAh, must update every second for accurate reading
-        Runs only when conditions are met
-    '''
     def track_norm(self):
+        '''
+            Method to track current mAh, must update every second for accurate reading
+            Runs only when conditions are met
+            Intended for automatic tracking in background (not used yet)
+        '''
         # If charge percent changes by 5
-        if (self.probe.est_chrg - self.starting_percent) > 2:
+        if (s_probe.sProbe.charging - self.starting_percent) > 2:
             self.readings += 1
 
             self.get_readings()
@@ -92,19 +81,16 @@ class Tracker(object):
                 self.readings = 0
 
 
-    '''
-    
-    '''
     def track_man(self):
-        # if unplugged or plugged in, create a new session
-        #print(self.start_state)
-        if self.start_state != self.probe.msbatt['BatteryStatus']['Charging']:
+        '''
+            Manually run from s_probe to get readings and write to file every 10 seconds
+        '''
+        if self.start_state != s_probe.sProbe.charging:
             self.num_sessions += 1
-            self.start_state = self.probe.chargerate
+            self.start_state = s_probe.sProbe.chargerate
         self.readings += 1
         self.get_readings()
         if self.readings == 10:
-            #self.write_history()
             # 1KB per 10s
             self.write_csv()
             self.readings = 0
@@ -114,37 +100,45 @@ class Tracker(object):
         Seperate function to populate the history_data dict, order matters with csv
     '''
     def get_readings(self):
-        full_cap = self.probe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000
-        est_chrg = self.probe.win32bat['EstimatedChargeRemaining']
-        rem_cap = self.probe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000
+        full_cap = s_probe.sProbe.fullChargeCap
+        est_chrg = s_probe.sProbe.chargeRemaining
+        rem_cap = s_probe.sProbe.capRemaining
 
         # How much Wh was gained / lost
-        if self.probe.msbatt['BatteryStatus']['Charging']:
+        if s_probe.sProbe.charging:
             cap_diff = (rem_cap - self.starting_cap)
         else:
             cap_diff = (self.starting_cap - rem_cap)
 
-        self.measured_Ah += self.probe.amps * (1/3600)
-        self.measured_Wh += self.probe.watts * (1/3600)
+        self.measured_Ah += s_probe.sProbe.amps * (1/3600)
+        self.measured_Wh += s_probe.sProbe.watts * (1/3600)
         
-        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), self.probe.get_health(),
-                                  full_cap, self.measured_Ah, self.measured_Wh, round((rem_cap / self.probe.voltage), 3),
-                                  rem_cap, cap_diff, self.probe.voltage, self.probe.amps, self.probe.watts, est_chrg, self.probe.msbatt['BatteryStatus']['Charging']])
+        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), s_probe.sProbe.health,
+                                  full_cap, self.measured_Ah, self.measured_Wh, round((rem_cap / s_probe.sProbe.voltage), 3),
+                                  rem_cap, cap_diff, s_probe.sProbe.voltage, s_probe.sProbe.amps, s_probe.sProbe.watts, est_chrg, s_probe.sProbe.charging])
         
 
-
-    '''
-        Write session list to history.json file as JSON
-    '''
     def write_history(self):
+        '''
+            Write session list to history.json file as JSON (not used)
+        '''
         with open(self.filename, 'w') as f:
             jsonobj = json.dump(self.sessions, f, indent=4)
 
 
-    '''
-        Write header
-    '''
+    def write_header(self):
+        '''
+            Writes only the header to the history file
+        '''
+        with open(settings.s['filename'] ,'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(self.headers)
+
+
     def write_csv(self):
+        '''
+            Write header
+        '''
         with open(settings.s['filename'], newline='', mode='a') as f:
             w = csv.writer(f)
             for h in self.history_data:
@@ -152,8 +146,8 @@ class Tracker(object):
         self.history_data = []
 
         
-    '''
-    
-    '''
     def clear_history(self):
-        os.remove(self.filename)
+        '''
+            Delete history file
+        '''
+        os.remove(settings.s['filename'])

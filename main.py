@@ -1,7 +1,4 @@
-'''
-Decide to add 'all' button to internal to show v, a, and w
-'''
-import multiprocessing, sys, gui, cli
+import multiprocessing, sys
 
 if __name__ == '__main__':
     # Necessary for windows multiprocessing and pyinstaller
@@ -9,7 +6,9 @@ if __name__ == '__main__':
         multiprocessing.freeze_support()
     
     if len(sys.argv) > 1 and sys.argv[1] == 'cli':
+        import cli
         cli.run()
-    else:    
+    else:
+        import gui
         app = gui.App('azure', 'dark')
         app.run()

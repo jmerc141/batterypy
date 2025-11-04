@@ -65,7 +65,7 @@ class Window(Frame):
         dd = ttk.OptionMenu(topFrame, self.sel, self.session_times[0], *self.session_times, command=self.change_sesh)
         
         self.sel2 = tk.StringVar(self)
-        self.graphs = ['Power', 'Capacity', 'Extra', 'Charge Percent', 'Degredation']
+        self.graphs = ['Power', 'Capacity', 'Charge Percent', 'Degredation']
         dd2 = ttk.OptionMenu(topFrame, self.sel2, self.graphs[0], *self.graphs, command=self.change_info)
         
         # Pack elements
@@ -169,12 +169,14 @@ class Window(Frame):
 
         #print(mcolors.CSS4_COLORS)
         if e in self.graphs:
+            # Power
             if e == self.graphs[0]:
                 self.fancy_line(self.get_session_el2(self.headers.index('voltage')), 'red')
                 self.fancy_line(self.get_session_el2(self.headers.index('amps')), 'blue')
                 self.fancy_line(self.get_session_el2(self.headers.index('watts')), 'gold')
                 # Inlcude number in legend?
                 self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0]], [f'Volts ', 'Amps', 'Watts'], fontsize=self.font_size)
+            # Capacity
             elif e == self.graphs[1]:
                 self.fancy_line(self.get_session_el2(self.headers.index('measured_Ah')), 'salmon')
                 self.fancy_line(self.get_session_el2(self.headers.index('rem_Ah')), 'orange')
@@ -190,10 +192,8 @@ class Window(Frame):
 
                 self.ax.legend([self.lines[0][0], self.lines[1][0], self.lines[2][0], self.lines[3][0]], 
                                ['Measured_Ah', f'Remaining_Ah {avgah_min:.2f}/m', 'Measured_Wh', f'Remaining_Wh {avgwh_min:.2f}/m'], fontsize=self.font_size)
+            # Charge percent
             elif e == self.graphs[2]:
-                
-                self.ax.legend([self.lines[0][0], self.lines[1][0]], [f'Measured_Wh', 'Remaining_Wh'])
-            elif e == self.graphs[3]:
                 avgm = avgh = ''
                 sesh = self.hdata[str(self.selected_sesh)]
                 lminutes = len(sesh) / 60
@@ -211,34 +211,9 @@ class Window(Frame):
                 self.fancy_line(line, 'lightblue')
                 self.add_lin_reg(line)
                 self.ax.legend([self.lines[0][0]], [f'%/m {avgm}\n%/h {avgh}'], fontsize=self.font_size)
-            elif e == self.graphs[4]:
-                times = []
-                vals = []
-                #subprocess.run(['powercfg', '/batteryreport'])
-                with open('battery-report.html', 'r') as f:
-                    soup = BeautifulSoup(f, 'html.parser')
-
-                for r in soup.find_all('table')[5].find_all('tr')[1:]:
-                    d = r.find_all('td')
-                    if len(d) == 3:
-                        times.append(d[0].get_text(strip=True)[0:10])
-                        vals.append(int(d[1].get_text(strip=True).replace(',', '').replace(' mWh', '')))
-                
-                d1 = datetime.strptime(times[0], '%Y-%m-%d')
-                d2 = datetime.strptime(times[-1], '%Y-%m-%d')
-                
-                time_delta = d2-d1
-                wh_delta = (vals[0]-vals[-1]) / 1000
-
-                wh_per_month = round((wh_delta / time_delta.days)*30, 2)
-
-                self.ax.xaxis.set_ticks(np.arange(len(vals)))
-                self.ax.locator_params(axis='x', nbins=11)
-                self.ax.xaxis.set_ticklabels(times)
-                self.lines.append(self.ax.plot(vals, color='lime', linewidth=1))
-                self.stackplots.append(self.ax.stackplot(range(0, len(vals)), vals, color='forestgreen', alpha=0.2, labels=[]))
-                self.add_lin_reg(vals)
-                self.ax.legend([self.lines[0][0]], [f'{wh_delta}Wh lost total\n{wh_per_month} per month'], fontsize=self.font_size)
+            # Degradation
+            elif e == self.graphs[3]:
+                self.windows_battery_report()
 
 
             self.ogx = self.ax.get_xlim()
@@ -249,6 +224,36 @@ class Window(Frame):
             tk.messagebox.showerror('Error', f'Selected graph is not in self.graphs')
 
 
+    def windows_battery_report(self):
+        times = []
+        vals = []
+        subprocess.run(['powercfg', '/batteryreport'])
+        with open('battery-report.html', 'r') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+
+        for r in soup.find_all('table')[5].find_all('tr')[1:]:
+            d = r.find_all('td')
+            if len(d) == 3:
+                times.append(d[0].get_text(strip=True)[0:10])
+                vals.append(int(d[1].get_text(strip=True).replace(',', '').replace(' mWh', '')))
+        
+        d1 = datetime.strptime(times[0], '%Y-%m-%d')
+        d2 = datetime.strptime(times[-1], '%Y-%m-%d')
+        
+        time_delta = d2-d1
+        wh_delta = (vals[0]-vals[-1]) / 1000
+
+        wh_per_month = round((wh_delta / time_delta.days)*30, 2)
+
+        self.ax.xaxis.set_ticks(np.arange(len(vals)))
+        self.ax.locator_params(axis='x', nbins=11)
+        self.ax.xaxis.set_ticklabels(times)
+        self.lines.append(self.ax.plot(vals, color='lime', linewidth=1))
+        self.stackplots.append(self.ax.stackplot(range(0, len(vals)), vals, color='forestgreen', alpha=0.2, labels=[]))
+        self.add_lin_reg(vals)
+        self.ax.legend([self.lines[0][0]], [f'{wh_delta}Wh lost total\n{wh_per_month} per month'], fontsize=self.font_size)
+
+
     def add_lin_reg(self, xdata):
         x = np.arange(len(xdata))
         m, b = np.polyfit(x, xdata, 1)
@@ -256,14 +261,12 @@ class Window(Frame):
         self.lines.append(self.ax.plot(x, y, 'dodgerblue', linestyle='dashed'))
 
 
-
-    '''
-        Adds a line and stackplot to the graph
-        x: array of elements to be graphed (should be int or float)
-        c: color of the line3
-    '''
     def fancy_line(self, x, c):
-        #print(x)
+        '''
+            Adds a line and stackplot to the graph
+            x: array of elements to be graphed (should be int or float)
+            c: color of the line3
+        '''
         if len(self.lines) == 0:
             tmpx = np.arange(len(x))
             self.ax.xaxis.set_ticks(tmpx)
@@ -343,8 +346,12 @@ class Window(Frame):
             yd = event.ydata
             xl1, xl2 = self.ax.get_xlim()
             yl1, yl2 = self.ax.get_ylim()
-            self.ax.set_xlim(xl1 + (self.startx - xd), xl2 + (self.startx - xd))
-            self.ax.set_ylim(yl1 + (self.starty - yd), yl2 + (self.starty - yd))
+            try:
+                self.ax.set_xlim(xl1 + (self.startx - xd), xl2 + (self.startx - xd))
+                self.ax.set_ylim(yl1 + (self.starty - yd), yl2 + (self.starty - yd))
+            except TypeError as te:
+                # mouse outside draggable window
+                pass
 
             self.canvas.draw()
         

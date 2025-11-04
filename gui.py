@@ -7,7 +7,7 @@ add gridlines to single / multi plot
 powercfg /batteryreport /output "C:\battery-report.html"
 '''
 
-import sys, os, internal, plot, hplot
+import sys, os, internal, plot, hplot, s_probe, treev
 import tkinter as tk
 from tkinter import ttk
 import TKinterModernThemes as TKMT
@@ -15,11 +15,49 @@ from idlelib.tooltip import Hovertip
 
 sys.path.append(".")
 
+if sys.platform == 'linux':
+    try:
+        s_probe.sProbe.activate_l()
+        s_probe.sProbe.th.start()
+    except Exception as e:
+        tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
+        exit()
+    
+elif sys.platform == 'win32':
+    try:
+        s_probe.sProbe.activate()
+        s_probe.sProbe.th.start()
+    except Exception as e:
+        import traceback
+        tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
+        traceback.print_exception(type(e), e, e.__traceback__)
+        exit()
+else:
+    print('Incompatible system, exiting')
+    sys.exit()
+
+
 class App(TKMT.ThemedTKinterFrame):
     def __init__(self, theme, mode, usecommandlineargs=True, usethemeconfigfile=True):
         super().__init__('Batterypy', theme, mode, usecommandlineargs, usethemeconfigfile)
         # Run on_close when window is closed
         self.master.protocol('WM_DELETE_WINDOW', self.on_close)
+
+        if sys.platform == 'linux':
+            if os.path.exists('./res/battery.png'):
+                # should set small top-right corner icon
+                i = tk.PhotoImage(file='./res/battery.png')
+                self.master.iconphoto(False, i)
+
+            if os.path.exists('./res/battery.png'):
+                # Set taskbar icon
+                i = tk.PhotoImage(file='./res/battery.png')
+                self.master.call('wm', 'iconphoto', self.master._w, i)
+        elif sys.platform == 'win32':
+            ico = '.\\res\\battery.ico'
+            if os.path.exists(ico):
+                # Set small corner icon
+                self.master.iconbitmap(ico)
 
         # Toggle internal plot display bool
         self.internal = False
@@ -40,38 +78,7 @@ class App(TKMT.ThemedTKinterFrame):
         # Set window size
         self.master.geometry('450x500')
         #self.master.resizable(False, False)
-
-        # Create Treev object depending on linux/win platform because
-        # implementations are different
-        if sys.platform == 'linux':
-            import tree_l, s_probe_l
-            self.tree = tree_l.Treev(self.master)
-            if os.path.exists('./res/battery.png'):
-                # should set small top-right corner icon
-                i = tk.PhotoImage(file='./res/battery.png')
-                self.master.iconphoto(False, i)
-        elif sys.platform == 'win32':
-            try:
-                import s_probe
-                self.sp = s_probe.sProbe()
-                self.sp.th.start()
-            except Exception as e:
-                tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
-
-            try:
-                import treev
-                self.tree = treev.Treev
-                pass
-            except TypeError as t:
-                tk.messagebox.showerror('Error', f'Error initializing tree\n{t}')
-                self.master.on_close()
             
-
-            if os.path.exists('./res/battery.ico'):
-                self.master.iconbitmap('./res/battery.ico')
-        else:
-            print('Incompatible system, exiting')
-            sys.exit()
 
         # Change dir again so history.csv writes to .exe dir
         if getattr(sys, 'frozen', False):
@@ -81,7 +88,7 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Menubar
         mb = tk.Menu(self.master, background='black', fg='white')
-        file_menu = tk.Menu(mb, tearoff=False, background='orange', bg='red')
+        file_menu = tk.Menu(mb, tearoff=False)
         graph_menu = tk.Menu(mb, tearoff=False)
         track_menu = tk.Menu(mb, tearoff=False)
 
@@ -116,19 +123,18 @@ class App(TKMT.ThemedTKinterFrame):
         # Resize the window vertically and there is a space between the bottom
         # of TreeView and top of PowerInfo Frame
         
-        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 14, self.tree.setup_tree(self.sp),
+        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 15, treev.Treev.setup_tree(),
                                 'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(5,0), padx=5)
         
         #self.tv.bind('<<TreeviewSelect>>', self.item_selected)
-        if s_probe.sProbe.get_health() < 80:
+        if s_probe.sProbe.health < 80:
             ht = Hovertip(self.tv, 'A battery\'s end of life is typically when the FullChargeCapacity property\nfalls below 80% of the DesignCapacity property')
         
         s = ttk.Style()
         s.configure('Treeview', indent=10)
         
-        pi = self.addLabelFrame('Power Info', padx=10, pady=(0,5), sticky='sew', row=1, col=0, 
+        pi = self.addLabelFrame('Power Info', padx=5, pady=(0,5), sticky='sew', row=1, col=0, 
                                  widgetkwargs={'height': 120}, )
-        
         
         pi.master.grid_propagate(False)
         pi.master.rowconfigure(0, minsize=32)
@@ -174,21 +180,22 @@ class App(TKMT.ThemedTKinterFrame):
     '''
     def updateUI(self):
         # overwrites values in the treeview, use only dynamic values
-        self.v.set(f'{self.sp.voltage:.3f}')
-        self.c.set(f'{self.sp.amps:.3f}')
-        self.w.set(f'{self.sp.watts:.3f}')
-        self.tree.update(self.tv, self.sp)
-        #print(self.master.winfo_height() // 33)
-        self.tv.config(height=self.master.winfo_height() // 33)
+        self.v.set(f'{s_probe.sProbe.voltage:.3f}')
+        self.c.set(f'{s_probe.sProbe.amps:.3f}')
+        self.w.set(f'{s_probe.sProbe.watts:.3f}')
+        # Update values in tree view 
+        treev.Treev.update(self.tv)
+        if self.master.winfo_height() > 10:
+            self.tv.config(height=self.master.winfo_height() // 33)
         self.master.after(1000, self.updateUI)
         
 
     def start_track(self):
-        if self.sp.win32bat['EstimatedChargeRemaining'] == 100:
+        if s_probe.sProbe.chargeRemaining == 100:
             tk.messagebox.showerror('Error', f'Not tracking when battery is 100%')
             self.track_en.set(False)
         else:
-            self.sp.activate_tracking()
+            s_probe.sProbe.activate_tracking()
             
 
     '''
@@ -229,7 +236,7 @@ class App(TKMT.ThemedTKinterFrame):
     '''
     def ask_clear_hist(self):
         if tk.messagebox.askyesno('Delete?', 'Delete all history data?'):
-            self.sp.sProbe.del_history()
+            s_probe.sProbe.del_history()
 
     '''
         Creates external window with single plot
@@ -268,7 +275,7 @@ class App(TKMT.ThemedTKinterFrame):
         #except Exception as e:
         #    print('bad')
         plot.plt.close()
-        self.sp.on_close()
+        s_probe.sProbe.on_close()
         self.master.update()
         self.master.destroy()
 

@@ -2,3 +2,4 @@ wmi
 matplotlib
 TKinterModernThemes
 bs4
+pynput
