@@ -178,33 +178,35 @@ class sProbe(object):
     
     @staticmethod
     def refresh_l():
-        sProbe.charging = True if sProbe.__catFile('status', i=False) == 'Charging' else False
-        sProbe.voltage = sProbe.__catFile('voltage_now')
-        # Either have current_now or power_now
-        sProbe.amps = sProbe.__catFile('current_now')
-        if sProbe.amps == None:
-            sProbe.watts = sProbe.__catFile('power_now')
-            sProbe.amps = sProbe.watts / sProbe.voltage
-        else:
-            sProbe.watts = sProbe.voltage * sProbe.amps
+        while(sProbe.going):
+            sProbe.charging = True if sProbe.__catFile('status', i=False) == 'Charging' else False
+            sProbe.voltage = sProbe.__catFile('voltage_now')
+            # Either have current_now or power_now
+            sProbe.amps = sProbe.__catFile('current_now')
+            if sProbe.amps == None:
+                sProbe.watts = sProbe.__catFile('power_now')
+                sProbe.amps = round(sProbe.watts / sProbe.voltage, 3)
+            else:
+                sProbe.watts = sProbe.voltage * sProbe.amps
 
-        sProbe.fullChargeCap = sProbe.__catFile('charge_full') or sProbe.__catFile('energy_full')
-        sProbe.health = sProbe.__catFile('health') or (sProbe.fullChargeCap / sProbe.designCapacity) * 100
-        sProbe.chargeRemaining = int(sProbe.__catFile('capacity', i=False))
-        sProbe.cycleCount = sProbe.__catFile('cycle_count', i=False)
-        sProbe.status = sProbe.__catFile('status', i=False)
-        # TODO: Test charge_now value
-        cn = sProbe.__catFile('charge_now')
-        if cn:
-            sProbe.capRemaining = sProbe.__catFile('charge_now') * sProbe.voltage
-        else:
-            sProbe.capRemaining = sProbe.__catFile('energy_now')
-        # TODO: test value
-        seconds_to_full = sProbe.__catFile('time_to_full', i=False)
-        if seconds_to_full:
-            sProbe.hours = int(seconds_to_full // 3600)
-            sProbe.minutes = int(seconds_to_full % 60)
-
+            sProbe.fullChargeCap = sProbe.__catFile('charge_full') or sProbe.__catFile('energy_full')
+            sProbe.health = sProbe.__catFile('health') or (sProbe.fullChargeCap / sProbe.designCapacity) * 100
+            sProbe.chargeRemaining = int(sProbe.__catFile('capacity', i=False))
+            sProbe.cycleCount = sProbe.__catFile('cycle_count', i=False)
+            sProbe.status = sProbe.__catFile('status', i=False)
+            # TODO: Test charge_now value
+            cn = sProbe.__catFile('charge_now')
+            if cn:
+                sProbe.capRemaining = sProbe.__catFile('charge_now') * sProbe.voltage
+            else:
+                sProbe.capRemaining = sProbe.__catFile('energy_now')
+            # TODO: test value
+            seconds_to_full = sProbe.__catFile('time_to_full', i=False)
+            if seconds_to_full:
+                sProbe.hours = int(seconds_to_full // 3600)
+                sProbe.minutes = int(seconds_to_full % 60)
+            
+            time.sleep(1)
 
     @staticmethod
     def __catFile(fname: str, i=True):

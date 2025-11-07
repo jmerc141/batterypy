@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from threading import Thread
-import sys
+import sys, s_probe
 
 '''
     Wrapper class for external plots
@@ -10,13 +10,6 @@ import sys
 class Plot:
 
     def __init__(self, t):
-        if sys.platform == 'win32':
-            import s_probe
-            self.sp = s_probe
-        elif sys.platform == 'linux':
-            import s_probe_l
-            self.sp = s_probe_l
-
         self.prop = 0
 
         self.xs = []
@@ -43,18 +36,11 @@ class Plot:
         Re-set values for graphing
     '''
     def updateValues(self):
-        if sys.platform == 'win32':
-            self.amps  = self.sp.sProbe.amps
-            self.volts = self.sp.sProbe.voltage
-            self.disch = self.sp.sProbe.dischargerate
-            self.charg = self.sp.sProbe.chargerate
-            self.charging = self.sp.sProbe.charging
-        elif sys.platform == 'linux':
-            self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
-            self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
-            self.disch = int(self.sp.sProbe.props['power_now']) / 1000000
-            self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
-            self.charging = (self.sp.sProbe.props['status'] == 'Charging') 
+        self.amps  = s_probe.sProbe.amps
+        self.volts = s_probe.sProbe.voltage
+        self.disch = s_probe.sProbe.dischargerate
+        self.charg = s_probe.sProbe.chargerate
+        self.charging = s_probe.sProbe.charging
 
 
     '''
@@ -128,10 +114,7 @@ class Plot:
     def anim2(self, i):
         self.updateValues()
 
-        if self.charging:
-            w = self.charg
-        else:
-            w = self.disch
+        w = s_probe.sProbe.watts
 
         self.xs.append(i)
         self.volty.append(self.volts)
@@ -202,10 +185,7 @@ class Plot:
     def anim1(self, i):
         self.updateValues()
         
-        if self.charging:
-            w = self.charg
-        else:
-            w = self.disch
+        w = s_probe.sProbe.watts
 
         self.watty.append(w)
         self.volty.append(self.volts)

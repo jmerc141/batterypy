@@ -2,6 +2,7 @@ import s_probe, time, os, pynput, shutil
 
 '''
     Adding this for slow computers
+    TODO: fixe newline for linux
 '''
 
 going = True

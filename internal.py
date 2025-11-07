@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from tkinter import Frame, ttk
 from threading import Thread
-import sys
+import sys, s_probe
 
 '''
 Referencing plt will cause hanging,
 Plot resizes after opening external plot (open external then internal and its resized)
+TODO: remove self.sp, replace with s_probe static calls
 '''
 
 class Window(Frame):

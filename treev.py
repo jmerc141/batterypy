@@ -26,7 +26,7 @@ class Treev:
             {'prop': 'Est. Charge', 'val': s_probe.sProbe.chargeRemaining, 'max': '', 'open': False, 'subdata': []},
             # Power info
             {'prop': charge_string, "val": "", 'max': '', "open": True, "subdata": [
-                {"prop": 'Design Voltage', 'val': f'{s_probe.sProbe.designVoltage:.3f}', 'max': ''},
+                {"prop": 'Design Voltage', 'val': f'{s_probe.sProbe.designVoltage:.3f} V', 'max': ''},
                 {"prop": 'Voltage', 'val': s_probe.sProbe.voltage, 'max': 0},
                 {"prop": 'Amps', 'val': s_probe.sProbe.amps, 'max': 0},
                 {"prop": 'Watts', 'val': s_probe.sProbe.watts, 'max': 0},
@@ -48,21 +48,18 @@ class Treev:
     def update(tv):
         if s_probe.sProbe.charging:
             charge_string = 'Charging Power 🔌'
-            if s_probe.sProbe.chargerate > Treev.maxw:
-                Treev.maxw = s_probe.sProbe.chargerate
         elif not s_probe.sProbe.charging:
             charge_string = 'Discharge Power ⚡'
-            if s_probe.sProbe.dischargerate > Treev.maxw:
-                Treev.maxw = s_probe.sProbe.dischargerate
         else:
             charge_string = 'Full'
-            
 
         # Max values column
         if s_probe.sProbe.voltage > Treev.maxv:
             Treev.maxv = s_probe.sProbe.voltage
         if s_probe.sProbe.amps > Treev.maxa:
             Treev.maxa = s_probe.sProbe.amps
+        if s_probe.sProbe.watts > Treev.maxw:
+            Treev.maxw = s_probe.sProbe.watts
 
         # Thanks ChatGPT
         # Update charging string in tree, using index in tree
