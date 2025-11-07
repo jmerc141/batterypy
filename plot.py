@@ -61,7 +61,7 @@ class Plot:
         Sets up figure, lines, axes for multi-plot window
     '''
     def setup_2(self):
-        self.fig = plt.figure(figsize=(8,6), dpi=65)
+        self.fig = plt.figure(figsize=(8,6), dpi=65, num='Power Graph')
         # horizontal graphs
         #self.ax1 = self.fig.add_subplot(3,1,1)
         #self.ax2 = self.fig.add_subplot(3,1,2)
@@ -171,7 +171,7 @@ class Plot:
             self.ampy.append(0)
             self.ymax.append(0)
         
-        self.fig = plt.figure(dpi=self.dpi, figsize=(8,8))
+        self.fig = plt.figure(dpi=self.dpi, figsize=(8,8), num='Power Graph')
         self.ax1 = self.fig.add_subplot()
 
         plt.title('Power', color='white')

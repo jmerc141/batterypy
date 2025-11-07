@@ -1,8 +1,6 @@
 '''
+    Some machines update wmi very slowly (30+ seconds)
     Make amps negative if discharging?
-
-    TODO: change __init__ to activate and change treev setup_tree to no arguments and static calls to s_probe
-    TODO: add linux properties so s_probe is platform independent
     TODO: implement linux tracking
 '''
 
@@ -65,10 +63,11 @@ class sProbe(object):
         sProbe.get_portable()
         
         sProbe.charging = sProbe.msbatt['BatteryStatus']['Charging']
-        sProbe.designCapacity = sProbe.msbatt['BatteryStaticData']['DesignedCapacity']
+        sProbe.designCapacity = sProbe.portable['DesignCapacity'] or sProbe.win32bat['DesignCapacity'] or sProbe.msbatt['BatteryStaticData']['DesignedCapacity']
         if sProbe.designCapacity == None:
             sProbe.designCapacity = sProbe.win32bat['DesignCapacity']
         sProbe.designCapacity = sProbe.designCapacity / 1000
+        sProbe.fullChargeCap = sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000
         sProbe.deviceName = sProbe.msbatt['BatteryStaticData']['DeviceName']
         sProbe.manufName = sProbe.msbatt['BatteryStaticData']['ManufactureName']
         sProbe.serial_num = sProbe.msbatt['BatteryStaticData']['SerialNumber']

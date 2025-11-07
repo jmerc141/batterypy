@@ -36,7 +36,7 @@ class Treev:
                 {'prop': 'Design Wh', 'val': f'{s_probe.sProbe.designCapacity:.3f} Wh', 'max': ''},
                 {'prop': 'Full Charged Wh', 'val': f'{s_probe.sProbe.fullChargeCap:.3f} Wh', 'max': ''},
                 {'prop': 'Remaining Wh', 'val': f'{s_probe.sProbe.capRemaining:.3f} Wh', 'max': ''},
-                {'prop': 'Health', 'val': f'{s_probe.sProbe.health:.2f}% {'' if s_probe.sProbe.health > 80 else '⚠'}', 'max': '', 'open': False, 'subdata': []},
+                {'prop': 'Health', 'val': f'{s_probe.sProbe.health:.2f}%', 'max': '', 'open': False, 'subdata': []},
                 {'prop': 'Est. Time', 'val': f'{s_probe.sProbe.hours}h {s_probe.sProbe.minutes}m', 'max': ''},
             ]},   
         ]
@@ -80,7 +80,7 @@ class Treev:
         # Rem cap
         tv.item(16, values=(f'{s_probe.sProbe.capRemaining:.3f} Wh', ''))
         # Health
-        tv.item(17, values=(f'{s_probe.sProbe.health:.2f}% {'' if s_probe.sProbe.health > 80 else '⚠'}', ''))
+        tv.item(17, values=(f'{s_probe.sProbe.health:.2f}%', ''))
         # Time
         tv.item(18, values=(f'{s_probe.sProbe.hours}h {s_probe.sProbe.minutes}m', ''))
 

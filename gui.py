@@ -2,8 +2,6 @@
 credit to Freepik for battery image:
     <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
 
-add gridlines to single / multi plot
-
 powercfg /batteryreport /output "C:\battery-report.html"
 '''
 
@@ -43,6 +41,12 @@ class App(TKMT.ThemedTKinterFrame):
         # Run on_close when window is closed
         self.master.protocol('WM_DELETE_WINDOW', self.on_close)
 
+        # Change directory to get icon resource
+        try:
+            os.chdir(sys._MEIPASS)
+        except Exception:
+            self.base_path = os.path.abspath(".")
+
         if sys.platform == 'linux':
             if os.path.exists('./res/battery.png'):
                 # should set small top-right corner icon
@@ -61,15 +65,7 @@ class App(TKMT.ThemedTKinterFrame):
 
         # Toggle internal plot display bool
         self.internal = False
-
         self.hist_init = False
-
-        # Change directory to get icon resource
-        try:
-            os.chdir(sys._MEIPASS)
-        except Exception:
-            self.base_path = os.path.abspath(".")
-        
 
         # Placeholder for internal or external graph
         self.i_pl = None
@@ -123,7 +119,7 @@ class App(TKMT.ThemedTKinterFrame):
         # Resize the window vertically and there is a space between the bottom
         # of TreeView and top of PowerInfo Frame
         
-        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 15, treev.Treev.setup_tree(),
+        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 20, treev.Treev.setup_tree(),
                                 'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(5,0), padx=5)
         
         #self.tv.bind('<<TreeviewSelect>>', self.item_selected)
