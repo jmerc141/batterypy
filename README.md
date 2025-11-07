@@ -3,8 +3,8 @@ GUI for battery information (windows and linux)
 
 ## Requirements
 ```
-Use pip or package manager to install:
-wmi matplotlib tkinter
+Use pip or package manager to install requirements.txt
+On linux make sure python-tk and idle3 are installed (apt)
 ```
 ## Build:
 ### Windows:
