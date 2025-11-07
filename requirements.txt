@@ -3,3 +3,4 @@ matplotlib
 TKinterModernThemes
 bs4
 pynput
+colorama

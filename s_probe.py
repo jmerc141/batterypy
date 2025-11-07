@@ -43,7 +43,7 @@ class sProbe(object):
     voltage = dischargerate = amps = chargerate = watts = hours = minutes = chargeRemaining = fullChargeCap\
        = designCapacity = designVoltage = health = chemistry = status = cycleCount = capRemaining = 0
     # String
-    charging = deviceName = manufName = serial_num = ''
+    charging = deviceName = manufName = serial_num = statusString = ''
     going = True
     tracking = False
 
@@ -58,12 +58,13 @@ class sProbe(object):
             sProbe.getWin32Bat()
         except TypeError as e:
             raise TypeError('Win32Battery is null', e)
-        #sProbe.getStaticData()
         sProbe.getRootWmi()
         sProbe.get_portable()
         
         sProbe.charging = sProbe.msbatt['BatteryStatus']['Charging']
-        sProbe.designCapacity = sProbe.portable['DesignCapacity'] or sProbe.win32bat['DesignCapacity'] or sProbe.msbatt['BatteryStaticData']['DesignedCapacity']
+        # sProbe.portable may not be instantiated
+        sProbe.designCapacity = sProbe.portable['DesignCapacity'] if sProbe.portable else 0 or \
+            sProbe.win32bat['DesignCapacity'] or sProbe.msbatt['BatteryStaticData']['DesignedCapacity']
         if sProbe.designCapacity == None:
             sProbe.designCapacity = sProbe.win32bat['DesignCapacity']
         sProbe.designCapacity = sProbe.designCapacity / 1000
@@ -74,6 +75,7 @@ class sProbe(object):
         sProbe.chemistry = sProbe.getchemstr()
         sProbe.designVoltage = sProbe.win32bat['DesignVoltage'] or sProbe.portable['DesignVoltage']
         sProbe.designVoltage = int(sProbe.designVoltage) / 1000
+        sProbe.statusString = sProbe.win32bat['Status']
 
         # Tracker object
         sProbe.track = tracker.Tracker()
