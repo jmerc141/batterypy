@@ -31,31 +31,21 @@ class Plot:
             self.proc.start()
 
         plt.show()
+        
 
-    '''
-        Re-set values for graphing
-    '''
-    def updateValues(self):
-        self.amps  = s_probe.sProbe.amps
-        self.volts = s_probe.sProbe.voltage
-        self.disch = s_probe.sProbe.dischargerate
-        self.charg = s_probe.sProbe.chargerate
-        self.charging = s_probe.sProbe.charging
-
-
-    '''
-        Sets up figure, lines, axes for multi-plot window
-    '''
     def setup_2(self):
+        '''
+            Sets up figure, lines, axes for multi-plot window
+        '''
         self.fig = plt.figure(figsize=(8,6), dpi=65, num='Power Graph')
         # horizontal graphs
-        #self.ax1 = self.fig.add_subplot(3,1,1)
-        #self.ax2 = self.fig.add_subplot(3,1,2)
-        #self.ax3 = self.fig.add_subplot(3,1,3)
+        self.ax1 = self.fig.add_subplot(3,1,1)
+        self.ax2 = self.fig.add_subplot(3,1,2)
+        self.ax3 = self.fig.add_subplot(3,1,3)
         # vertical graphs
-        self.ax1 = self.fig.add_subplot(1,3,1)
-        self.ax2 = self.fig.add_subplot(1,3,2)
-        self.ax3 = self.fig.add_subplot(1,3,3)
+        #self.ax1 = self.fig.add_subplot(1,3,1)
+        #self.ax2 = self.fig.add_subplot(1,3,2)
+        #self.ax3 = self.fig.add_subplot(1,3,3)
 
         # create lines
         self.vline, = self.ax1.plot(self.xs, self.volty, color='red', linewidth=2)
@@ -92,38 +82,36 @@ class Plot:
         self.ax1.spines['right'].set_color('white')
         self.ax1.spines['left'].set_color('white')
         
-        self.ax1.grid(color='white')
+        self.ax1.grid(color='grey')
 
         self.ax2.spines['bottom'].set_color('white')
         self.ax2.spines['top'].set_color('white')
         self.ax2.spines['right'].set_color('white')
         self.ax2.spines['left'].set_color('white')
-        self.ax2.grid(color='white')
+        self.ax2.grid(color='grey')
 
         self.ax3.spines['bottom'].set_color('white')
         self.ax3.spines['top'].set_color('white')
         self.ax3.spines['right'].set_color('white')
         self.ax3.spines['left'].set_color('white')
-        self.ax3.grid(color='white')
+        self.ax3.grid(color='grey')
 
         self.fig.subplots_adjust(bottom=.13, left=.07, hspace=.36, wspace=0.3)
 
-    '''
-        Function that returns elements to FuncAnimation for animating the multi-plot window
-    '''
+    
     def anim2(self, i):
-        self.updateValues()
-
-        w = s_probe.sProbe.watts
+        '''
+            Function that returns elements to FuncAnimation for animating the multi-plot window
+        '''
 
         self.xs.append(i)
-        self.volty.append(self.volts)
-        self.ampy.append(self.amps)
-        self.watty.append(w)
+        self.volty.append(s_probe.sProbe.voltage)
+        self.ampy.append(s_probe.sProbe.amps)
+        self.watty.append(s_probe.sProbe.watts)
 
-        self.ax1.set_title(f'Voltage ({self.volts})', color='white', fontsize=12)
-        self.ax2.set_title(f'Amps ({self.amps})', color='white', fontsize=12)
-        self.ax3.set_title(f'Watts ({w})', color='white', fontsize=12)
+        self.ax1.set_title(f'Voltage ({s_probe.sProbe.voltage})', color='white', fontsize=12)
+        self.ax2.set_title(f'Amps ({s_probe.sProbe.amps})', color='white', fontsize=12)
+        self.ax3.set_title(f'Watts ({s_probe.sProbe.watts})', color='white', fontsize=12)
 
         self.vline.set_data(self.xs, self.volty)
         self.aline.set_data(self.xs, self.ampy)
@@ -133,7 +121,8 @@ class Plot:
         self.ax2.set_ylim(-1, max(self.ampy) + 1)
         self.ax3.set_ylim(-1, max(self.watty) + 1)
 
-        self.vtitle.set_text(self.volts)
+        #self.vtitle.set_text(s_probe.sProbe.voltage)
+        print(self.volty)
         
         #self.spm1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
         #self.spm2, = self.ax2.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
@@ -141,10 +130,11 @@ class Plot:
 
         return self.vline, self.aline, self.wline, # self.spm1, self.spm2, self.spm3,
 
-    '''
-        Sets up figure, lines, axes, etc. for single plot window
-    '''
+    
     def setup_1(self):
+        '''
+            Sets up figure, lines, axes, etc. for single plot window
+        '''
         self.maxX = 60
         self.ymax = []
         for i in range(self.maxX):
@@ -163,13 +153,13 @@ class Plot:
         self.ax1.set_facecolor('#2f2f2f')
         self.ax1.tick_params(axis='x', colors='white')
         self.ax1.tick_params(axis='y', colors='white')
-        self.ax1.grid(color='white')
+        self.ax1.grid(color='grey')
         self.ax1.spines['bottom'].set_color('white')
         self.ax1.spines['top'].set_color('white')
         self.ax1.spines['right'].set_color('white')
         self.ax1.spines['left'].set_color('white')
 
-        self.fig.subplots_adjust(bottom=0.09, top=0.93)
+        self.fig.subplots_adjust(bottom=0.08, top=0.96, right=0.98, left=0.025)
 
         self.ax1.set_xlim([0, self.maxX])
 
@@ -179,29 +169,25 @@ class Plot:
         self.L = self.ax1.legend(loc=2)
         
 
-    '''
-        Function that returns elements to FuncAnimation for animating the single plot window
-    '''
+    
     def anim1(self, i):
-        self.updateValues()
-        
-        w = s_probe.sProbe.watts
-
-        self.watty.append(w)
-        self.volty.append(self.volts)
-        self.ampy.append(self.amps)
+        '''
+            Function that returns elements to FuncAnimation for animating the single plot window
+        '''
+        self.watty.append(s_probe.sProbe.watts)
+        self.volty.append(s_probe.sProbe.voltage)
+        self.ampy.append(s_probe.sProbe.amps)
 
         self.ymax.append(max(max([self.volty, self.ampy, self.watty])))
         self.ax1.set_ylim(0, max(self.ymax) + 1)
-        #print(max(self.ymax))
 
         self.volty.pop(0)
         self.ampy.pop(0)
         self.watty.pop(0)
 
-        self.L.get_texts()[0].set_text(f'Volts ({self.volts})')
-        self.L.get_texts()[1].set_text(f'Amps ({self.amps})')
-        self.L.get_texts()[2].set_text(f'Watts ({w})')
+        self.L.get_texts()[0].set_text(f'Volts ({s_probe.sProbe.voltage})')
+        self.L.get_texts()[1].set_text(f'Amps ({s_probe.sProbe.amps})')
+        self.L.get_texts()[2].set_text(f'Watts ({s_probe.sProbe.watts})')
 
         self.l1.set_ydata(self.volty)
         self.l2.set_ydata(self.ampy)
@@ -217,17 +203,18 @@ class Plot:
     def set_prop(self, prop):
         self.prop = prop    
 
-
-    '''
-        Function to animate the plot window
-    '''
+    
     def a(self, func):
+        '''
+            Function to animate the plot window
+            func: function to run along with animation
+        '''
         ani = animation.FuncAnimation(self.fig, func, interval=1000, cache_frame_data=False, blit=True)
 
-
-    '''
     
-    '''
     def on_close(self):
+        '''
+            Closes all plots
+        '''
         #print('close')
         plt.close('all')

@@ -183,7 +183,7 @@ class sProbe(object):
             sProbe.voltage = sProbe.__catFile('voltage_now')
             # Either have current_now or power_now
             sProbe.amps = sProbe.__catFile('current_now')
-            if sProbe.amps == None:
+            if sProbe.amps == 0:
                 sProbe.watts = sProbe.__catFile('power_now')
                 sProbe.amps = round(sProbe.watts / sProbe.voltage, 3)
             else:
@@ -222,7 +222,9 @@ class sProbe(object):
                 content = f.read()
                 return int(content) / 1000000 if i else content
         except FileNotFoundError as fnf:
-            return None
+            return 0
+        except OSError as err:
+            return 0
         #try:
             # Python 3.7>
             #sProbe.props[fname] = subprocess.run(['cat', sProbe.path + fname], capture_output=True).stdout.decode().replace('\n', '')

@@ -72,7 +72,9 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl = None
 
         # Set window size
-        self.master.geometry('450x500')
+        self.wid = 450
+        self.hei = 500
+        self.master.geometry(f'{self.wid}x{self.hei}')
         #self.master.resizable(False, False)
             
 
@@ -139,7 +141,6 @@ class App(TKMT.ThemedTKinterFrame):
         self.master.rowconfigure(1, weight=0)  # Bottom frame stays fixed
         
         
-        # TODO implement linux
         self.v = tk.DoubleVar(value=s_probe.sProbe.voltage)
         self.w = tk.DoubleVar(value=s_probe.sProbe.watts)
         self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
@@ -194,21 +195,22 @@ class App(TKMT.ThemedTKinterFrame):
             s_probe.sProbe.activate_tracking()
             
 
-    '''
-        Creates / destroys internal graph, changes window size
-    '''
+    
     def create_internal_graph(self):
+        '''
+            Creates / destroys internal graph, changes window size
+        '''
         self.internal = not self.internal
         if self.internal:
             self.plf = ttk.Frame()
             self.i_pl = internal.Window(self.plf)
-            self.plf.grid(column=2, row=0, sticky='w', pady=5)
-            self.master.geometry('1200x700')
+            self.plf.grid(column=2, row=0, sticky='nw', pady=5, rowspan=2)
+            self.master.geometry(f'{self.wid+800}x{self.hei+150}')
         else:
             self.i_pl.destroy()
             self.plf.destroy()
             self.i_pl = None
-            self.master.geometry('600x700')
+            self.master.geometry(f'{self.wid}x{self.hei}')
 
 
     '''

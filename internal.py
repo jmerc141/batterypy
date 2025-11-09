@@ -16,12 +16,6 @@ TODO: remove self.sp, replace with s_probe static calls
 class Window(Frame):
 
     def __init__(self, master = None):
-        if sys.platform == 'win32':
-            import s_probe
-            self.sp = s_probe
-        elif sys.platform == 'linux':
-            import s_probe_l
-            self.sp = s_probe_l
         Frame.__init__(self, master)
         self.master = master
         self.maxX = 60
@@ -30,130 +24,16 @@ class Window(Frame):
         self.tick = 0
         self.prop = None
 
-        self.internal_dpi = 70
+        self.internal_dpi = 65
 
         self.configure(bg='#2f2f2f')
             
-        self.init_window()
-
-
-    def updateValues(self):
-        if sys.platform == 'win32':
-            self.amps  = self.sp.sProbe.amps
-            self.volts = self.sp.sProbe.voltage
-            self.disch = self.sp.sProbe.dischargerate
-            self.charg = self.sp.sProbe.chargerate
-            self.charging = self.sp.sProbe.charging
-        elif sys.platform == 'linux':
-            self.amps  = int(self.sp.sProbe.calculated_props['amps']) / 1000000
-            self.volts = int(self.sp.sProbe.props['voltage_now']) / 1000000
-            self.disch = int(self.sp.sProbe.calculated_props['watts']) / 1000000
-            self.charg = int(self.sp.sProbe.calculated_props['watts']) / 1000000
-            self.charging = (self.sp.sProbe.props['status'] == 'Charging')
-
-
-    # Destroys graph element
-    def Clear(self):
-        self.destroy()
-
-
-    def animate(self,i):
-        self.updateValues()
-
-        self.tick += 1
-        self.x.append(self.tick)
-
-        if self.prop == 'Amperage':
-            tmp = self.amps
-        if self.prop == 'Voltage':
-            tmp = self.volts
-        if self.prop == 'Discharge Power':
-            tmp = self.disch
-        if self.prop == 'Charge Power':
-            tmp = self.charg
-        if self.prop == 'All':
-            tmp = self.charg or self.disch
-        self.y.append(tmp)
-
-        # adds scrolling x axis after maxX seconds
-        if len(self.x) > self.maxX:
-            self.x.pop(0)
-            self.y.pop(0)
-            # + 1 to add space after line
-            self.ax.set_xlim([self.x[0], self.x[-1]+1])
-
-        self.ymax = max(self.y)
-        self.ax.set_ylim(0, self.ymax+1)
-
-        self.l1.set_data(self.x, self.y)
-
-        if self.prop == 'Amperage':
-            self.line, = self.ax.stackplot(self.x, self.y, color='cyan', alpha=0.5)
-            self.title.set_text(str(self.amps) + 'A')
-        if self.prop == 'Voltage':
-            self.line, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.5)
-            self.title.set_text(str(self.volts) + 'V')
-        if self.prop == 'Discharge Power':
-            self.line, = self.ax.stackplot(self.x, self.y, color='magenta', alpha=0.5)
-            self.title.set_text(str(self.disch) + 'W')
-        if self.prop == 'Charge Power':
-            self.line, = self.ax.stackplot(self.x, self.y, color='yellow', alpha=0.5)
-            self.title.set_text(str(self.charg) + 'W')
-
-        return self.line, self.l1, self.title
-
-
-    def set_prop(self, batprop):
-        self.ax.cla()
-        self.x = [0]
-        self.y = [0]
-        self.maxY = 0
-        self.minY = 100
-        self.tick = 0
-        
-        self.prop = batprop
-        self.yl = ''
-
-        if self.prop == 'Amperage':
-            tmp = self.amps
-            self.l1, = self.ax.plot(self.x, self.y, color='c')
-            self.yl = 'Amperage (A)'
-        if self.prop == 'Voltage':
-            tmp = self.volts
-            self.l1, = self.ax.plot(self.x, self.y, color='red')
-            self.yl = 'Voltage (V)'
-        if self.prop == 'Discharge Power':
-            tmp = self.disch
-            self.l1, = self.ax.plot(self.x, self.y, color='m')
-            self.yl = 'Discharge Power (W)'
-        if self.prop == 'Charge Power':
-            tmp = self.charg
-            self.l1, = self.ax.plot(self.x, self.y, color='orange')
-            self.yl = 'Charge Power (W)'
-        if self.prop == 'All':
-            pass
-        
-        
-        self.ax.set_ylabel(self.yl, color='white')
-        self.ax.grid(color='white')
-        self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
-                                transform=self.ax.transAxes, ha='center', fontsize=20, color='white')
-        
-
-        self.ax.set_xlim(0, 60)
-        self.ax.set_ylim(0, tmp + 1)
-        self.y = [tmp]
-        self.canvas.draw()
-        
-
-    def init_window(self):
-        # Initializes to Voltage for now
         self.grid(row=0, column=2)
 
         self.v = 1.0
         self.A = 1.0
 
-        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,8), dpi=self.internal_dpi)
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,7), dpi=self.internal_dpi)
         self.i_fig.subplots_adjust(bottom=0.06, top=0.975, left=0.08, right=0.975)
         self.x = [0]
         self.prop = 'Voltage'
@@ -176,10 +56,10 @@ class Window(Frame):
         self.ax.spines['left'].set_color('white')
         self.ax.tick_params(axis='x', colors='white')
         self.ax.tick_params(axis='y', colors='white')
-        self.ax.grid(color='white')
+        self.ax.grid(color='grey')
         self.i_fig.set_facecolor('#2f2f2f')
 
-        self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
+        self.legend = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
                                 transform=self.ax.transAxes, ha='center', fontsize=16, color='white')
         #else:
         #    self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
@@ -196,7 +76,7 @@ class Window(Frame):
 
         vbtn = ttk.Button(south_frame, text='Volts', command=lambda: self.set_prop('Voltage'))
         abtn = ttk.Button(south_frame, text='Amps', command=lambda: self.set_prop('Amperage'))
-        wbtn = ttk.Button(south_frame, text='Watts', command=self.wattBtn)
+        wbtn = ttk.Button(south_frame, text='Watts', command=lambda: self.set_prop('Wattage'))
         #outbtn = ttk.Button(south_frame, text='-', command=self.zoomOut)
         #inbtn = ttk.Button(south_frame, text='+', command=self.zoomIn)
         #btn3 = ttk.Button(south_frame, text='All', command=lambda: self.set_prop('All'))
@@ -213,6 +93,92 @@ class Window(Frame):
         self.i_proc.start()
         #self.canvas.draw()
 
+
+    # Destroys graph element
+    def Clear(self):
+        self.destroy()
+
+
+    def animate(self, i):
+        '''
+            Sets data for internal graph animation
+        '''
+        self.tick += 1
+        self.x.append(self.tick)
+        #print(self.prop)
+        if self.prop == 'Amperage':
+            tmp = s_probe.sProbe.amps
+        if self.prop == 'Voltage':
+            tmp = s_probe.sProbe.voltage
+        if self.prop == 'Wattage':
+            tmp = s_probe.sProbe.watts
+        if self.prop == 'All':
+            tmp = self.charg or self.disch
+        self.y.append(tmp)
+
+        # adds scrolling x axis after maxX seconds
+        if len(self.x) > self.maxX:
+            self.x.pop(0)
+            self.y.pop(0)
+            # + 1 to add space after line
+            self.ax.set_xlim([self.x[0], self.x[-1]+1])
+
+        self.ymax = max(self.y)
+        self.ax.set_ylim(0, self.ymax+1)
+
+        self.l1.set_data(self.x, self.y)
+
+        if self.prop == 'Amperage':
+            self.line, = self.ax.stackplot(self.x, self.y, color='cyan', alpha=0.3)
+            self.legend.set_text(str(s_probe.sProbe.amps) + 'A')
+        if self.prop == 'Voltage':
+            self.line, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.3)
+            self.legend.set_text(str(s_probe.sProbe.voltage) + 'V')
+        if self.prop == 'Wattage':
+            self.line, = self.ax.stackplot(self.x, self.y, color='yellow', alpha=0.3)
+            self.legend.set_text(str(s_probe.sProbe.watts) + 'W')
+
+        return self.line, self.l1, self.legend
+
+
+    def set_prop(self, batprop):
+        self.ax.cla()
+        self.x = [0]
+        self.y = [0]
+        self.maxY = 0
+        self.minY = 100
+        self.tick = 0
+        
+        self.prop = batprop
+        self.yl = ''
+        
+        if self.prop == 'Amperage':
+            tmp = s_probe.sProbe.amps
+            self.l1, = self.ax.plot(self.x, self.y, color='c')
+            self.yl = 'Amperage (A)'
+        if self.prop == 'Voltage':
+            tmp = s_probe.sProbe.voltage
+            self.l1, = self.ax.plot(self.x, self.y, color='red')
+            self.yl = 'Voltage (V)'
+        if self.prop == 'Wattage':
+            tmp = s_probe.sProbe.watts
+            self.l1, = self.ax.plot(self.x, self.y, color='m')
+            self.yl = 'Power (W)'
+        if self.prop == 'All':
+            # TODO: make volts amps watts graph
+            pass
+        
+        
+        self.ax.set_ylabel(self.yl, color='white',fontsize=16)
+        self.ax.grid(color='grey')
+        self.legend = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
+                                transform=self.ax.transAxes, ha='center', fontsize=20, color='white')
+        
+        self.ax.set_xlim(0, 60)
+        self.ax.set_ylim(0, tmp + 1)
+        self.y = [tmp]
+        self.canvas.draw()
+
     
     def zoomOut(self):
         plt.close(self.i_fig)
@@ -225,12 +191,6 @@ class Window(Frame):
         self.internal_dpi += 5
         self.i_fig.set_dpi(self.internal_dpi)
 
-        
-    def wattBtn(self):
-        if self.charging:
-            self.set_prop('Charge Power')
-        else:
-            self.set_prop('Discharge Power')
 
     def start_anim(self):
         self.ani = animation.FuncAnimation(self.i_fig, self.animate, cache_frame_data=False, interval=1000, blit=True)
