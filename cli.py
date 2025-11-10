@@ -2,7 +2,7 @@ import s_probe, time, os, pynput, shutil
 
 '''
     Adding this for slow computers
-    TODO: fixe newline for linux
+    TODO: fix newline for linux
 '''
 
 going = True
@@ -19,7 +19,6 @@ def run():
         s_probe.sProbe.th.start()
     # for Mac and Linux (posix)
     else:
-        
         #os.system('clear')
         s_probe.sProbe.activate_l()
         s_probe.sProbe.th.start()
@@ -89,6 +88,10 @@ Status:                 {s_probe.sProbe.statusString}
             listener.join()
 
     print('\nclosing...')
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
     s_probe.sProbe.on_close()
 
 

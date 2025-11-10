@@ -105,6 +105,7 @@ class sProbe(object):
         sProbe.serialNum = sProbe.__catFile('serial_number', i=False)
         sProbe.chemistry = sProbe.__catFile('technology', i=False)
         sProbe.designVoltage = sProbe.__catFile('voltage_max_design') or sProbe.__catFile('voltage_min_design')
+        sProbe.statusString = sProbe.__catFile('status', i=False)
 
         sProbe.track = tracker.Tracker()
         sProbe.tth = Thread(target=sProbe.track_thread)
@@ -133,6 +134,7 @@ class sProbe(object):
             sProbe.cycleCount = sProbe.msbatt['BatteryCycleCount']['CycleCount']
             sProbe.status = sProbe.win32bat['Status'] or sProbe.portable['Status']
             sProbe.capRemaining = sProbe.msbatt['BatteryStatus']['RemainingCapacity'] / 1000
+            sProbe.statusString = sProbe.win32bat['Status']
             
             if not sProbe.msbatt['BatteryStatus']['Charging']:
                 # Laptop is charging
@@ -220,7 +222,7 @@ class sProbe(object):
         try:
             with open(sProbe.path + fname, 'r') as f:
                 content = f.read()
-                return int(content) / 1000000 if i else content
+                return int(content) / 1000000 if i else content.rstrip()
         except FileNotFoundError as fnf:
             return 0
         except OSError as err:

@@ -1,13 +1,13 @@
-# external graph
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from threading import Thread
-import sys, s_probe
+import s_probe
 
-'''
-    Wrapper class for external plots
-'''
+
 class Plot:
+    '''
+        Wrapper class for external plots
+    '''
 
     def __init__(self, t):
         self.prop = 0
@@ -18,7 +18,7 @@ class Plot:
         self.ampy  = []
         self.watty = []
 
-        self.dpi = 65
+        self.dpi = 55
 
         # Create a seperate thread that runs the animation function
         if t == 0:
@@ -56,10 +56,16 @@ class Plot:
                                     bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5},
                                     transform=self.ax1.transAxes, ha='center')
 
-        self.ax1.set_xlim(0, 10)
-        self.ax2.set_xlim(0, 10)
-        self.ax3.set_xlim(0, 10)
+        self.x_lim = 30
+        for i in range(self.x_lim):
+            self.xs.append(0)
+            self.volty.append(0)
+            self.watty.append(0)
+            self.ampy.append(0)
 
+        self.ax1.set_xlim(0, self.x_lim)
+        self.ax2.set_xlim(0, self.x_lim)
+        self.ax3.set_xlim(0, self.x_lim)
 
         self.ax1.set_title('Voltage', color='white', fontsize=12)
         self.ax2.set_title('Amps', color='white', fontsize=12)
@@ -76,6 +82,13 @@ class Plot:
         self.ax2.tick_params(axis='y', colors='white', labelsize=10)
         self.ax3.tick_params(axis='x', colors='white', labelsize=10)
         self.ax3.tick_params(axis='y', colors='white', labelsize=10)
+        
+        self.ax1.locator_params(axis='x', nbins=10)
+        self.ax2.locator_params(axis='x', nbins=10)
+        self.ax3.locator_params(axis='x', nbins=10)
+        self.ax1.locator_params(axis='y', nbins=4)
+        self.ax2.locator_params(axis='y', nbins=4)
+        self.ax3.locator_params(axis='y', nbins=4)
         
         self.ax1.spines['bottom'].set_color('white')
         self.ax1.spines['top'].set_color('white')
@@ -96,18 +109,23 @@ class Plot:
         self.ax3.spines['left'].set_color('white')
         self.ax3.grid(color='grey')
 
-        self.fig.subplots_adjust(bottom=.13, left=.07, hspace=.36, wspace=0.3)
+        self.fig.subplots_adjust(bottom=.05, left=.05, right=.98, top=.95, hspace=.36, wspace=0.3)
 
     
     def anim2(self, i):
         '''
             Function that returns elements to FuncAnimation for animating the multi-plot window
         '''
-
         self.xs.append(i)
         self.volty.append(s_probe.sProbe.voltage)
         self.ampy.append(s_probe.sProbe.amps)
         self.watty.append(s_probe.sProbe.watts)
+
+        self.xs.pop(0)
+        self.volty.pop(0)
+        self.ampy.pop(0)
+        self.watty.pop(0)
+        print(self.xs)
 
         self.ax1.set_title(f'Voltage ({s_probe.sProbe.voltage})', color='white', fontsize=12)
         self.ax2.set_title(f'Amps ({s_probe.sProbe.amps})', color='white', fontsize=12)
@@ -117,18 +135,17 @@ class Plot:
         self.aline.set_data(self.xs, self.ampy)
         self.wline.set_data(self.xs, self.watty)
 
-        self.ax1.set_ylim(-1, max(self.volty) + 1)
-        self.ax2.set_ylim(-1, max(self.ampy) + 1)
-        self.ax3.set_ylim(-1, max(self.watty) + 1)
+        self.ax1.set_ylim(0, max(self.volty) + 1)
+        self.ax2.set_ylim(0, max(self.ampy) + 1)
+        self.ax3.set_ylim(0, max(self.watty) + 1)
 
         #self.vtitle.set_text(s_probe.sProbe.voltage)
-        print(self.volty)
         
-        #self.spm1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.5)
-        #self.spm2, = self.ax2.stackplot(self.xs, self.ampy, color='cyan', alpha=0.5)
-        #self.spm3, = self.ax3.stackplot(self.xs, self.watty, color='magenta', alpha=0.5)
+        self.spm1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.2)
+        self.spm2, = self.ax2.stackplot(self.xs, self.ampy, color='cyan', alpha=0.2)
+        self.spm3, = self.ax3.stackplot(self.xs, self.watty, color='magenta', alpha=0.2)
 
-        return self.vline, self.aline, self.wline, # self.spm1, self.spm2, self.spm3,
+        return self.vline, self.aline, self.wline, self.spm1, self.spm2, self.spm3,
 
     
     def setup_1(self):
@@ -144,7 +161,7 @@ class Plot:
             self.ampy.append(0)
             self.ymax.append(0)
         
-        self.fig = plt.figure(dpi=self.dpi, figsize=(8,8), num='Power Graph')
+        self.fig = plt.figure(dpi=self.dpi, figsize=(8.5,8.5), num='Power Graph')
         self.ax1 = self.fig.add_subplot()
 
         plt.title('Power', color='white')
@@ -158,8 +175,9 @@ class Plot:
         self.ax1.spines['top'].set_color('white')
         self.ax1.spines['right'].set_color('white')
         self.ax1.spines['left'].set_color('white')
+        self.ax1.locator_params(axis='both', nbins=20)
 
-        self.fig.subplots_adjust(bottom=0.08, top=0.96, right=0.98, left=0.025)
+        self.fig.subplots_adjust(bottom=0.08, top=0.96, right=0.98, left=0.038)
 
         self.ax1.set_xlim([0, self.maxX])
 
@@ -167,7 +185,6 @@ class Plot:
         self.l2, = plt.plot(self.ampy, label='Amps', color='cyan', linewidth=2)
         self.l3, = plt.plot(self.watty, label='Watts', color='orange', linewidth=2)
         self.L = self.ax1.legend(loc=2)
-        
 
     
     def anim1(self, i):
@@ -198,10 +215,6 @@ class Plot:
         self.sp3, = self.ax1.stackplot(self.xs, self.watty, color='yellow', alpha=0.2)
 
         return self.l1, self.l2, self.l3, self.L, self.sp3, self.sp2, self.sp1
-
-
-    def set_prop(self, prop):
-        self.prop = prop    
 
     
     def a(self, func):
