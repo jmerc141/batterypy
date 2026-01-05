@@ -63,10 +63,11 @@ class sProbe(object):
         
         sProbe.charging = sProbe.msbatt['BatteryStatus']['Charging']
         # sProbe.portable may not be instantiated
-        sProbe.designCapacity = sProbe.portable['DesignCapacity'] if sProbe.portable else 0 or \
-            sProbe.win32bat['DesignCapacity'] or sProbe.msbatt['BatteryStaticData']['DesignedCapacity']
-        if sProbe.designCapacity == None:
-            sProbe.designCapacity = sProbe.win32bat['DesignCapacity']
+        sProbe.designCapacity = sProbe.portable['DesignCapacity'] if sProbe.portable else 0
+        print(sProbe.designCapacity)
+        if not sProbe.designCapacity:
+            sProbe.designCapacity = sProbe.win32bat['DesignCapacity'] or sProbe.msbatt['BatteryStaticData']['DesignedCapacity']
+        print(sProbe.designCapacity)
         sProbe.designCapacity = sProbe.designCapacity / 1000
         sProbe.fullChargeCap = sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000
         sProbe.deviceName = sProbe.msbatt['BatteryStaticData']['DeviceName']
