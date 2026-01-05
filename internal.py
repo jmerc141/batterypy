@@ -67,6 +67,7 @@ class Window(Frame):
         self.ax.set_xlim(0, 60)
 
         self.l1, = self.ax.plot(self.x, self.y, color='red')
+        self.sp, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.3)
 
         self.canvas = FigureCanvasTkAgg(self.i_fig, master=self)
         self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
@@ -126,18 +127,19 @@ class Window(Frame):
         self.ax.set_ylim(0, self.ymax+1)
 
         self.l1.set_data(self.x, self.y)
+        self.sp.remove()
 
         if self.prop == 'Amperage':
-            self.line, = self.ax.stackplot(self.x, self.y, color='cyan', alpha=0.3)
+            self.sp, = self.ax.stackplot(self.x, self.y, color='cyan', alpha=0.3)
             self.legend.set_text(str(s_probe.sProbe.amps) + 'A')
         if self.prop == 'Voltage':
-            self.line, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.3)
+            self.sp, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.3)
             self.legend.set_text(str(s_probe.sProbe.voltage) + 'V')
         if self.prop == 'Wattage':
-            self.line, = self.ax.stackplot(self.x, self.y, color='yellow', alpha=0.3)
+            self.sp, = self.ax.stackplot(self.x, self.y, color='yellow', alpha=0.3)
             self.legend.set_text(str(s_probe.sProbe.watts) + 'W')
 
-        return self.line, self.l1, self.legend
+        return self.sp, self.l1, self.legend
 
 
     def set_prop(self, batprop):

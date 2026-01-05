@@ -20,20 +20,23 @@ class Plot:
 
         self.dpi = 55
 
+        # Disable toolbar in graph windows, must be BEFORE instantiating figures
+        plt.rcParams['toolbar'] = 'None'
+
         # Create a seperate thread that runs the animation function
         if t == 0:
-            self.setup_2()
-            self.proc = Thread(target=self.a, args=(self.anim2,))
+            self.setup_multi()
+            self.proc = Thread(target=self.a, args=(self.anim_multi,))
             self.proc.start()
         if t == 1:
-            self.setup_1()
-            self.proc = Thread(target=self.a, args=(self.anim1,))
+            self.setup_single()
+            self.proc = Thread(target=self.a, args=(self.anim_single,))
             self.proc.start()
-
+        
         plt.show()
         
 
-    def setup_2(self):
+    def setup_multi(self):
         '''
             Sets up figure, lines, axes for multi-plot window
         '''
@@ -109,10 +112,14 @@ class Plot:
         self.ax3.spines['left'].set_color('white')
         self.ax3.grid(color='grey')
 
+        self.spm1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.2)
+        self.spm2, = self.ax2.stackplot(self.xs, self.ampy, color='cyan', alpha=0.2)
+        self.spm3, = self.ax3.stackplot(self.xs, self.watty, color='magenta', alpha=0.2)
+
         self.fig.subplots_adjust(bottom=.05, left=.05, right=.98, top=.95, hspace=.36, wspace=0.3)
 
     
-    def anim2(self, i):
+    def anim_multi(self, i):
         '''
             Function that returns elements to FuncAnimation for animating the multi-plot window
         '''
@@ -125,7 +132,8 @@ class Plot:
         self.volty.pop(0)
         self.ampy.pop(0)
         self.watty.pop(0)
-        print(self.xs)
+        for sp in [self.spm1, self.spm2, self.spm3]:
+            sp.remove()
 
         self.ax1.set_title(f'Voltage ({s_probe.sProbe.voltage})', color='white', fontsize=12)
         self.ax2.set_title(f'Amps ({s_probe.sProbe.amps})', color='white', fontsize=12)
@@ -148,7 +156,7 @@ class Plot:
         return self.vline, self.aline, self.wline, self.spm1, self.spm2, self.spm3,
 
     
-    def setup_1(self):
+    def setup_single(self):
         '''
             Sets up figure, lines, axes, etc. for single plot window
         '''
@@ -184,10 +192,13 @@ class Plot:
         self.l1, = plt.plot(self.volty, label='Volts', color='red', linewidth=2)
         self.l2, = plt.plot(self.ampy, label='Amps', color='cyan', linewidth=2)
         self.l3, = plt.plot(self.watty, label='Watts', color='orange', linewidth=2)
+        self.sp1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.2)
+        self.sp2, = self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.2)
+        self.sp3, = self.ax1.stackplot(self.xs, self.watty, color='yellow', alpha=0.2)
         self.L = self.ax1.legend(loc=2)
 
     
-    def anim1(self, i):
+    def anim_single(self, i):
         '''
             Function that returns elements to FuncAnimation for animating the single plot window
         '''
@@ -201,6 +212,10 @@ class Plot:
         self.volty.pop(0)
         self.ampy.pop(0)
         self.watty.pop(0)
+        self.ymax.pop(0)
+
+        for sp in [self.sp1, self.sp2, self.sp3]:
+            sp.remove()
 
         self.L.get_texts()[0].set_text(f'Volts ({s_probe.sProbe.voltage})')
         self.L.get_texts()[1].set_text(f'Amps ({s_probe.sProbe.amps})')
