@@ -161,10 +161,10 @@ class Plot:
             self.ampy.append(0)
             self.ymax.append(0)
         
-        self.fig = plt.figure(dpi=self.dpi, figsize=(8.5,8.5), num='Power Graph')
+        self.fig = plt.figure(dpi=self.dpi, figsize=(8.5,7), num='Power Graph')
         self.ax1 = self.fig.add_subplot()
 
-        plt.title('Power', color='white')
+        plt.title('Battery Power', color='white')
         plt.xlabel('Seconds', color='white')
         self.fig.set_facecolor('#2f2f2f')
         self.ax1.set_facecolor('#2f2f2f')
@@ -175,9 +175,9 @@ class Plot:
         self.ax1.spines['top'].set_color('white')
         self.ax1.spines['right'].set_color('white')
         self.ax1.spines['left'].set_color('white')
-        self.ax1.locator_params(axis='both', nbins=20)
+        self.ax1.locator_params(axis='y', nbins=10)
 
-        self.fig.subplots_adjust(bottom=0.08, top=0.96, right=0.98, left=0.038)
+        self.fig.subplots_adjust(bottom=0.08, top=0.96, right=0.98, left=0.045)
 
         self.ax1.set_xlim([0, self.maxX])
 

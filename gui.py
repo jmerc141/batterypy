@@ -205,7 +205,7 @@ class App(TKMT.ThemedTKinterFrame):
             self.plf = ttk.Frame()
             self.i_pl = internal.Window(self.plf)
             self.plf.grid(column=2, row=0, sticky='nw', pady=5, rowspan=2)
-            self.master.geometry(f'{self.wid+800}x{self.hei+150}')
+            self.master.geometry(f'{self.wid+500}x{self.hei+0}')
         else:
             self.i_pl.destroy()
             self.plf.destroy()

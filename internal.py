@@ -33,21 +33,20 @@ class Window(Frame):
         self.v = 1.0
         self.A = 1.0
 
-        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,7), dpi=self.internal_dpi)
-        self.i_fig.subplots_adjust(bottom=0.06, top=0.975, left=0.08, right=0.975)
+        self.i_fig = plt.Figure(facecolor='#f0f0f0', figsize=(7,6.5), dpi=self.internal_dpi)
+        self.i_fig.subplots_adjust(bottom=0.05, top=0.975, left=0.1, right=0.975)
         self.x = [0]
         self.prop = 'Voltage'
         self.y = [0]
 
         self.ax = self.i_fig.add_subplot(111, ylim=(0,20))
-        self.ax.set_xlabel('Seconds', color='black', fontsize=16)
         self.ax.set_ylabel('Voltage (V)', color='black', fontsize=16)
         self.ax.grid(color='black')
 
         south_frame = Frame(self)
         
         south_frame.configure(bg='#2f2f2f')
-        self.ax.set_xlabel('Seconds', color='white')
+        #self.ax.set_xlabel('Seconds', color='white')
         self.ax.set_ylabel('Voltage (V)', color='white')
         self.ax.set_facecolor('#2f2f2f')
         self.ax.spines['bottom'].set_color('white')
