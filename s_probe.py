@@ -1,10 +1,9 @@
 '''
     Some machines update wmi very slowly (30+ seconds)
     Make amps negative if discharging?
-    TODO: implement linux tracking
 '''
 
-import time, tracker, os, subprocess
+import time, tracker, os, subprocess, settings
 from threading import Thread
 
 if os.name == 'nt': #win
@@ -78,11 +77,10 @@ class sProbe(object):
         sProbe.designVoltage = int(sProbe.designVoltage) / 1000
         sProbe.statusString = sProbe.win32bat['Status']
 
-        # Tracker object
-        sProbe.track = tracker.Tracker()
+        # Thread for refreshing tracking values
         sProbe.tth = Thread(target=sProbe.track_thread)
 
-        # Start seperate thread for refreshing probe values
+        # Thread for refreshing probe values
         sProbe.th = Thread(target=sProbe.refresh)
 
 
@@ -108,7 +106,6 @@ class sProbe(object):
         sProbe.designVoltage = sProbe.__catFile('voltage_max_design') or sProbe.__catFile('voltage_min_design')
         sProbe.statusString = sProbe.__catFile('status', i=False)
 
-        sProbe.track = tracker.Tracker()
         sProbe.tth = Thread(target=sProbe.track_thread)
         
         sProbe.th = Thread(target=sProbe.refresh_l)
@@ -241,7 +238,7 @@ class sProbe(object):
     @staticmethod
     def activate_tracking():
         if not sProbe.tth.is_alive() and not sProbe.tracking:
-            sProbe.tracking = True
+            sProbe.track = tracker.Tracker()
             sProbe.tth.start()
         else:
             sProbe.stop_tracking()
@@ -254,6 +251,7 @@ class sProbe(object):
     '''
     @staticmethod
     def track_thread():
+        sProbe.tracking = True
         while(sProbe.tracking and sProbe.going):
             sProbe.track.track_man()
             time.sleep(1)
@@ -277,7 +275,10 @@ class sProbe(object):
     '''
     @staticmethod
     def del_history():
-        sProbe.track.clear_history()
+        '''
+            Delete history file
+        '''
+        os.remove(settings.s['filename'])
 
 
     '''

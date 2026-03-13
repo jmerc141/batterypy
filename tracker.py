@@ -22,6 +22,7 @@ class Tracker(object):
             self.num_sessions = self.readCsv()
             self.num_sessions += 1
         else:
+            print('new file')
             self.write_header()
 
         # List for writing info to history file
@@ -110,12 +111,22 @@ class Tracker(object):
         else:
             cap_diff = (self.starting_cap - rem_cap)
 
+        '''
+        measured_Ah / Wh is the amount of Ah / Wh gained or lost from the start of tracking.
+        measured_Wh and cap_diff are the same, measured_Wh is calculated by accumilating
+        watts per second.
+        It's not a direct reading from the system and it's value changes every second.
+        cap_diff is just subtracting from or to the initial capacity reading
+        '''
         self.measured_Ah += s_probe.sProbe.amps * (1/3600)
         self.measured_Wh += s_probe.sProbe.watts * (1/3600)
+
+        # This must match the data in self.headers
+        data_line = [self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), s_probe.sProbe.health,
+                    full_cap, self.measured_Ah, self.measured_Wh, round((rem_cap / s_probe.sProbe.voltage), 3),
+                    rem_cap, cap_diff, s_probe.sProbe.voltage, s_probe.sProbe.amps, s_probe.sProbe.watts, est_chrg, s_probe.sProbe.charging]
         
-        self.history_data.append([self.num_sessions, datetime.today().strftime('%Y-%m-%d|%H:%M:%S'), s_probe.sProbe.health,
-                                  full_cap, self.measured_Ah, self.measured_Wh, round((rem_cap / s_probe.sProbe.voltage), 3),
-                                  rem_cap, cap_diff, s_probe.sProbe.voltage, s_probe.sProbe.amps, s_probe.sProbe.watts, est_chrg, s_probe.sProbe.charging])
+        self.history_data.append(data_line)
         
 
     def write_history(self):
@@ -146,8 +157,4 @@ class Tracker(object):
         self.history_data = []
 
         
-    def clear_history(self):
-        '''
-            Delete history file
-        '''
-        os.remove(settings.s['filename'])
+    

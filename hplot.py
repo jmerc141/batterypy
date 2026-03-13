@@ -8,7 +8,7 @@ from collections import defaultdict
 from enum import Enum
 from bs4 import BeautifulSoup
 from datetime import datetime
-import csv, settings, subprocess
+import csv, settings, subprocess, sys
 
 '''
 Eventually collect probes_full_Wh and do linear regression to see how quickly battery degrades over time
@@ -213,11 +213,12 @@ class Window(Frame):
                 self.ax.legend([self.lines[0][0]], [f'%/m {avgm}\n%/h {avgh}'], fontsize=self.font_size)
             # Degradation
             elif e == self.graphs[3]:
-                self.windows_battery_report()
-
+                if sys.platform == 'win32':
+                    self.windows_battery_report()
 
             self.ogx = self.ax.get_xlim()
             self.ogy = self.ax.get_ylim()
+            self.ax.set_ylabel(e, color='white')
 
             self.i_fig.canvas.draw()
         else:
@@ -290,10 +291,8 @@ class Window(Frame):
     '''
     def get_session_el2(self, i: int):
         lst = []
-        
         for v in self.hdata[str(self.selected_sesh)]:
             lst.append(float(v[i]))
-        
         return lst
 
 
