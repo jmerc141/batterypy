@@ -187,7 +187,7 @@ class sProbe(object):
                 sProbe.watts = sProbe.__catFile('power_now')
                 sProbe.amps = round(sProbe.watts / sProbe.voltage, 3)
             else:
-                sProbe.watts = sProbe.voltage * sProbe.amps
+                sProbe.watts = round(sProbe.voltage * sProbe.amps, 3)
 
             sProbe.fullChargeCap = sProbe.__catFile('charge_full') or sProbe.__catFile('energy_full')
             sProbe.health = sProbe.__catFile('health') or (sProbe.fullChargeCap / sProbe.designCapacity) * 100
