@@ -98,12 +98,12 @@ class sProbe(object):
             raise Exception('No Batteries detected')
         
         sProbe.charging = True if sProbe.__catFile('status', i=False) == 'Charging' else False
-        sProbe.designCapacity = sProbe.__catFile('charge_full_design') or sProbe.__catFile('energy_full_design')
         sProbe.deviceName = sProbe.__catFile('model_name', i=False)
         sProbe.manufName = sProbe.__catFile('manufacturer', i=False)
         sProbe.serialNum = sProbe.__catFile('serial_number', i=False)
         sProbe.chemistry = sProbe.__catFile('technology', i=False)
         sProbe.designVoltage = sProbe.__catFile('voltage_max_design') or sProbe.__catFile('voltage_min_design')
+        sProbe.designCapacity = (sProbe.__catFile('charge_full_design') * sProbe.designVoltage) or sProbe.__catFile('energy_full_design')
         sProbe.statusString = sProbe.__catFile('status', i=False)
 
         sProbe.tth = Thread(target=sProbe.track_thread)
@@ -189,7 +189,7 @@ class sProbe(object):
             else:
                 sProbe.watts = round(sProbe.voltage * sProbe.amps, 3)
 
-            sProbe.fullChargeCap = sProbe.__catFile('charge_full') or sProbe.__catFile('energy_full')
+            sProbe.fullChargeCap = (sProbe.__catFile('charge_full') * sProbe.voltage) or sProbe.__catFile('energy_full')
             sProbe.health = sProbe.__catFile('health') or (sProbe.fullChargeCap / sProbe.designCapacity) * 100
             sProbe.chargeRemaining = int(sProbe.__catFile('capacity', i=False))
             sProbe.cycleCount = sProbe.__catFile('cycle_count', i=False)
@@ -197,7 +197,7 @@ class sProbe(object):
             # TODO: Test charge_now value
             cn = sProbe.__catFile('charge_now')
             if cn:
-                sProbe.capRemaining = sProbe.__catFile('charge_now') * sProbe.voltage
+                sProbe.capRemaining = cn * sProbe.voltage
             else:
                 sProbe.capRemaining = sProbe.__catFile('energy_now')
             # TODO: test value
