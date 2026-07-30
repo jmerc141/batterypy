@@ -46,7 +46,6 @@ def run():
                 print('Not enough columns')
             else:
                 try:
-                    #print('\033[H', end='')
                     v_bar = int((s_probe.sProbe.voltage / term_w) * 100)
                     a_bar = int((s_probe.sProbe.amps / term_w) * 100)
                     w_bar = int((s_probe.sProbe.watts / term_w) * 100) if s_probe.sProbe.watts < term_w else term_w
@@ -61,14 +60,14 @@ def run():
                     prnt_str = f'''\033[HName:                   {s_probe.sProbe.deviceName} {s_probe.sProbe.serial_num}
 Manufacturer:           {s_probe.sProbe.manufName}
 Chemistry:              {s_probe.sProbe.chemistry}
-Last measured capacity: {s_probe.sProbe.fullChargeCap}mWh
+Last measured capacity: {s_probe.sProbe.fullChargeCap:5.3f}mWh
 Cycle count:            {s_probe.sProbe.cycleCount}
 Status:                 {s_probe.sProbe.statusString}
 {GREY}C{END}harge:{s_probe.sProbe.chargeRemaining:5.1f}% [{GREY}{chrg * '█'}{DGRY}{(term_w - chrg) * '█'}{END}]
 {RED}V{END}olts :{s_probe.sProbe.voltage:6.3f} [{RED}{v_bar * '█'}{DRED}{(term_w - v_bar) * '█'}{END}] {maxv}
 {BLU}A{END}mps  :{s_probe.sProbe.amps:6.3f} [{BLU}{a_bar * '█'}{DBLU}{(term_w - a_bar) * '█'}{END}] {maxa}
 {YEL}W{END}atts :{s_probe.sProbe.watts:6.3f} [{YEL}{w_bar * '█'}{DYEL}{(term_w - w_bar) * '█'}{END}] {maxw}
-{PURP}H{END}ealth:{s_probe.sProbe.health:5.1f}% [{PURP}{h_bar * '█'}{DPUR}{(term_w - h_bar) * '█'}{END}] {'' if s_probe.sProbe.health > 80 else '< 80% BAD!'}'''
+{PURP}H{END}ealth:{s_probe.sProbe.health:5.1f}% [{PURP}{h_bar * '█'}{DPUR}{(term_w - h_bar) * '█'}{END}] {'\033[K' if s_probe.sProbe.health > 80 else '< 80% BAD!'}'''
                     
                     print(prnt_str, end='')
                     
@@ -98,7 +97,7 @@ Status:                 {s_probe.sProbe.statusString}
 def quit(k):
     try:
         if k.char == 'q':
-            #print('here')
+            # May not work on wayand DE
             global going
             going = False
             return False
