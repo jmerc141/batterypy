@@ -1,4 +1,4 @@
-import multiprocessing, sys
+lazy import multiprocessing, sys
 
 if __name__ == '__main__':
     # Necessary for windows multiprocessing and pyinstaller

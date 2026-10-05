@@ -7,8 +7,8 @@
  - get % per hour
 '''
 
-import os, json, csv, settings, s_probe
-from datetime import datetime
+lazy import os, json, csv, settings, s_probe
+lazy from datetime import datetime
 
 
 class Tracker(object):

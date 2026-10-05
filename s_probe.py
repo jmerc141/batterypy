@@ -3,13 +3,13 @@
     Make amps negative if discharging?
 '''
 
-import time, tracker, os, subprocess, settings
-from threading import Thread
+lazy import time, tracker, os, subprocess, settings
+lazy from threading import Thread
+
 
 if os.name == 'nt': #win
-    import wmi, pythoncom
-else:
-    os.system('clear')
+    lazy import wmi, pythoncom
+
 
 '''
     Class for extracting battery data from windows WMI

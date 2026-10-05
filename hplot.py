@@ -1,14 +1,14 @@
-import tkinter as tk
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import numpy as np
-from tkinter import Frame, ttk
-from collections import defaultdict
-from enum import Enum
-from bs4 import BeautifulSoup
-from datetime import datetime
-import csv, settings, subprocess, sys
+lazy import tkinter as tk
+lazy from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+lazy import matplotlib.pyplot as plt
+lazy import matplotlib.colors as mcolors
+lazy import numpy as np
+lazy from tkinter import Frame, ttk
+lazy from collections import defaultdict
+lazy from enum import Enum
+lazy from bs4 import BeautifulSoup
+lazy from datetime import datetime
+lazy import csv, settings, subprocess, sys
 
 '''
 Eventually collect probes_full_Wh and do linear regression to see how quickly battery degrades over time

@@ -1,11 +1,11 @@
 # internal graph
-import tkinter as tk
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from tkinter import Frame, ttk
-from threading import Thread
-import sys, s_probe
+lazy import tkinter as tk
+lazy from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+lazy import matplotlib.pyplot as plt
+lazy import matplotlib.animation as animation
+lazy from tkinter import Frame, ttk
+lazy from threading import Thread
+lazy import sys, s_probe
 
 '''
 Referencing plt will cause hanging,

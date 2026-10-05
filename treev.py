@@ -1,4 +1,4 @@
-import s_probe
+lazy import s_probe
 
 class Treev:
     '''

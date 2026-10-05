@@ -1,7 +1,7 @@
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from threading import Thread
-import s_probe
+lazy import matplotlib.pyplot as plt
+lazy import matplotlib.animation as animation
+lazy from threading import Thread
+lazy import s_probe
 
 
 class Plot:

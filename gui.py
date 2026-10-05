@@ -5,11 +5,11 @@ credit to Freepik for battery image:
 powercfg /batteryreport /output "C:\battery-report.html"
 '''
 
-import sys, os, internal, plot, hplot, s_probe, treev
-import tkinter as tk
-from tkinter import ttk
-import TKinterModernThemes as TKMT
-from idlelib.tooltip import Hovertip
+lazy import sys, os, internal, plot, hplot, s_probe, treev
+lazy import tkinter as tk
+lazy import TKinterModernThemes as TKMT
+lazy from idlelib.tooltip import Hovertip
+lazy from tkinter import ttk
 
 sys.path.append(".")
 
