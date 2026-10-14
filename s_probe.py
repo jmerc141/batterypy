@@ -189,7 +189,7 @@ class sProbe(object):
             else:
                 sProbe.watts = round(sProbe.voltage * sProbe.amps, 3)
 
-            sProbe.fullChargeCap = (sProbe.__catFile('charge_full') * sProbe.voltage) or sProbe.__catFile('energy_full')
+            sProbe.fullChargeCap = (sProbe.__catFile('charge_full') * sProbe.designVoltage) or sProbe.__catFile('energy_full')
             sProbe.health = sProbe.__catFile('health') or (sProbe.fullChargeCap / sProbe.designCapacity) * 100
             sProbe.chargeRemaining = int(sProbe.__catFile('capacity', i=False))
             sProbe.cycleCount = sProbe.__catFile('cycle_count', i=False)
