@@ -70,7 +70,7 @@ class Window(Frame):
         self.sp, = self.ax.stackplot(self.x, self.y, color='red', alpha=0.3)
 
         self.canvas = FigureCanvasTkAgg(self.i_fig, master=self)
-        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=True, fill='both')
+        self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=10, expand=False, fill='both')
 
         south_frame.pack(side='bottom', pady=10)
 
@@ -127,7 +127,7 @@ class Window(Frame):
         self.ax.set_ylim(0, self.ymax+1)
 
         self.l1.set_data(self.x, self.y)
-        self.sp.remove()
+        #self.sp.remove()
 
         if self.prop == 'Amperage':
             self.sp, = self.ax.stackplot(self.x, self.y, color='cyan', alpha=0.3)
@@ -163,7 +163,7 @@ class Window(Frame):
             self.yl = 'Voltage (V)'
         if self.prop == 'Wattage':
             tmp = s_probe.sProbe.watts
-            self.l1, = self.ax.plot(self.x, self.y, color='m')
+            self.l1, = self.ax.plot(self.x, self.y, color='y')
             self.yl = 'Power (W)'
         if self.prop == 'All':
             # TODO: make volts amps watts graph

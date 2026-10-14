@@ -7,6 +7,7 @@ lazy import s_probe
 class Plot:
     '''
         Wrapper class for external plots
+        TODO: anim plot only runs once on first call
     '''
 
     def __init__(self, t):
@@ -228,6 +229,7 @@ class Plot:
         self.sp1, = self.ax1.stackplot(self.xs, self.volty, color='red', alpha=0.2)
         self.sp2, = self.ax1.stackplot(self.xs, self.ampy, color='cyan', alpha=0.2)
         self.sp3, = self.ax1.stackplot(self.xs, self.watty, color='yellow', alpha=0.2)
+        print('here')
 
         return self.l1, self.l2, self.l3, self.L, self.sp3, self.sp2, self.sp1
 
