@@ -12,7 +12,7 @@ lazy import tkinter as tk
 lazy import tkinter.messagebox
 lazy import TKinterModernThemes as TKMT
 lazy from idlelib.tooltip import Hovertip
-lazy from tkinter import ttk
+lazy from tkinter import ttk, messagebox
 
 sys.path.append(".")
 
@@ -21,7 +21,7 @@ if sys.platform == 'linux':
         s_probe.sProbe.activate_l()
         s_probe.sProbe.th.start()
     except Exception as e:
-        tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
+        messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
         exit()
     
 elif sys.platform == 'win32':
@@ -30,7 +30,7 @@ elif sys.platform == 'win32':
         s_probe.sProbe.th.start()
     except Exception as e:
         import traceback
-        tk.messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
+        messagebox.showerror('Error', f'Error initializing sprobe\nAre you using a desktop?\n{e}')
         traceback.print_exception(type(e), e, e.__traceback__)
         exit()
 else:
@@ -244,7 +244,7 @@ class App(TKMT.ThemedTKinterFrame):
 
     def start_track(self):
         if s_probe.sProbe.chargeRemaining == 100:
-            tk.messagebox.showerror('Error', f'Not tracking when battery is 100%')
+            messagebox.showerror('Error', f'Not tracking when battery is 100%')
             self.track_en.set(False)
         else:
             s_probe.sProbe.activate_tracking()
@@ -270,7 +270,7 @@ class App(TKMT.ThemedTKinterFrame):
     
     '''
     def ask_clear_hist(self):
-        if tk.messagebox.askyesno('Delete?', 'Delete all history data?'):
+        if messagebox.askyesno('Delete?', 'Delete all history data?'):
             s_probe.sProbe.del_history()
 
     '''

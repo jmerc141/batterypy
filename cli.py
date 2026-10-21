@@ -1,4 +1,4 @@
-import s_probe, time, os, pynput, shutil
+lazy import s_probe, time, os, pynput, shutil
 
 '''
     Adding this for slow computers
@@ -17,9 +17,8 @@ def run():
         colorama.init()
         s_probe.sProbe.activate()
         s_probe.sProbe.th.start()
-    # for Mac and Linux (posix)
-    else:
-        #os.system('clear')
+    else: # for Mac and Linux (posix)
+        os.system('clear')
         s_probe.sProbe.activate_l()
         s_probe.sProbe.th.start()
 
@@ -48,19 +47,21 @@ def run():
                 try:
                     v_bar = int((s_probe.sProbe.voltage / term_w) * 100)
                     a_bar = int((s_probe.sProbe.amps / term_w) * 100)
-                    w_bar = int((s_probe.sProbe.watts / term_w) * 100) if s_probe.sProbe.watts < term_w else term_w
+                    w_bar = int((s_probe.sProbe.watts / term_w) * 100)
+                    if w_bar > term_w:
+                        w_bar = term_w
                     # Percents
                     h_bar = int((s_probe.sProbe.health / 100) * term_w)
+                    if h_bar >term_w:
+                        h_bar = term_w
                     chrg  = int((s_probe.sProbe.chargeRemaining / 100) * term_w)
                     
-                    '''
-                    Add static data before (fullchargecap, chemistry, etc...)
-                    '''
 
                     prnt_str = f'''\033[HName:                   {s_probe.sProbe.deviceName} {s_probe.sProbe.serial_num}
 Manufacturer:           {s_probe.sProbe.manufName}
 Chemistry:              {s_probe.sProbe.chemistry}
 Last measured capacity: {s_probe.sProbe.fullChargeCap:5.3f}mWh
+Design capacity:        {s_probe.sProbe.designCapacity:5.3f}mwh
 Cycle count:            {s_probe.sProbe.cycleCount}
 Status:                 {s_probe.sProbe.statusString}
 {GREY}C{END}harge:{s_probe.sProbe.chargeRemaining:5.1f}% [{GREY}{chrg * '█'}{DGRY}{(term_w - chrg) * '█'}{END}]

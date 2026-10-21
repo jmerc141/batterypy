@@ -154,7 +154,7 @@ class Window(Frame):
             self.yl = 'Voltage (V)'
         if self.prop == 'Wattage':
             tmp = s_probe.sProbe.watts
-            self.l1, = self.ax.plot(self.x, self.y, color='m')
+            self.l1, = self.ax.plot(self.x, self.y, color='y')
             self.yl = 'Power (W)'
         if self.prop == 'All':
             # TODO: make volts amps watts graph

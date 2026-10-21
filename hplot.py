@@ -3,7 +3,7 @@ lazy from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, Navigatio
 lazy import matplotlib.pyplot as plt
 lazy import matplotlib.colors as mcolors
 lazy import numpy as np
-lazy from tkinter import Frame, ttk
+lazy from tkinter import Frame, ttk, messagebox
 lazy from collections import defaultdict
 lazy from enum import Enum
 lazy from bs4 import BeautifulSoup
@@ -26,10 +26,10 @@ class Window(Frame):
 
         try:
             if self.readCsv() == 0:
-                tk.messagebox.showerror('Error', f'No data in csv file\nEnable tracking!')
+                messagebox.showerror('Error', f'No data in csv file\nEnable tracking!')
                 return
         except FileNotFoundError as e:
-            tk.messagebox.showerror('Error', f'Cannot find csv file\n{e}')
+            messagebox.showerror('Error', f'Cannot find csv file\n{e}')
             return
 
         self.avg_c_pph = self.avg_d_pph = 0
@@ -222,7 +222,7 @@ class Window(Frame):
 
             self.i_fig.canvas.draw()
         else:
-            tk.messagebox.showerror('Error', f'Selected graph is not in self.graphs')
+            messagebox.showerror('Error', f'Selected graph is not in self.graphs')
 
 
     def windows_battery_report(self):
