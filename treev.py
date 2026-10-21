@@ -8,6 +8,8 @@ class Treev:
 
     maxv = maxa = maxw = 0
 
+    #tree_data_2 = []
+
     @staticmethod
     def setup_tree():
         if s_probe.sProbe.charging:
@@ -16,9 +18,10 @@ class Treev:
             charge_string = 'Discharge Power ⚡'
 
         
-        tree_data_2 = [
+        Treev.tree_data_2 = [
             {'prop': 'Device Name', 'val': s_probe.sProbe.deviceName, 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Manufacturer', 'val': s_probe.sProbe.manufName, 'max': '', 'open': False, 'subdata': []},
+            {'prop': 'Manufacture Date', 'val': s_probe.sProbe.manufDate, 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Serial Number', 'val': s_probe.sProbe.serial_num, 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Chemistry', 'val': s_probe.sProbe.chemistry, 'max': '', 'open': False, 'subdata': []},
             {'prop': 'Cycle Count', 'val': s_probe.sProbe.cycleCount, 'max': '', 'open': False, 'subdata': []},
@@ -41,7 +44,16 @@ class Treev:
             ]},   
         ]
 
-        return tree_data_2
+        Treev.indeces = {}
+        i = 0
+        for v in Treev.tree_data_2:
+            Treev.indeces[v['prop']] = i+1
+            i=i+1
+            for sub in v['subdata']:
+                Treev.indeces[sub['prop']] = i+1
+                i=i+1
+
+        return Treev.tree_data_2
 
 
     @ staticmethod
@@ -61,25 +73,24 @@ class Treev:
         if s_probe.sProbe.watts > Treev.maxw:
             Treev.maxw = s_probe.sProbe.watts
 
-        # Thanks ChatGPT
         # Update charging string in tree, using index in tree
-        tv.item(7, values=(f'{s_probe.sProbe.chargeRemaining}%', ''))
+        tv.item(Treev.indeces['Est. Charge'], values=(f'{s_probe.sProbe.chargeRemaining}%', ''))
 
-        tv.item(8, text=f'{charge_string}')
+        tv.item(Treev.indeces[charge_string], text=f'{charge_string}')
 
         # Update values in tree
         # Volts
-        tv.item(10, values=(f'{s_probe.sProbe.voltage:.3f} V', Treev.maxv))
+        tv.item(Treev.indeces['Voltage'], values=(f'{s_probe.sProbe.voltage:.3f} V', Treev.maxv))
         # Amps
-        tv.item(11, values=(f'{s_probe.sProbe.amps:.3f} A', Treev.maxa))
+        tv.item(Treev.indeces['Amps'], values=(f'{s_probe.sProbe.amps:.3f} A', Treev.maxa))
         # Watts
-        tv.item(12, values=(f'{s_probe.sProbe.watts:.3f} W', Treev.maxw))
+        tv.item(Treev.indeces['Watts'], values=(f'{s_probe.sProbe.watts:.3f} W', Treev.maxw))
         # Rem cap
-        tv.item(16, values=(f'{s_probe.sProbe.capRemaining:.3f} Wh', ''))
+        tv.item(Treev.indeces['Remaining Wh'], values=(f'{s_probe.sProbe.capRemaining:.3f} Wh', ''))
         # Health
-        tv.item(17, values=(f'{s_probe.sProbe.health:.2f}%', ''))
+        tv.item(Treev.indeces['Health'], values=(f'{s_probe.sProbe.health:.2f}%', f'{'⚠REPLACE!' if s_probe.sProbe.health < 80 else ''}'))
         # Time
-        tv.item(18, values=(f'{s_probe.sProbe.hours}h {s_probe.sProbe.minutes}m', ''))
+        tv.item(Treev.indeces['Est. Time'], values=(f'{s_probe.sProbe.hours}h {s_probe.sProbe.minutes}m', ''))
 
         # TODO: add health update here
         

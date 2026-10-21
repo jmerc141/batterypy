@@ -4,3 +4,4 @@ TKinterModernThemes
 bs4
 pynput
 colorama
+pyglet

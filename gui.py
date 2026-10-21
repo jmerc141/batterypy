@@ -2,11 +2,14 @@
 credit to Freepik for battery image:
     <a href="https://www.flaticon.com/free-icons/battery" title="battery icons">Battery icons created by Freepik - Flaticon</a>
 
-powercfg /batteryreport /output "C:\battery-report.html"
+powercfg /batteryreport /output PATH
+
+Warning about overlapping widgets can be ignored
 '''
 
-lazy import sys, os, internal, plot, hplot, s_probe, treev
+lazy import sys, os, internal, plot, hplot, s_probe, treev, pyglet, settings
 lazy import tkinter as tk
+lazy import tkinter.messagebox
 lazy import TKinterModernThemes as TKMT
 lazy from idlelib.tooltip import Hovertip
 lazy from tkinter import ttk
@@ -63,6 +66,8 @@ class App(TKMT.ThemedTKinterFrame):
                 # Set small corner icon
                 self.master.iconbitmap(ico)
 
+        pyglet.font.add_file(f'res/{settings.s['font']}.ttf')
+
         # Toggle internal plot display bool
         self.internal = False
         self.hist_init = False
@@ -71,12 +76,14 @@ class App(TKMT.ThemedTKinterFrame):
         self.i_pl = None
         self.pl = None
 
+        self.bars_active = False
+
         # Set window size
         self.wid = 450
         self.hei = 500
         self.master.geometry(f'{self.wid}x{self.hei}')
-        #self.master.resizable(False, False)
-            
+        
+        #self.master.resizable(False, False)    
 
         # Change dir again so history.csv writes to .exe dir
         if getattr(sys, 'frozen', False):
@@ -98,75 +105,31 @@ class App(TKMT.ThemedTKinterFrame):
 
         file_menu.add_command(label='Exit', command=self.on_close)
 
-        graph_menu.add_checkbutton(label='Live Graph (Internal)', command=self.create_internal_graph)
-        #view_menu.add_cascade(label='Graph (external)', menu=graph)
         graph_menu.add_command(label='Live Graph Single', command=self.create_external_single)
         graph_menu.add_command(label='Live Graph Multiple', command=self.create_external_graph)
         graph_menu.add_command(label='History Graph', command=self.show_history)
+
         track_menu.add_checkbutton(label='Enable Tracking', command=self.start_track, variable=self.track_en)
         track_menu.add_command(label='Clear Tracking History', command=self.ask_clear_hist)
         
         self.master.config(menu=mb)
 
-        # Horizontal scrollbar
-        #scrollx = ttk.Scrollbar(self.master, orient=tk.HORIZONTAL, command=self.tree.tree.xview)
-        #scrollx.grid(row=1, column=0, sticky='ew', padx=(10,0), pady=(0,10))
+        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 90, 0], self.hei // 33, treev.Treev.setup_tree(),
+                                'subdata', ['prop', 'val', 'max'], row=0, col=0, colspan=2, pady=5, padx=(10, 5))
 
-        # Vertical scrollbar
-        #scrolly = ttk.Scrollbar(self.master, orient=tk.VERTICAL, command=self.tree.tree.yview)
-        #scrolly.grid(row=0, column=0, sticky='nse', padx=(10,0), pady=10, rowspan=1)
-        #self.tree.tree.configure(yscroll=scrolly.set)
-        
-        # TODO Fix tree not expanding to top of powerinfo frame
-        # Resize the window vertically and there is a space between the bottom
-        # of TreeView and top of PowerInfo Frame
-        
-        self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 120, 0], 20, treev.Treev.setup_tree(),
-                                'subdata', ['prop', 'val', 'max'], row=0, col=0, pady=(5,0), padx=5)
+        self.master.rowconfigure(0, weight=1)
+        self.master.columnconfigure(0, weight=1)       
         
         #self.tv.bind('<<TreeviewSelect>>', self.item_selected)
         if s_probe.sProbe.health < 80:
             ht = Hovertip(self.tv, 'A battery\'s end of life is typically when the FullChargeCapacity property\nfalls below 80% of the DesignCapacity property')
         
         s = ttk.Style()
+        s.configure('.', font=(f'{settings.s['font']}', settings.s['font_size']))
         s.configure('Treeview', indent=10)
-        
-        pi = self.addLabelFrame('Power Info', padx=5, pady=(0,5), sticky='sew', row=1, col=0, 
-                                 widgetkwargs={'height': 120}, )
-        
-        pi.master.grid_propagate(False)
-        pi.master.rowconfigure(0, minsize=32)
-        
-        self.master.rowconfigure(0, weight=2)  # Top frame expands
-        self.master.rowconfigure(1, weight=0)  # Bottom frame stays fixed
-        
-        
-        self.v = tk.DoubleVar(value=s_probe.sProbe.voltage)
-        self.w = tk.DoubleVar(value=s_probe.sProbe.watts)
-        self.c = tk.DoubleVar(value=s_probe.sProbe.amps)
-        
-        v = pi.addFrame('volt', row=0, col=0, sticky='ew', padx=0, pady=0)
-        a = pi.addFrame('amps', row=1, col=0, sticky='ew', padx=0, pady=0)
-        w = pi.addFrame('watts', row=2, col=0, sticky='ew', padx=0, pady=0)
 
-        v.Label('Voltage', row=0, col=0, size=10, pady=(0,0), sticky='sw')
-        v.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.v})
-        v.Progressbar(variable=self.v, row=1, col=0, upper=20, pady=0, colspan=2, sticky='nsew')
-        
-        # TODO change upper value
-        a.Label('Current (Amps)', row=0, col=0, size=10, pady=0, sticky='sw')
-        a.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.c})
-        a.Progressbar(variable=self.c, upper=6, row=1, col=0, pady=0, colspan=2, sticky='nsew')
-        
-        # TODO change upper value
-        w.Label('Wattage', row=0, col=0, size=10, pady=(0,0), sticky='sw')
-        w.Label('', row=0, col=1, size=10, pady=0, sticky='e', widgetkwargs={'textvariable': self.w})
-        w.Progressbar(variable=self.w, row=1, col=0, pady=(0,10), colspan=2, sticky='nswe')
+        self.btn = self.AccentButton('Power Info', self.to_bars, row=2, col=0, pady=5)
 
-        # Strech progressbars horizontally
-        v.master.columnconfigure(0, weight=1)
-        a.master.columnconfigure(0, weight=1)
-        w.master.columnconfigure(0, weight=1)
         
         #self.debugPrint()
         self.updateUI()
@@ -177,15 +140,107 @@ class App(TKMT.ThemedTKinterFrame):
     '''
     def updateUI(self):
         # overwrites values in the treeview, use only dynamic values
-        self.v.set(f'{s_probe.sProbe.voltage:.3f}')
-        self.c.set(f'{s_probe.sProbe.amps:.3f}')
-        self.w.set(f'{s_probe.sProbe.watts:.3f}')
-        # Update values in tree view 
-        treev.Treev.update(self.tv)
-        if self.master.winfo_height() > 10:
-            self.tv.config(height=self.master.winfo_height() // 33)
+        if self.bars_active:
+            self.v.set(f'{s_probe.sProbe.voltage:.3f}')
+            self.c.set(f'{s_probe.sProbe.amps:.3f}')
+            self.w.set(f'{s_probe.sProbe.watts:.3f}')
+        else:
+            # Update values in tree view 
+            treev.Treev.update(self.tv)
+            #if self.master.winfo_height() > 10:
+            #    self.tv.config(height=self.master.winfo_height() // 33)
         self.master.after(1000, self.updateUI)
         
+
+    def to_bars(self):
+        if not self.bars_active:
+            self.btn.configure(text='Back')
+            self.bars_active = True
+
+            tree = self.tv
+            container = tree.master
+            if container is self.master:
+                for child in container.winfo_children():
+                    if isinstance(child, ttk.Scrollbar):
+                        child.destroy()
+                tree.destroy()
+            else:
+                container.destroy()
+            self.tv = None
+
+            self.pi = self.addLabelFrame('Power Info', sticky='nsew', row=0, col=0, padx=10, pady=5, colspan=2)
+            
+            #pi.master.grid_propagate(False)
+            #pi.master.rowconfigure(0, minsize=32)
+            
+            self.v  = tk.DoubleVar(value=s_probe.sProbe.voltage)
+            self.w  = tk.DoubleVar(value=s_probe.sProbe.watts)
+            self.c  = tk.DoubleVar(value=s_probe.sProbe.amps)
+            self.hb = tk.DoubleVar(value=round(s_probe.sProbe.health, 1))
+            
+            v = self.pi.addFrame('volt', row=0, col=0, sticky='ns', padx=0, pady=5)
+            a = self.pi.addFrame('amps', row=0, col=1, sticky='ns', padx=0, pady=5)
+            w = self.pi.addFrame('watts', row=0, col=2, sticky='ns', padx=0, pady=5)
+            health_bar = self.pi.addFrame('health', row=0, col=3, sticky='ns', padx=5, pady=5)
+
+            v.Label('Volts', row=0, col=0, size=10, pady=(0,0), sticky='n',
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            v.Progressbar(variable=self.v, row=1, col=0, upper=20, sticky='ns', widgetkwargs={'orient': 'vertical'})
+            v.Label('', row=2, col=0, size=10, pady=(0,0), sticky='n', widgetkwargs={'textvariable': self.v},
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            
+            # TODO change upper value
+            a.Label('Amps', row=0, col=0, size=10, pady=0, sticky='n',
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            a.Progressbar(variable=self.c, upper=6, row=1, col=0, sticky='ns', widgetkwargs={'orient': 'vertical'})
+            a.Label('', row=2, col=0, size=10, pady=0, sticky='s', widgetkwargs={'textvariable': self.c},
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            
+            # TODO change upper value
+            w.Label('Watts', row=0, col=0, size=10, pady=(0,0), 
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            w.Progressbar(variable=self.w, row=1, col=0, sticky='ns', widgetkwargs={'orient': 'vertical'})
+            w.Label('', row=2, col=0, size=10, pady=(0,0), sticky='s', widgetkwargs={'textvariable': self.w},
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+
+            health_bar.Label('Health %', row=0, col=0, size=10, pady=0, sticky='n',
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            tmp = health_bar.Progressbar(variable=self.hb, row=1, col=0, sticky='ns', widgetkwargs={'orient': 'vertical'})
+            health_bar.Label('', row=2, col=0, size=10, pady=(0,0), sticky='n', widgetkwargs={'textvariable': self.hb},
+                fontargs=('-family', f'{settings.s['font']}', '-size', f'{settings.s['font_size']}'))
+            
+            self.plf = ttk.Frame()
+            self.i_pl = internal.Window(self.plf)
+            self.plf.grid(column=0, row=1, sticky='nw', pady=5, rowspan=1)
+
+            # Strech progressbars
+            #for x in range()
+            #self.pi.master.columnconfigure(0, weight=1)
+            #self.pi.master.columnconfigure(1, weight=1)
+            #self.pi.master.columnconfigure(2, weight=1)
+            #self.pi.master.columnconfigure(3, weight=1)
+            self.pi.master.rowconfigure(0, weight=1)
+            i=0
+            for el in (v, a, w, health_bar):
+                self.pi.master.columnconfigure(i, weight=1)
+                el.master.columnconfigure(0, weight=1)
+                el.master.rowconfigure(1, weight=1)
+                i=i+1
+            
+            
+        else:
+            self.i_pl.destroy()
+            self.plf.destroy()
+            self.i_pl = None
+            self.pi.master.destroy()
+            self.pi = None
+            self.btn.configure(text='Power Info')
+            
+            self.tv = self.Treeview(['Property', 'Value', 'Max'], [80, 90, 0], self.hei // 33, treev.Treev.setup_tree(),
+                                'subdata', ['prop', 'val', 'max'], row=0, col=0, colspan=2, pady=5, padx=(10,5))
+
+            self.bars_active = False
+
 
     def start_track(self):
         if s_probe.sProbe.chargeRemaining == 100:
@@ -193,24 +248,6 @@ class App(TKMT.ThemedTKinterFrame):
             self.track_en.set(False)
         else:
             s_probe.sProbe.activate_tracking()
-            
-
-    
-    def create_internal_graph(self):
-        '''
-            Creates / destroys internal graph, changes window size
-        '''
-        self.internal = not self.internal
-        if self.internal:
-            self.plf = ttk.Frame()
-            self.i_pl = internal.Window(self.plf)
-            self.plf.grid(column=2, row=0, sticky='nw', pady=5, rowspan=2)
-            self.master.geometry(f'{self.wid+500}x{self.hei+0}')
-        else:
-            self.i_pl.destroy()
-            self.plf.destroy()
-            self.i_pl = None
-            self.master.geometry(f'{self.wid}x{self.hei}')
 
 
     '''
@@ -244,25 +281,6 @@ class App(TKMT.ThemedTKinterFrame):
         self.pl.on_close()
         self.pl = None
 
-
-    '''
-        Runs when an item on the treeview is clicked
-        event: item clicked
-    '''
-    def item_selected(self, event):
-        self.item = self.tv.item(self.tv.selection()[0])['text']
-        # If graph is instantiated
-        if self.i_pl is not None:
-            # Everything that can be graphed
-            if 'Voltage' == self.item:
-                self.i_pl.set_prop(self.item)
-            if 'Amperage' == self.item:
-                self.i_pl.set_prop(self.item)
-            if 'Discharge Power' == self.item:
-                self.i_pl.set_prop(self.item)
-            if 'Charge Power' == self.item:
-                self.i_pl.set_prop(self.item)
-        
 
     '''
         Runs when main window is closed

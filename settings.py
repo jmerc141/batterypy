@@ -1,3 +1,5 @@
 s = {
-    'filename': 'history.csv'
+    'filename': 'history.csv',
+    'font': 'TinosNerdFont-Regular',
+    'font_size': 10,
 }

@@ -12,7 +12,8 @@ if os.name == 'nt': #win
 
 
 '''
-    Class for extracting battery data from windows WMI
+    Static Probe
+    Class for extracting battery data from windows WMI and linux /sys/class/power_supply
 '''
 class sProbe(object):
     # Windows only vars
@@ -42,7 +43,7 @@ class sProbe(object):
     voltage = dischargerate = amps = chargerate = watts = hours = minutes = chargeRemaining = fullChargeCap\
        = designCapacity = designVoltage = health = chemistry = status = cycleCount = capRemaining = 0
     # String
-    charging = deviceName = manufName = serial_num = statusString = ''
+    charging = deviceName = manufName = serial_num = statusString = manufDate = ''
     going = True
     tracking = False
 
@@ -71,6 +72,8 @@ class sProbe(object):
         sProbe.fullChargeCap = sProbe.msbatt['BatteryFullChargedCapacity']['FullChargedCapacity'] / 1000
         sProbe.deviceName = sProbe.msbatt['BatteryStaticData']['DeviceName']
         sProbe.manufName = sProbe.msbatt['BatteryStaticData']['ManufactureName']
+        sProbe.manufDate = sProbe.msbatt['BatteryStaticData']['ManufactureDate'] or sProbe.portable['ManufactureDate']
+        # TODO add age
         sProbe.serial_num = sProbe.msbatt['BatteryStaticData']['SerialNumber']
         sProbe.chemistry = sProbe.getchemstr()
         sProbe.designVoltage = sProbe.win32bat['DesignVoltage'] or sProbe.portable['DesignVoltage']

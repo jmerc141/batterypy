@@ -10,5 +10,5 @@ if __name__ == '__main__':
         cli.run()
     else:
         import gui
-        app = gui.App('azure', 'dark')
+        app = gui.App('sun-valley', 'light')
         app.run()
