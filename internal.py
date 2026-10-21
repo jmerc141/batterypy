@@ -33,7 +33,8 @@ class Window(Frame):
 
         self.configure(bg=self.graph_background_color)
             
-        self.grid(row=0, column=2)
+        #self.grid(row=0, column=0, expand=True, fill='both')
+        self.pack(expand=True, fill='both')
 
         self.v = 1.0
         self.A = 1.0
@@ -49,9 +50,6 @@ class Window(Frame):
         #self.ax.set_ylabel('Voltage (V)', color='black', fontsize=16)
         #self.ax.grid(color='black')
 
-        south_frame = Frame(self)
-        
-        south_frame.configure(bg=self.graph_background_color)
         #self.ax.set_xlabel('Seconds', color='white')
         self.ax.set_facecolor(self.graph_background_color)
         self.ax.spines['bottom'].set_color(self.spine_color)
@@ -80,8 +78,6 @@ class Window(Frame):
 
         self.canvas = FigureCanvasTkAgg(self.i_fig, master=self)
         self.canvas.get_tk_widget().pack(side='top', anchor='n', padx=5, expand=True, fill='both')
-
-        south_frame.pack(side='bottom', pady=5)
 
         #self.add_toolbar()
 
@@ -116,7 +112,7 @@ class Window(Frame):
             self.ax.set_xlim([self.x[0], self.x[-1]+1])
 
         self.ymax = max(max([self.volt_data, self.amp_data, self.watt_data]))
-        self.ax.set_ylim(0, self.ymax+1)
+        self.ax.set_ylim(0, self.ymax+2)
 
         self.volt_line.set_data(self.x, self.volt_data)
         self.amp_line.set_data(self.x, self.amp_data)

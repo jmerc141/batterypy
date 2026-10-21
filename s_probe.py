@@ -103,6 +103,7 @@ class sProbe(object):
         sProbe.charging = True if sProbe.__catFile('status', i=False) == 'Charging' else False
         sProbe.deviceName = sProbe.__catFile('model_name', i=False)
         sProbe.manufName = sProbe.__catFile('manufacturer', i=False)
+        sProbe.manufDate = f'{sProbe.__catFile('manufacture_year', i=False)}/{sProbe.__catFile('manufacture_month', i=False)}/{sProbe.__catFile('manufacture_day', i=False)}'
         sProbe.serialNum = sProbe.__catFile('serial_number', i=False)
         sProbe.chemistry = sProbe.__catFile('technology', i=False)
         sProbe.designVoltage = sProbe.__catFile('voltage_max_design') or sProbe.__catFile('voltage_min_design')
@@ -225,7 +226,7 @@ class sProbe(object):
                 content = f.read()
                 return int(content) / 1000000 if i else content.rstrip()
         except FileNotFoundError as fnf:
-            return 0
+            return ''
         except OSError as err:
             return 0
         #try:

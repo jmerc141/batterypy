@@ -15,3 +15,4 @@ python -m PyInstaller --clean --onefile --windowed --icon=.\res\battery.ico --ad
 ```
 python -m PyInstaller --clean --onefile --windowed --add-data "res/*:res" --name=batterypy --collect-data TKinterModernThemes main.py
 ```
+(If using conda may need "conda install -c conda-forge libpython)
