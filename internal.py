@@ -23,7 +23,7 @@ class Window(Frame):
     def __init__(self, master = None):
         Frame.__init__(self, master)
         self.master = master
-        self.maxX = 60
+        self.maxX = 180
         self.maxY = 10
         self.minY = 12
         self.tick = 0
@@ -36,15 +36,12 @@ class Window(Frame):
         #self.grid(row=0, column=0, expand=True, fill='both')
         self.pack(expand=True, fill='both')
 
-        self.v = 1.0
-        self.A = 1.0
-
         self.i_fig = plt.Figure(facecolor=self.graph_line_color, figsize=(7,4), dpi=self.internal_dpi)
         self.i_fig.subplots_adjust(bottom=0.05, top=0.975, left=0.05, right=.975)
         self.x = [0]
-        self.volt_data = [0]
-        self.amp_data = [0]
-        self.watt_data = [0]
+        self.volt_data = [0] #* self.maxX
+        self.amp_data = [0] #* self.maxX
+        self.watt_data = [0] #* self.maxX
 
         self.ax = self.i_fig.add_subplot(111, ylim=(0,20))
         #self.ax.set_ylabel('Voltage (V)', color='black', fontsize=16)
@@ -67,7 +64,7 @@ class Window(Frame):
         #    self.title = self.ax.text(0.5, 0.95, '', bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, 
         #                          transform=self.ax.transAxes, ha='center', fontsize=16)
         
-        self.ax.set_xlim(0, 60)
+        self.ax.set_xlim(self.maxX, 1)
 
         self.volt_line, = self.ax.plot(self.x, self.volt_data, color='red')
         self.volt_sp, = self.ax.stackplot(self.x, self.volt_data, color='red', alpha=0.3)
@@ -98,20 +95,25 @@ class Window(Frame):
         self.tick += 1
         self.x.append(self.tick)
         
-        self.volt_data.append(s_probe.sProbe.voltage)
-        self.amp_data.append(s_probe.sProbe.amps)
-        self.watt_data.append(s_probe.sProbe.watts)
+        #self.volt_data.append(s_probe.sProbe.voltage)
+        #self.amp_data.append(s_probe.sProbe.amps)
+        #self.watt_data.append(s_probe.sProbe.watts)
+
+        self.volt_data.insert(0, s_probe.sProbe.voltage)
+        self.amp_data.insert(0, s_probe.sProbe.amps)
+        self.watt_data.insert(0, s_probe.sProbe.watts)
 
         # adds scrolling x axis after maxX seconds
         if len(self.x) > self.maxX:
             self.x.pop(0)
-            self.volt_data.pop(0)
-            self.amp_data.pop(0)
-            self.watt_data.pop(0)
+            self.volt_data.pop()
+            self.amp_data.pop()
+            self.watt_data.pop()
             # + 1 to add space after line
-            self.ax.set_xlim([self.x[0], self.x[-1]+1])
+            self.ax.set_xlim([self.x[-1], self.x[0]])
 
-        self.ymax = max(max([self.volt_data, self.amp_data, self.watt_data]))
+        self.ymax = max(max(self.watt_data), max(self.volt_data))
+        print(max(self.watt_data), max(self.volt_data), self.ymax)
         self.ax.set_ylim(0, self.ymax+2)
 
         self.volt_line.set_data(self.x, self.volt_data)

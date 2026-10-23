@@ -226,7 +226,7 @@ class sProbe(object):
                 content = f.read()
                 return int(content) / 1000000 if i else content.rstrip()
         except FileNotFoundError as fnf:
-            return ''
+            return 0
         except OSError as err:
             return 0
         #try:
