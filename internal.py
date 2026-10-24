@@ -113,7 +113,6 @@ class Window(Frame):
             self.ax.set_xlim([self.x[-1], self.x[0]])
 
         self.ymax = max(max(self.watt_data), max(self.volt_data))
-        print(max(self.watt_data), max(self.volt_data), self.ymax)
         self.ax.set_ylim(0, self.ymax+2)
 
         self.volt_line.set_data(self.x, self.volt_data)
