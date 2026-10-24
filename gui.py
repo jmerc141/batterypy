@@ -215,6 +215,7 @@ class App(TKMT.ThemedTKinterFrame):
 
             # Strech progressbars
             self.pi.master.rowconfigure(0, weight=1)
+            self.plf.master.rowconfigure(1, weight=1)
             i=0
             for el in (v, a, w, health_bar):
                 self.pi.master.columnconfigure(i, weight=1)
